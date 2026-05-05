@@ -1,0 +1,27 @@
+import type { CompileStatus, LatexEngine } from "@/generated/prisma";
+
+export type CompilerFile = {
+  path: string;
+  content: string;
+};
+
+export type CompileInput = {
+  jobId: string;
+  projectId: string;
+  engine: LatexEngine;
+  mainFilePath: string;
+  files: CompilerFile[];
+};
+
+export type CompileResult = {
+  status: CompileStatus;
+  log: string;
+  errorCode: string | null;
+  output: Buffer | null;
+  startedAt: Date;
+  finishedAt: Date;
+};
+
+export interface CompilerAdapter {
+  compile(input: CompileInput): Promise<CompileResult>;
+}

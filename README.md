@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TikZLab
 
-## Getting Started
+TikZLab, Next.js App Router tabanli TikZ odakli bir LaTeX editorudur. Uygulama; proje yonetimi, `main.tex` duzenleme, snippet/template ekleme, compile job takibi ve PDF onizleme akisini tek urunde birlestirir.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 App Router
+- React 19
+- TypeScript
+- Prisma + PostgreSQL
+- better-auth
+- TanStack Query
+- Zustand
+- CodeMirror 6
+- PDF.js
+- Docker tabanli compiler sandbox
+
+## Kurulum
+
+1. Bagimliliklari yukle:
+
+```bash
+npm install
+```
+
+2. Ortam degiskenlerini hazirla:
+
+```bash
+cp .env.example .env
+```
+
+3. Prisma client ve veritabani:
+
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+```
+
+4. Docker compiler image'ini olustur:
+
+```bash
+npm run compiler:build
+```
+
+5. Uygulamayi calistir:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Auth
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Uygulama better-auth kullanir. MVP icin e-posta + sifre girisi etkindir. Auth route'lari `app/api/auth/[...all]/route.ts` altindadir.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Compiler
 
-## Learn More
+Compile akisi `POST /api/projects/:projectId/compile` ile baslar. Job arkaplanda calisir, durum `GET /api/compile-jobs/:jobId` ile izlenir. Basarili PDF ciktisi `GET /api/compile-jobs/:jobId/output` ile yetkili kullaniciya servis edilir.
 
-To learn more about Next.js, take a look at the following resources:
+Docker sandbox varsayimlari:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- network disabled
+- read-only root filesystem
+- no-new-privileges
+- cap-drop all
+- memory / CPU / timeout limitleri
+- Tectonic cache image build sirasinda isinir; runtime'da `--only-cached` kullanilir
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Onemli Dizinler
 
-## Deploy on Vercel
+- `app/`: route gruplari, sayfalar ve route handler'lar
+- `features/`: dashboard, auth ve editor UI
+- `server/`: proje servisleri, compile adapter'i, parser ve storage
+- `prisma/`: schema ve seed
+- `docker/compiler/`: sandbox image asset'leri
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Notlar
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Compile icin yerel makinede Docker gerekir.
+- Varsayilan engine `TECTONIC` olarak kaydedilir; compile adapter'i ileride baska engine'lere genisletilecek sekilde soyutlanmistir.
+- Public proje paylasimi, SVG/PNG export ve queue-backed worker sonraki faza birakilmistir.

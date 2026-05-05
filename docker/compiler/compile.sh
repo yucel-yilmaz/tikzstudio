@@ -1,0 +1,49 @@
+#!/bin/sh
+set -eu
+
+ENGINE="${1:-tectonic}"
+MAIN_FILE="${2:-main.tex}"
+
+# Reuse the cache warmed at image build time, but move it into a writable runtime cache
+# so Tectonic and Fontconfig can both work without noisy cache warnings.
+export XDG_CACHE_HOME=/tmp/xdg-cache
+mkdir -p "$XDG_CACHE_HOME"
+
+if [ ! -d "$XDG_CACHE_HOME/Tectonic" ] && [ -d /root/.cache/Tectonic ]; then
+  cp -R /root/.cache/Tectonic "$XDG_CACHE_HOME/Tectonic"
+fi
+
+case "$ENGINE" in
+  tectonic)
+    tectonic -X compile --only-cached --keep-logs --outdir /output --untrusted "$MAIN_FILE"
+    ;;
+  pdflatex)
+    pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE"
+    ;;
+  xelatex)
+    xelatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE"
+    ;;
+  lualatex)
+    lualatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE"
+    ;;
+  *)
+    echo "Unsupported engine: $ENGINE" >&2
+    exit 2
+    ;;
+esac
+
+BASE_NAME="$(basename "$MAIN_FILE" .tex)"
+if [ -f "/output/${BASE_NAME}.pdf" ] && [ "/output/${BASE_NAME}.pdf" != "/output/output.pdf" ]; then
+  cp "/output/${BASE_NAME}.pdf" /output/output.pdf
+fi
+
+if [ -f "/output/${BASE_NAME}.log" ] && [ "/output/${BASE_NAME}.log" != "/output/compile.log" ]; then
+  cp "/output/${BASE_NAME}.log" /output/compile.log
+fi
+
+if [ "$ENGINE" = "tectonic" ]; then
+  LOG_FILE="/output/${BASE_NAME}.log"
+  if [ -f "$LOG_FILE" ]; then
+    cat "$LOG_FILE"
+  fi
+fi
