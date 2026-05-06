@@ -1,4 +1,4 @@
-import { CompileStatus, LatexEngine } from "@/generated/prisma";
+import { CompileStatus, type LatexEngine } from "@/generated/prisma";
 
 import { prisma } from "@/lib/prisma";
 import { AppError } from "@/lib/errors";
@@ -124,6 +124,30 @@ export async function getCompileJobForUser(ownerId: string, jobId: string) {
   if (!job) {
     throw new AppError("NOT_FOUND", "Compile job not found.", 404);
   }
+
+  return job;
+}
+
+export async function getLatestCompileOutputForProject(
+  ownerId: string,
+  projectId: string,
+) {
+  const job = await prisma.compileJob.findFirst({
+    where: {
+      projectId,
+      status: CompileStatus.SUCCESS,
+      outputUrl: {
+        not: null,
+      },
+      project: {
+        ownerId,
+        deletedAt: null,
+      },
+    },
+    orderBy: {
+      finishedAt: "desc",
+    },
+  });
 
   return job;
 }

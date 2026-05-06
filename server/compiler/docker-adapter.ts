@@ -63,13 +63,15 @@ export class DockerCompilerAdapter implements CompilerAdapter {
       const { code, log, timedOut } = await this.runDocker(args);
       const finishedAt = new Date();
       const pdfPath = path.join(outputDir, "output.pdf");
+      const svgPath = path.join(outputDir, "output.svg");
 
       if (timedOut) {
         return {
           status: "TIMEOUT",
           log,
           errorCode: "TIMEOUT",
-          output: null,
+          pdfOutput: null,
+          svgOutput: null,
           startedAt,
           finishedAt,
         };
@@ -80,7 +82,8 @@ export class DockerCompilerAdapter implements CompilerAdapter {
           status: "FAILED",
           log,
           errorCode: inferCompileErrorCode(log),
-          output: null,
+          pdfOutput: null,
+          svgOutput: null,
           startedAt,
           finishedAt,
         };
@@ -92,17 +95,36 @@ export class DockerCompilerAdapter implements CompilerAdapter {
           status: "FAILED",
           log: `${log}\nOutput exceeded maximum size.`,
           errorCode: "SECURITY_BLOCKED",
-          output: null,
+          pdfOutput: null,
+          svgOutput: null,
           startedAt,
           finishedAt,
         };
+      }
+
+      let svgOutput: Buffer | null = null;
+      const svgInfo = await stat(svgPath).catch(() => null);
+      if (svgInfo) {
+        if (svgInfo.size > env.MAX_OUTPUT_SIZE_MB * 1024 * 1024) {
+          return {
+            status: "FAILED",
+            log: `${log}\nSVG output exceeded maximum size.`,
+            errorCode: "SECURITY_BLOCKED",
+            pdfOutput: null,
+            svgOutput: null,
+            startedAt,
+            finishedAt,
+          };
+        }
+        svgOutput = await readFile(svgPath);
       }
 
       return {
         status: "SUCCESS",
         log,
         errorCode: null,
-        output: await readFile(pdfPath),
+        pdfOutput: await readFile(pdfPath),
+        svgOutput,
         startedAt,
         finishedAt,
       };
@@ -113,7 +135,8 @@ export class DockerCompilerAdapter implements CompilerAdapter {
         status: "FAILED",
         log: message,
         errorCode: inferCompileErrorCode(message),
-        output: null,
+        pdfOutput: null,
+        svgOutput: null,
         startedAt,
         finishedAt,
       };

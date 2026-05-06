@@ -23,6 +23,11 @@ export function PdfPreview({
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
+		if (!src) {
+			setPreviewWidth(0);
+			return;
+		}
+
 		const frame = previewFrameRef.current;
 		if (!frame) {
 			return;
@@ -35,24 +40,15 @@ export function PdfPreview({
 		observer.observe(frame);
 
 		return () => observer.disconnect();
-	}, []);
+	}, [src]);
 
 	useEffect(() => {
 		let active = true;
 		let renderTask: { cancel(): void } | null = null;
 
 		async function renderPreview() {
-			console.group("[PdfPreview] renderPreview start");
-			console.log("input:", { src, previewWidth, zoom });
-
 			const canvas = canvasRef.current;
 			if (!src || !canvas || !previewWidth) {
-				console.warn("early return", {
-					hasSrc: Boolean(src),
-					hasCanvas: Boolean(canvas),
-					previewWidth,
-				});
-				console.groupEnd();
 				return;
 			}
 
@@ -60,62 +56,40 @@ export function PdfPreview({
 			setError(null);
 
 			try {
-				console.log("step 1: importing pdfjs-dist...");
 				const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-				console.log("step 1 ✓ pdfjs version:", pdfjs.version);
+				pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+					"pdfjs-dist/legacy/build/pdf.worker.mjs",
+					import.meta.url,
+				).toString();
+				const pdfUrl = `${src}${src.includes("?") ? "&" : "?"}ts=${Date.now()}`;
+				const response = await fetch(pdfUrl, {
+					cache: "no-store",
+					credentials: "include",
+				});
 
-				if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-					pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
-					console.log(
-						"step 2 ✓ workerSrc set:",
-						pdfjs.GlobalWorkerOptions.workerSrc,
-					);
-				} else {
-					console.log(
-						"step 2 - workerSrc already set:",
-						pdfjs.GlobalWorkerOptions.workerSrc,
+				if (!response.ok) {
+					throw new Error(
+						`PDF yuklenemedi (${response.status} ${response.statusText}).`,
 					);
 				}
 
-				const pdfUrl = `${src}?ts=${Date.now()}`;
-				console.log("step 3: fetching PDF from:", pdfUrl);
 				const pdfDocument = await pdfjs.getDocument({
-					url: pdfUrl,
-					withCredentials: true,
+					data: new Uint8Array(await response.arrayBuffer()),
 				}).promise;
-				console.log("step 3 ✓ PDF loaded, pages:", pdfDocument.numPages);
 
 				if (!active) {
-					console.warn("aborted after PDF load");
-					console.groupEnd();
 					return;
 				}
 
-				console.log("step 4: getting page 1...");
 				const page = await pdfDocument.getPage(1);
 				const baseViewport = page.getViewport({ scale: 1 });
-				console.log("step 4 ✓ baseViewport:", {
-					width: baseViewport.width,
-					height: baseViewport.height,
-				});
-
 				const dpr = window.devicePixelRatio || 1;
 				const availableWidth = Math.max(80, previewWidth - 32);
 				const fitScale = availableWidth / baseViewport.width;
 				const cssScale = fitScale * zoom;
 				const viewport = page.getViewport({ scale: cssScale * dpr });
-				console.log("step 5: viewport math:", {
-					dpr,
-					previewWidth,
-					availableWidth,
-					fitScale,
-					cssScale,
-					renderViewport: { width: viewport.width, height: viewport.height },
-				});
 
 				if (!active) {
-					console.warn("aborted before canvas setup");
-					console.groupEnd();
 					return;
 				}
 
@@ -126,42 +100,17 @@ export function PdfPreview({
 				canvas.height = viewport.height;
 				canvas.style.width = `${cssWidth}px`;
 				canvas.style.height = `${cssHeight}px`;
-				console.log("step 6 ✓ canvas configured:", {
-					internal: { width: canvas.width, height: canvas.height },
-					css: { width: canvas.style.width, height: canvas.style.height },
-					connected: canvas.isConnected,
-					rect: canvas.getBoundingClientRect(),
-				});
 
-				console.log("step 7: starting render task...");
 				const task = page.render({ canvas, viewport });
 				renderTask = task;
 				await task.promise;
-				console.log("step 7 ✓ render complete");
-
-				const ctx = canvas.getContext("2d");
-				if (ctx) {
-					const sample = ctx.getImageData(
-						Math.floor(canvas.width / 2),
-						Math.floor(canvas.height / 2),
-						1,
-						1,
-					);
-					console.log("step 8: center pixel sample:", Array.from(sample.data));
-				}
-
-				console.groupEnd();
 			} catch (renderError) {
 				if (
 					renderError instanceof Error &&
 					renderError.name === "RenderingCancelledException"
 				) {
-					console.warn("[PdfPreview] render cancelled");
-					console.groupEnd();
 					return;
 				}
-				console.error("[PdfPreview] render failed:", renderError);
-				console.groupEnd();
 				setError(
 					renderError instanceof Error
 						? renderError.message

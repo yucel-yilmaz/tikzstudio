@@ -29,6 +29,7 @@ RUN apt-get update \
     libharfbuzz0b \
     libicu72 \
     libssl3 \
+    pdf2svg \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/local/cargo/bin/tectonic /usr/local/bin/tectonic

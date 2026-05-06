@@ -37,6 +37,10 @@ if [ -f "/output/${BASE_NAME}.pdf" ] && [ "/output/${BASE_NAME}.pdf" != "/output
   cp "/output/${BASE_NAME}.pdf" /output/output.pdf
 fi
 
+if [ -f /output/output.pdf ]; then
+  pdf2svg /output/output.pdf /output/output.svg
+fi
+
 if [ -f "/output/${BASE_NAME}.log" ] && [ "/output/${BASE_NAME}.log" != "/output/compile.log" ]; then
   cp "/output/${BASE_NAME}.log" /output/compile.log
 fi

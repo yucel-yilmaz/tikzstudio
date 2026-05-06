@@ -105,6 +105,12 @@ export function compileProject(projectId: string, payload?: { engine?: string; m
   });
 }
 
+export function getLatestCompileOutput(projectId: string) {
+  return requestJson<{ compileJob: CompileJobDto | null }>(
+    `/api/projects/${projectId}/compile`,
+  );
+}
+
 export function getCompileJob(jobId: string) {
   return requestJson<CompileJobDto>(`/api/compile-jobs/${jobId}`);
 }

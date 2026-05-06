@@ -43,6 +43,7 @@ import { useEditorStore } from "@/features/editor/store/use-editor-store";
 import {
 	compileProject,
 	getCompileJob,
+	getLatestCompileOutput,
 	getProject,
 	getProjectFiles,
 	getSnippets,
@@ -67,22 +68,22 @@ const saveStateMeta = {
 const panelMeta = {
 	files: {
 		title: "Dosyalar",
-		description: "Projedeki kaynak dosyalari sec ve ac.",
+		description: "Projedeki kaynak dosyaları seç ve aç.",
 		icon: FileCode2,
 	},
 	templates: {
-		title: "Sablonlar",
-		description: "Hazir baslangic belgelerini aktif dosyaya ekle.",
+		title: "Şablonlar",
+		description: "Hazır başlangıç belgelerini aktif dosyaya ekle.",
 		icon: LayoutTemplate,
 	},
 	snippets: {
-		title: "Parcalar",
-		description: "Sik kullanilan TikZ bloklarini hizlica ekle.",
+		title: "Parçalar",
+		description: "Sık kullanılan TikZ bloklarını hızlıca ekle.",
 		icon: WandSparkles,
 	},
 	settings: {
 		title: "Ayarlar",
-		description: "Proje bilgisini ve gorunurluk ayarini guncelle.",
+		description: "Proje bilgisini ve görünürlük ayarlarını güncelle.",
 		icon: Settings2,
 	},
 } as const;
@@ -99,20 +100,20 @@ function compileBadge(job: CompileJobDto | null) {
 	switch (job.status) {
 		case "SUCCESS":
 			return {
-				label: "Basarili",
+				label: "Başarılı",
 				className:
 					"border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
 				icon: CheckCircle2,
 			};
 		case "FAILED":
 			return {
-				label: "Basarisiz",
+				label: "Başarısız",
 				className: "border-destructive/20 bg-destructive/10 text-destructive",
 				icon: XCircle,
 			};
 		case "TIMEOUT":
 			return {
-				label: "Zaman asimi",
+				label: "Zaman aşımı",
 				className:
 					"border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300",
 				icon: Clock3,
@@ -125,7 +126,7 @@ function compileBadge(job: CompileJobDto | null) {
 			};
 		case "PENDING":
 			return {
-				label: "Sirada",
+				label: "Beklemede",
 				className: "border-border bg-secondary text-secondary-foreground",
 				icon: Clock3,
 			};
@@ -183,7 +184,13 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 
 	const compileQuery = useQuery({
 		queryKey: ["compile-job", compileJobId],
-		queryFn: () => getCompileJob(compileJobId!),
+		queryFn: () => {
+			if (!compileJobId) {
+				throw new Error("Compile job id is required.");
+			}
+
+			return getCompileJob(compileJobId);
+		},
 		enabled: Boolean(compileJobId),
 		refetchInterval: (query) => {
 			const job = query.state.data;
@@ -193,6 +200,12 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 
 			return terminalStatuses.has(job.status) ? false : 1000;
 		},
+	});
+
+	const latestCompileQuery = useQuery({
+		queryKey: ["latest-compile-output", projectId],
+		queryFn: () => getLatestCompileOutput(projectId),
+		enabled: !compileJobId,
 	});
 
 	const saveMutation = useMutation({
@@ -221,6 +234,9 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 			compileProject(projectId, { mainFileId: activeFileId ?? undefined }),
 		onSuccess: (job) => {
 			setCompileJobId(job.id);
+			queryClient.setQueryData(["latest-compile-output", projectId], {
+				compileJob: job,
+			});
 		},
 	});
 
@@ -269,7 +285,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 		return () => window.clearTimeout(timeout);
 	}, [activeFile, activeValue, isDirty, saveMutation]);
 
-	const currentCompile = compileQuery.data ?? compileMutation.data ?? null;
+	const currentCompile =
+		compileQuery.data ??
+		compileMutation.data ??
+		latestCompileQuery.data?.compileJob ??
+		null;
 	const saveMeta = saveStateMeta[saveState];
 	const compileMeta = compileBadge(currentCompile);
 	const CompileIcon = compileMeta.icon;
@@ -290,7 +310,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										Dashboard
 									</Link>
 									<ChevronRight className="size-3" />
-									<span>Editor</span>
+									<span>Editör</span>
 								</div>
 								<div className="flex items-center gap-3">
 									<CardTitle className="truncate text-xl font-semibold">
@@ -327,7 +347,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									{projectPanelOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
 								</Button>
 								<Button asChild variant="outline" size="sm">
-									<Link href="/dashboard">Panele don</Link>
+									<Link href="/dashboard">Panele dön</Link>
 								</Button>
 								<Button
 									variant="outline"
@@ -355,7 +375,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									onClick={() => compileMutation.mutate()}
 								>
 									<Play />
-									{compileMutation.isPending ? "Baslatiliyor" : "Derle"}
+									{compileMutation.isPending ? "Başlatılıyor" : "Derle"}
 								</Button>
 							</CardAction>
 						</div>
@@ -392,9 +412,9 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 				<div className="space-y-4 lg:hidden">
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-base">Kod Editoru</CardTitle>
+							<CardTitle className="text-base">Kod Editörü</CardTitle>
 							<CardDescription>
-								{activeFile?.path ?? "Aktif dosya secilmedi"}
+								{activeFile?.path ?? "Aktif dosya seçilmedi"}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="p-0">
@@ -415,7 +435,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 						<CardHeader>
 							<CardTitle className="text-base">Proje Paneli</CardTitle>
 							<CardDescription>
-								Dosyalar, sablonlar ve parcalar.
+								Dosyalar, şablonlar ve parçalar.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="px-0">
@@ -440,13 +460,13 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											value="templates"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Sablonlar
+											Şablonlar
 										</TabsTrigger>
 										<TabsTrigger
 											value="snippets"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Parcalar
+											Parçalar
 										</TabsTrigger>
 										<TabsTrigger
 											value="settings"
@@ -541,10 +561,10 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
 												<div className="text-sm font-medium">
-													Herkese acik okuma modu
+													Herkese açık okuma modu
 												</div>
 												<div className="text-xs text-muted-foreground">
-													Paylasim icin isaretle
+													Paylaşım için işaretle
 												</div>
 											</div>
 											<Switch
@@ -553,7 +573,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											/>
 										</div>
 										<Button type="submit" size="sm" className="w-full">
-											Ayarlari kaydet
+											Ayarları kaydet
 										</Button>
 									</form>
 								</TabsContent>

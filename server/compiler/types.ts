@@ -17,7 +17,8 @@ export type CompileResult = {
   status: CompileStatus;
   log: string;
   errorCode: string | null;
-  output: Buffer | null;
+  pdfOutput: Buffer | null;
+  svgOutput: Buffer | null;
   startedAt: Date;
   finishedAt: Date;
 };

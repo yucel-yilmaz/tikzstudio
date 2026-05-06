@@ -105,6 +105,7 @@ model CompileJob {
   engine     LatexEngine   @default(TECTONIC)
   log        String?       @db.Text
   outputUrl  String?
+  svgOutputUrl String?
   errorCode  String?
   startedAt  DateTime?
   finishedAt DateTime?

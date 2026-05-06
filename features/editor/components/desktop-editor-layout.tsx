@@ -96,7 +96,7 @@ type DesktopEditorLayoutProps = {
 
 function summarizeCompileLog(log: string | null) {
 	if (!log) {
-		return ["Derleme ciktisi burada gorunecek."];
+		return ["Derleme çıktısı henüz yok."];
 	}
 
 	const importantLines = log
@@ -166,8 +166,8 @@ export function DesktopEditorLayout({
 					{(
 						[
 							["files", FileCode2, "Dosyalar"],
-							["templates", LayoutTemplate, "Sablonlar"],
-							["snippets", WandSparkles, "Parcalar"],
+							["templates", LayoutTemplate, "Şablonlar"],
+							["snippets", WandSparkles, "Parçalar"],
 							["settings", Settings2, "Ayarlar"],
 						] as const
 					).map(([tab, Icon, label]) => {
@@ -210,7 +210,7 @@ export function DesktopEditorLayout({
 							<CardHeader className="border-b">
 								<div className="flex items-center justify-between gap-3">
 									<div>
-										<CardTitle className="text-base">Kod Editoru</CardTitle>
+										<CardTitle className="text-base">Kod Editörü</CardTitle>
 										<CardDescription>
 											{activeFile ? activeFile.path : "Aktif dosya secilmedi"}
 										</CardDescription>
@@ -288,16 +288,20 @@ export function DesktopEditorLayout({
 														: "Henüz yok"}
 												</span>
 											</div>
+											{currentCompile?.outputUrl ? (
+												<Button
+													asChild
+													variant="outline"
+													size="xs"
+													className="ml-auto"
+												>
+													<a href={`${currentCompile.outputUrl}?download=1`}>
+														<Download />
+														PDF indir
+													</a>
+												</Button>
+											) : null}
 										</div>
-
-										{currentCompile?.outputUrl ? (
-											<Button asChild size="sm" className="w-full">
-												<a href={`${currentCompile.outputUrl}?download=1`}>
-													<Download />
-													PDF indir
-												</a>
-											</Button>
-										) : null}
 
 										<div className="h-72 min-h-72 flex flex-col">
 											<PdfPreview
