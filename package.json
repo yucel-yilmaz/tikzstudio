@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "biome check",
+    "format": "biome format --write",
     "test": "node --experimental-strip-types tests/run-tests.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -58,6 +59,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.14",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
