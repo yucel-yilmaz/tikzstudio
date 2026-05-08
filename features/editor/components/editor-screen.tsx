@@ -5,7 +5,9 @@ import {
 	CheckCircle2,
 	ChevronRight,
 	Clock3,
+	Download,
 	FileCode2,
+	FileImage,
 	LayoutTemplate,
 	LoaderCircle,
 	PanelLeft,
@@ -19,6 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +45,8 @@ import { PdfPreview } from "@/features/editor/components/pdf-preview";
 import { useEditorStore } from "@/features/editor/store/use-editor-store";
 import {
 	compileProject,
+	createFile,
+	deleteFile,
 	getCompileJob,
 	getLatestCompileOutput,
 	getProject,
@@ -251,6 +256,97 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 		},
 	});
 
+	const createFileMutation = useMutation({
+		mutationFn: (path: string) => createFile(projectId, { path, content: "" }),
+		onSuccess: (file) => {
+			queryClient.setQueryData<{ files: ProjectFileDto[] }>(
+				["project-files", projectId],
+				(current) =>
+					current ? { files: [...current.files, file] } : { files: [file] },
+			);
+			setActiveFile(file.id);
+			toast.success(`"${file.path}" oluşturuldu`);
+		},
+		onError: (error) => {
+			toast.error(
+				error instanceof Error ? error.message : "Dosya oluşturulamadı.",
+			);
+		},
+	});
+
+	const deleteFileMutation = useMutation({
+		mutationFn: (fileId: string) => deleteFile(projectId, fileId),
+		onSuccess: (_, fileId) => {
+			queryClient.setQueryData<{ files: ProjectFileDto[] }>(
+				["project-files", projectId],
+				(current) =>
+					current
+						? { files: current.files.filter((file) => file.id !== fileId) }
+						: current,
+			);
+			if (activeFileId === fileId) {
+				const remaining =
+					filesQuery.data?.files.filter((file) => file.id !== fileId) ?? [];
+				setActiveFile(remaining[0]?.id ?? null);
+			}
+			toast.success("Dosya silindi");
+		},
+		onError: (error) => {
+			toast.error(error instanceof Error ? error.message : "Dosya silinemedi.");
+		},
+	});
+
+	const renameFileMutation = useMutation({
+		mutationFn: ({ fileId, path }: { fileId: string; path: string }) =>
+			updateFile(projectId, fileId, { path }),
+		onSuccess: (file) => {
+			queryClient.setQueryData<{ files: ProjectFileDto[] }>(
+				["project-files", projectId],
+				(current) =>
+					current
+						? {
+								files: current.files.map((candidate) =>
+									candidate.id === file.id ? file : candidate,
+								),
+							}
+						: current,
+			);
+			toast.success(`"${file.path}" olarak yeniden adlandırıldı`);
+		},
+		onError: (error) => {
+			toast.error(
+				error instanceof Error
+					? error.message
+					: "Dosya yeniden adlandırılamadı.",
+			);
+		},
+	});
+
+	const setMainFileMutation = useMutation({
+		mutationFn: (fileId: string) =>
+			updateFile(projectId, fileId, { isMain: true }),
+		onSuccess: (file) => {
+			queryClient.setQueryData<{ files: ProjectFileDto[] }>(
+				["project-files", projectId],
+				(current) =>
+					current
+						? {
+								files: current.files.map((candidate) => ({
+									...candidate,
+									isMain: candidate.id === file.id,
+								})),
+							}
+						: current,
+			);
+			toast.success(`"${file.path}" ana dosya yapıldı`);
+		},
+		onError: (error) => {
+			toast.error(
+				error instanceof Error ? error.message : "Ana dosya değiştirilemedi.",
+			);
+		},
+	});
+
 	useEffect(() => {
 		if (filesQuery.data?.files) {
 			initialize(filesQuery.data.files);
@@ -406,6 +502,18 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 					onUpdateBuffer={updateBuffer}
 					onSubmitSettings={async (payload) => {
 						await settingsMutation.mutateAsync(payload);
+					}}
+					onCreateFile={async (path) => {
+						await createFileMutation.mutateAsync(path);
+					}}
+					onDeleteFile={async (fileId) => {
+						await deleteFileMutation.mutateAsync(fileId);
+					}}
+					onRenameFile={async (fileId, path) => {
+						await renameFileMutation.mutateAsync({ fileId, path });
+					}}
+					onSetMainFile={async (fileId) => {
+						await setMainFileMutation.mutateAsync(fileId);
 					}}
 				/>
 
@@ -598,6 +706,26 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 								/>
 								{compileMeta.label}
 							</Badge>
+							{currentCompile?.outputUrl || currentCompile?.svgOutputUrl ? (
+								<div className="grid grid-cols-2 gap-2">
+									{currentCompile.outputUrl ? (
+										<Button asChild variant="outline" size="sm">
+											<a href={`${currentCompile.outputUrl}?download=1`}>
+												<Download />
+												PDF indir
+											</a>
+										</Button>
+									) : null}
+									{currentCompile.svgOutputUrl ? (
+										<Button asChild variant="outline" size="sm">
+											<a href={`${currentCompile.svgOutputUrl}&download=1`}>
+												<FileImage />
+												SVG indir
+											</a>
+										</Button>
+									) : null}
+								</div>
+							) : null}
 							<PdfPreview
 								src={currentCompile?.outputUrl ?? null}
 								zoom={previewZoom}

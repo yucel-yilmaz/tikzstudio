@@ -1,16 +1,25 @@
 "use client";
 
 import {
+	Check,
 	Download,
 	FileCode2,
+	FileImage,
+	FilePlus,
 	LayoutTemplate,
 	type LucideIcon,
+	MoreVertical,
 	PanelLeftClose,
 	PanelLeftOpen,
+	Pencil,
 	Settings2,
+	Star,
 	TerminalSquare,
+	Trash2,
 	WandSparkles,
+	X,
 } from "lucide-react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +30,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
 	ResizableHandle,
@@ -41,7 +57,7 @@ import type {
 	SnippetDto,
 	TemplateDto,
 } from "@/lib/types";
-import { cn, formatRelativeDate } from "@/lib/utils";
+import { cn, formatRelativeDate, normalizeProjectFilePath } from "@/lib/utils";
 
 type SidebarTab = "files" | "templates" | "snippets" | "settings";
 
@@ -92,6 +108,10 @@ type DesktopEditorLayoutProps = {
 		description: string;
 		isPublic: boolean;
 	}): Promise<void>;
+	onCreateFile(path: string): Promise<void>;
+	onDeleteFile(fileId: string): Promise<void>;
+	onRenameFile(fileId: string, path: string): Promise<void>;
+	onSetMainFile(fileId: string): Promise<void>;
 };
 
 function summarizeCompileLog(log: string | null) {
@@ -136,9 +156,49 @@ export function DesktopEditorLayout({
 	onToggleProjectPanel,
 	onUpdateBuffer,
 	onSubmitSettings,
+	onCreateFile,
+	onDeleteFile,
+	onRenameFile,
+	onSetMainFile,
 }: DesktopEditorLayoutProps) {
 	const CompileIcon = compileMeta.icon;
 	const logSummary = summarizeCompileLog(currentCompile?.log ?? null);
+	const [isCreating, setIsCreating] = useState(false);
+	const [newFilePath, setNewFilePath] = useState("");
+	const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
+	const [renameValue, setRenameValue] = useState("");
+
+	async function submitNewFile() {
+		const normalized = normalizeProjectFilePath(newFilePath);
+		if (!normalized) return;
+		try {
+			await onCreateFile(normalized);
+			setNewFilePath("");
+			setIsCreating(false);
+		} catch {
+			// keep input open so user can correct
+		}
+	}
+
+	function startRename(fileId: string, currentPath: string) {
+		setRenamingFileId(fileId);
+		setRenameValue(currentPath);
+	}
+
+	async function submitRename() {
+		if (!renamingFileId) return;
+		const normalized = normalizeProjectFilePath(renameValue);
+		if (!normalized) {
+			setRenamingFileId(null);
+			return;
+		}
+		try {
+			await onRenameFile(renamingFileId, normalized);
+			setRenamingFileId(null);
+		} catch {
+			// keep input open
+		}
+	}
 
 	return (
 		<div className="hidden lg:flex lg:min-h-0 lg:flex-1">
@@ -301,6 +361,14 @@ export function DesktopEditorLayout({
 													</a>
 												</Button>
 											) : null}
+											{currentCompile?.svgOutputUrl ? (
+												<Button asChild variant="outline" size="xs">
+													<a href={`${currentCompile.svgOutputUrl}&download=1`}>
+														<FileImage />
+														SVG indir
+													</a>
+												</Button>
+											) : null}
 										</div>
 
 										<div className="h-72 min-h-72 flex flex-col">
@@ -362,16 +430,124 @@ export function DesktopEditorLayout({
 									<TabsContent value="files" className="mt-0 min-h-0 flex-1">
 										<ScrollArea className="h-full px-4 py-4">
 											<div className="space-y-2">
+												{isCreating ? (
+													<div className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-2 py-1.5">
+														<FilePlus className="size-4 shrink-0 text-primary" />
+														<Input
+															autoFocus
+															value={newFilePath}
+															placeholder="ornek.tex"
+															onChange={(e) => setNewFilePath(e.target.value)}
+															onKeyDown={(e) => {
+																if (e.key === "Enter") {
+																	e.preventDefault();
+																	void submitNewFile();
+																} else if (e.key === "Escape") {
+																	setIsCreating(false);
+																	setNewFilePath("");
+																}
+															}}
+															className="h-7 border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0"
+														/>
+														<Button
+															type="button"
+															size="icon-sm"
+															variant="ghost"
+															onClick={() => void submitNewFile()}
+															aria-label="Olustur"
+														>
+															<Check className="size-4" />
+														</Button>
+														<Button
+															type="button"
+															size="icon-sm"
+															variant="ghost"
+															onClick={() => {
+																setIsCreating(false);
+																setNewFilePath("");
+															}}
+															aria-label="Iptal"
+														>
+															<X className="size-4" />
+														</Button>
+														{newFilePath.trim() &&
+														normalizeProjectFilePath(newFilePath) !==
+															newFilePath.trim() ? (
+															<span className="ml-2 text-[11px] text-muted-foreground">
+																→{" "}
+																<code className="font-mono">
+																	{normalizeProjectFilePath(newFilePath)}
+																</code>
+															</span>
+														) : null}
+													</div>
+												) : (
+													<Button
+														type="button"
+														variant="outline"
+														size="sm"
+														className="w-full justify-start gap-2 border-dashed"
+														onClick={() => setIsCreating(true)}
+													>
+														<FilePlus className="size-4" />
+														Yeni dosya
+													</Button>
+												)}
+
 												{files.map((file) => {
 													const selected = activeFileId === file.id;
+													const isRenaming = renamingFileId === file.id;
+
+													if (isRenaming) {
+														return (
+															<div
+																key={file.id}
+																className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-2 py-1.5"
+															>
+																<FileCode2 className="size-4 shrink-0 text-primary" />
+																<Input
+																	autoFocus
+																	value={renameValue}
+																	onChange={(e) =>
+																		setRenameValue(e.target.value)
+																	}
+																	onKeyDown={(e) => {
+																		if (e.key === "Enter") {
+																			e.preventDefault();
+																			void submitRename();
+																		} else if (e.key === "Escape") {
+																			setRenamingFileId(null);
+																		}
+																	}}
+																	className="h-7 border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0"
+																/>
+																<Button
+																	type="button"
+																	size="icon-sm"
+																	variant="ghost"
+																	onClick={() => void submitRename()}
+																	aria-label="Kaydet"
+																>
+																	<Check className="size-4" />
+																</Button>
+																<Button
+																	type="button"
+																	size="icon-sm"
+																	variant="ghost"
+																	onClick={() => setRenamingFileId(null)}
+																	aria-label="Iptal"
+																>
+																	<X className="size-4" />
+																</Button>
+															</div>
+														);
+													}
 
 													return (
-														<button
+														<div
 															key={file.id}
-															type="button"
-															onClick={() => onSetActiveFile(file.id)}
 															className={cn(
-																"group relative w-full overflow-hidden rounded-lg border px-3 py-3 text-left transition-all duration-150",
+																"group relative flex items-center gap-1 overflow-hidden rounded-lg border pr-1 transition-all duration-150",
 																selected
 																	? "border-primary/30 bg-primary/5 shadow-sm"
 																	: "border-transparent hover:border-border hover:bg-muted/50",
@@ -380,32 +556,91 @@ export function DesktopEditorLayout({
 															{selected ? (
 																<span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-primary" />
 															) : null}
-															<div className="flex items-start justify-between gap-3">
-																<div className="min-w-0 space-y-1">
-																	<div
-																		className={cn(
-																			"truncate text-sm",
-																			selected
-																				? "font-semibold text-foreground"
-																				: "font-medium text-foreground/90",
-																		)}
-																	>
-																		{file.path}
+															<button
+																type="button"
+																onClick={() => onSetActiveFile(file.id)}
+																className="flex-1 min-w-0 px-3 py-3 text-left"
+															>
+																<div className="flex items-start justify-between gap-2">
+																	<div className="min-w-0 space-y-1">
+																		<div
+																			className={cn(
+																				"truncate text-sm",
+																				selected
+																					? "font-semibold text-foreground"
+																					: "font-medium text-foreground/90",
+																			)}
+																		>
+																			{file.path}
+																		</div>
+																		<p className="text-xs text-muted-foreground">
+																			{formatRelativeDate(file.updatedAt)}
+																		</p>
 																	</div>
-																	<p className="text-xs text-muted-foreground">
-																		{formatRelativeDate(file.updatedAt)}
-																	</p>
+																	{file.isMain ? (
+																		<Badge
+																			variant="secondary"
+																			className="shrink-0"
+																		>
+																			Ana
+																		</Badge>
+																	) : null}
 																</div>
-																{file.isMain ? (
-																	<Badge
-																		variant="secondary"
-																		className="shrink-0"
+															</button>
+															<DropdownMenu>
+																<DropdownMenuTrigger asChild>
+																	<Button
+																		type="button"
+																		size="icon-sm"
+																		variant="ghost"
+																		className="shrink-0 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
+																		aria-label="Dosya islemleri"
 																	>
-																		Ana
-																	</Badge>
-																) : null}
-															</div>
-														</button>
+																		<MoreVertical className="size-4" />
+																	</Button>
+																</DropdownMenuTrigger>
+																<DropdownMenuContent align="end">
+																	<DropdownMenuItem
+																		onSelect={() =>
+																			startRename(file.id, file.path)
+																		}
+																	>
+																		<Pencil />
+																		Yeniden adlandir
+																	</DropdownMenuItem>
+																	{!file.isMain ? (
+																		<DropdownMenuItem
+																			onSelect={() => {
+																				void onSetMainFile(file.id);
+																			}}
+																		>
+																			<Star />
+																			Ana dosya yap
+																		</DropdownMenuItem>
+																	) : null}
+																	<DropdownMenuSeparator />
+																	<DropdownMenuItem
+																		variant="destructive"
+																		disabled={file.isMain}
+																		onSelect={() => {
+																			if (file.isMain) return;
+																			if (
+																				typeof window !== "undefined" &&
+																				!window.confirm(
+																					`"${file.path}" dosyasi silinsin mi?`,
+																				)
+																			) {
+																				return;
+																			}
+																			void onDeleteFile(file.id);
+																		}}
+																	>
+																		<Trash2 />
+																		Sil
+																	</DropdownMenuItem>
+																</DropdownMenuContent>
+															</DropdownMenu>
+														</div>
 													);
 												})}
 											</div>

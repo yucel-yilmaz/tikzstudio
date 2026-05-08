@@ -2,7 +2,10 @@ import { toErrorResponse } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import { getSessionFromHeaders } from "@/lib/session";
 import { slugifyFilename } from "@/lib/utils";
-import { readCompileOutput } from "@/server/compiler/storage";
+import {
+	readCompileOutput,
+	readCompileSvgOutput,
+} from "@/server/compiler/storage";
 
 export async function GET(
 	request: Request,
@@ -33,21 +36,36 @@ export async function GET(
 			},
 		});
 
-		if (!job?.outputUrl) {
+		if (!job) {
 			return Response.json(
 				{ error: { code: "NOT_FOUND", message: "Output not found." } },
 				{ status: 404 },
 			);
 		}
 
-		const download = new URL(request.url).searchParams.get("download") === "1";
-		const buffer = await readCompileOutput(jobId);
-		const fileName = `${slugifyFilename(job.project.title) || "tikzlab-project"}.pdf`;
+		const searchParams = new URL(request.url).searchParams;
+		const format = searchParams.get("format") === "svg" ? "svg" : "pdf";
+		const outputUrl = format === "svg" ? job.svgOutputUrl : job.outputUrl;
+
+		if (!outputUrl) {
+			return Response.json(
+				{ error: { code: "NOT_FOUND", message: "Output not found." } },
+				{ status: 404 },
+			);
+		}
+
+		const download = searchParams.get("download") === "1";
+		const buffer =
+			format === "svg"
+				? await readCompileSvgOutput(jobId)
+				: await readCompileOutput(jobId);
+		const extension = format === "svg" ? "svg" : "pdf";
+		const fileName = `${slugifyFilename(job.project.title) || "tikzlab-project"}.${extension}`;
 
 		return new Response(buffer, {
 			status: 200,
 			headers: {
-				"Content-Type": "application/pdf",
+				"Content-Type": format === "svg" ? "image/svg+xml" : "application/pdf",
 				"Content-Disposition": `${download ? "attachment" : "inline"}; filename="${fileName}"`,
 				"Cache-Control": "private, max-age=60",
 			},

@@ -15,7 +15,7 @@ type EditorState = {
 	buffers: Record<string, string>;
 	saveState: SaveState;
 	initialize(files: ProjectFileDto[]): void;
-	setActiveFile(fileId: string): void;
+	setActiveFile(fileId: string | null): void;
 	setSidebarTab(tab: SidebarTab): void;
 	setProjectPanelOpen(open: boolean): void;
 	toggleProjectPanel(): void;

@@ -43,6 +43,7 @@ export function toCompileJobDto(job: CompileJob): CompileJobDto {
     engine: job.engine,
     log: job.log,
     outputUrl: job.outputUrl,
+    svgOutputUrl: job.svgOutputUrl,
     errorCode: job.errorCode,
     startedAt: job.startedAt?.toISOString() ?? null,
     finishedAt: job.finishedAt?.toISOString() ?? null,

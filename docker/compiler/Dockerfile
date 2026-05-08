@@ -15,8 +15,8 @@ RUN apt-get update \
 RUN cargo install tectonic
 
 WORKDIR /warmup
-RUN printf '\\documentclass[tikz,border=10pt]{standalone}\n\\usepackage{amsmath}\n\\usepackage{tikz}\n\\begin{document}\n\\begin{tikzpicture}\n  \\node[draw, circle] (a) at (0,0) {$A_i$};\n  \\node[draw, circle] (b) at (2,1) {$B^2$};\n  \\draw[->] (a) -- node[above] {$\\alpha + \\beta$} (b);\n\\end{tikzpicture}\n\\[\n  \\int_0^1 x^2\\,dx = \\frac{1}{3}\n\\]\n\\end{document}\n' > main.tex \
-  && tectonic -X compile --keep-logs main.tex
+COPY docker/compiler/warmup.tex main.tex
+RUN tectonic -X compile --keep-logs main.tex
 
 FROM debian:bookworm-slim
 
