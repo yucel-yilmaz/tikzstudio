@@ -2,6 +2,7 @@ export type AppErrorCode =
   | "UNAUTHORIZED"
   | "FORBIDDEN"
   | "NOT_FOUND"
+  | "CONFLICT"
   | "VALIDATION_ERROR"
   | "TIMEOUT"
   | "LATEX_SYNTAX_ERROR"
