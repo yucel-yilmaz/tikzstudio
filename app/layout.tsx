@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr" className={cn("h-full antialiased", "font-sans", geist.variable)}>
-      <body className="min-h-full bg-[var(--surface-0)] text-[var(--ink-0)]">
+      <body className="min-h-full bg-background text-foreground">
         <Providers>{children}</Providers>
       </body>
     </html>
