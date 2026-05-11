@@ -4,7 +4,14 @@
       "Bash(npm run *)",
       "Bash(npx biome *)",
       "Bash(curl -sS -I --max-time 10 https://relay.fullyjustified.net/default_bundle_v33.tar.index.gz)",
-      "Bash(cd \"c:\\\\Projects\\\\tikzstudio\" && mkdir -p app/api/share/\\\\[projectId\\\\])"
+      "Bash(cd \"c:\\\\Projects\\\\tikzstudio\" && mkdir -p app/api/share/\\\\[projectId\\\\])",
+      "Bash(Get-ChildItem -Path \"c:\\\\Projects\\\\tikzstudio\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(xargs ls -la)",
+      "Bash(npm install *)",
+      "Bash(grep -n \"currentCompile,\\\\|compileMeta,$\" features/editor/components/desktop-editor-layout.tsx)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'feat: highlight compile errors on the affected code line *)"
     ],
     "additionalDirectories": [
       "C:\\Projects\\tikzstudio\\app\\api\\share"

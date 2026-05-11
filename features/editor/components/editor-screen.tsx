@@ -57,6 +57,7 @@ import {
 	updateFile,
 	updateProject,
 } from "@/lib/client-api";
+import { diagnosticsForFile, parseCompileLog } from "@/lib/compile-log";
 import { COMPILE_TERMINAL_STATUSES } from "@/lib/defaults";
 import type { CompileJobDto, ProjectFileDto } from "@/lib/types";
 import { cn, formatRelativeDate } from "@/lib/utils";
@@ -392,6 +393,16 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 	const CompileIcon = compileMeta.icon;
 	const activePanelMeta = panelMeta[sidebarTab];
 
+	const allDiagnostics = useMemo(
+		() => parseCompileLog(currentCompile?.log ?? null),
+		[currentCompile?.log],
+	);
+	const activeFileDiagnostics = useMemo(
+		() =>
+			activeFile ? diagnosticsForFile(allDiagnostics, activeFile.path) : [],
+		[allDiagnostics, activeFile],
+	);
+
 	return (
 		<div className="min-h-screen bg-background lg:h-screen lg:overflow-hidden">
 			<div className="mx-auto flex max-w-450 flex-col gap-4 p-4 lg:h-full lg:overflow-hidden lg:p-6">
@@ -501,6 +512,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 					activeValue={activeValue}
 					compileMeta={compileMeta}
 					currentCompile={currentCompile}
+					diagnostics={activeFileDiagnostics}
 					files={filesQuery.data?.files ?? []}
 					insertIntoActive={insertIntoActive}
 					previewZoom={previewZoom}
@@ -550,6 +562,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											updateBuffer(activeFile.id, value);
 										}
 									}}
+									diagnostics={activeFileDiagnostics}
 								/>
 							</div>
 						</CardContent>

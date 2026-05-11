@@ -50,6 +50,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { TikzCodeEditor } from "@/features/editor/components/code-editor";
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
+import type { CompileDiagnostic } from "@/lib/compile-log";
 import type {
 	CompileJobDto,
 	ProjectDetail,
@@ -88,6 +89,7 @@ type DesktopEditorLayoutProps = {
 	activeValue: string;
 	compileMeta: CompileMeta;
 	currentCompile: CompileJobDto | null;
+	diagnostics: CompileDiagnostic[];
 	files: ProjectFileDto[];
 	insertIntoActive(content: string): void;
 	previewZoom: number;
@@ -140,6 +142,7 @@ export function DesktopEditorLayout({
 	activeValue,
 	compileMeta,
 	currentCompile,
+	diagnostics,
 	files,
 	insertIntoActive,
 	previewZoom,
@@ -289,6 +292,7 @@ export function DesktopEditorLayout({
 												onUpdateBuffer(activeFile.id, value);
 											}
 										}}
+										diagnostics={diagnostics}
 									/>
 								</div>
 							</CardContent>
