@@ -14,17 +14,17 @@ const defaultDocument = String.raw`\documentclass[tikz,border=10pt]{standalone}
 `;
 
 const templates = [
-  {
-    title: "Basic Line and Arrow",
-    category: "Basic Shapes",
-    description: "Simple directed line segment.",
-    content: defaultDocument,
-  },
-  {
-    title: "Rectangle Node",
-    category: "Nodes",
-    description: "Single rounded rectangle node.",
-    content: String.raw`\documentclass[tikz,border=10pt]{standalone}
+	{
+		title: "Basic Line and Arrow",
+		category: "Basic Shapes",
+		description: "Simple directed line segment.",
+		content: defaultDocument,
+	},
+	{
+		title: "Rectangle Node",
+		category: "Nodes",
+		description: "Single rounded rectangle node.",
+		content: String.raw`\documentclass[tikz,border=10pt]{standalone}
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}
@@ -32,12 +32,12 @@ const templates = [
 \end{tikzpicture}
 \end{document}
 `,
-  },
-  {
-    title: "Circle Node",
-    category: "Nodes",
-    description: "Single circular node.",
-    content: String.raw`\documentclass[tikz,border=10pt]{standalone}
+	},
+	{
+		title: "Circle Node",
+		category: "Nodes",
+		description: "Single circular node.",
+		content: String.raw`\documentclass[tikz,border=10pt]{standalone}
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}
@@ -45,12 +45,12 @@ const templates = [
 \end{tikzpicture}
 \end{document}
 `,
-  },
-  {
-    title: "Flowchart",
-    category: "Flowcharts",
-    description: "Three-step flowchart.",
-    content: String.raw`\documentclass[tikz,border=10pt]{standalone}
+	},
+	{
+		title: "Flowchart",
+		category: "Flowcharts",
+		description: "Three-step flowchart.",
+		content: String.raw`\documentclass[tikz,border=10pt]{standalone}
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}
@@ -62,12 +62,12 @@ const templates = [
 \end{tikzpicture}
 \end{document}
 `,
-  },
-  {
-    title: "Coordinate Plane",
-    category: "Coordinate System",
-    description: "Labeled x-y axes.",
-    content: String.raw`\documentclass[tikz,border=10pt]{standalone}
+	},
+	{
+		title: "Coordinate Plane",
+		category: "Coordinate System",
+		description: "Labeled x-y axes.",
+		content: String.raw`\documentclass[tikz,border=10pt]{standalone}
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}[scale=0.8]
@@ -77,12 +77,12 @@ const templates = [
 \end{tikzpicture}
 \end{document}
 `,
-  },
-  {
-    title: "Function Plot",
-    category: "Graphs",
-    description: "Quadratic function sample.",
-    content: String.raw`\documentclass[tikz,border=10pt]{standalone}
+	},
+	{
+		title: "Function Plot",
+		category: "Graphs",
+		description: "Quadratic function sample.",
+		content: String.raw`\documentclass[tikz,border=10pt]{standalone}
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}[scale=0.8]
@@ -92,12 +92,12 @@ const templates = [
 \end{tikzpicture}
 \end{document}
 `,
-  },
-  {
-    title: "Triangle Geometry",
-    category: "Geometry",
-    description: "Annotated triangle diagram.",
-    content: String.raw`\documentclass[tikz,border=10pt]{standalone}
+	},
+	{
+		title: "Triangle Geometry",
+		category: "Geometry",
+		description: "Annotated triangle diagram.",
+		content: String.raw`\documentclass[tikz,border=10pt]{standalone}
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}
@@ -111,12 +111,12 @@ const templates = [
 \end{tikzpicture}
 \end{document}
 `,
-  },
-  {
-    title: "Directed Graph",
-    category: "Graphs",
-    description: "Three-node directed graph.",
-    content: String.raw`\documentclass[tikz,border=10pt]{standalone}
+	},
+	{
+		title: "Directed Graph",
+		category: "Graphs",
+		description: "Three-node directed graph.",
+		content: String.raw`\documentclass[tikz,border=10pt]{standalone}
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}
@@ -129,12 +129,12 @@ const templates = [
 \end{tikzpicture}
 \end{document}
 `,
-  },
-  {
-    title: "Tree Diagram",
-    category: "Trees",
-    description: "Simple rooted tree.",
-    content: String.raw`\documentclass[tikz,border=10pt]{standalone}
+	},
+	{
+		title: "Tree Diagram",
+		category: "Trees",
+		description: "Simple rooted tree.",
+		content: String.raw`\documentclass[tikz,border=10pt]{standalone}
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}[
@@ -148,12 +148,12 @@ const templates = [
 \end{tikzpicture}
 \end{document}
 `,
-  },
-  {
-    title: "Simple Neural Network Diagram",
-    category: "Flowcharts",
-    description: "Tiny feed-forward network.",
-    content: String.raw`\documentclass[tikz,border=10pt]{standalone}
+	},
+	{
+		title: "Simple Neural Network Diagram",
+		category: "Flowcharts",
+		description: "Tiny feed-forward network.",
+		content: String.raw`\documentclass[tikz,border=10pt]{standalone}
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}[x=1.5cm, y=1cm]
@@ -165,40 +165,90 @@ const templates = [
 \end{tikzpicture}
 \end{document}
 `,
-  },
+	},
 ];
 
 const snippets = [
-  { title: "Basic Arrow", category: "Arrows", trigger: "arrow-basic", content: String.raw`\draw[->] (0,0) -- (3,0);` },
-  { title: "Rectangle", category: "Basic Shapes", trigger: "shape-rect", content: String.raw`\draw (0,0) rectangle (3,2);` },
-  { title: "Circle", category: "Basic Shapes", trigger: "shape-circle", content: String.raw`\draw (0,0) circle (1cm);` },
-  { title: "Node", category: "Nodes", trigger: "node-basic", content: String.raw`\node[draw] (A) at (0,0) {A};` },
-  { title: "Coordinate Grid", category: "Coordinate System", trigger: "grid-basic", content: String.raw`\draw[step=1, gray!30] (-3,-3) grid (3,3);` },
-  { title: "Flow Step", category: "Flowcharts", trigger: "flow-step", content: String.raw`\node[draw, rounded corners] (step) at (0,0) {Step};` },
-  { title: "Triangle", category: "Geometry", trigger: "triangle", content: String.raw`\draw (0,0) -- (2,0) -- (1,1.7) -- cycle;` },
-  { title: "Tree Child", category: "Trees", trigger: "tree-child", content: String.raw`child { node {Label} }` },
-  { title: "Directed Edge", category: "Graphs", trigger: "graph-edge", content: String.raw`\draw[->] (A) -- (B);` },
-  { title: "Circuit Wire", category: "Circuit Diagrams", trigger: "wire-basic", content: String.raw`\draw (0,0) -- (2,0);` },
+	{
+		title: "Basic Arrow",
+		category: "Arrows",
+		trigger: "arrow-basic",
+		content: String.raw`\draw[->] (0,0) -- (3,0);`,
+	},
+	{
+		title: "Rectangle",
+		category: "Basic Shapes",
+		trigger: "shape-rect",
+		content: String.raw`\draw (0,0) rectangle (3,2);`,
+	},
+	{
+		title: "Circle",
+		category: "Basic Shapes",
+		trigger: "shape-circle",
+		content: String.raw`\draw (0,0) circle (1cm);`,
+	},
+	{
+		title: "Node",
+		category: "Nodes",
+		trigger: "node-basic",
+		content: String.raw`\node[draw] (A) at (0,0) {A};`,
+	},
+	{
+		title: "Coordinate Grid",
+		category: "Coordinate System",
+		trigger: "grid-basic",
+		content: String.raw`\draw[step=1, gray!30] (-3,-3) grid (3,3);`,
+	},
+	{
+		title: "Flow Step",
+		category: "Flowcharts",
+		trigger: "flow-step",
+		content: String.raw`\node[draw, rounded corners] (step) at (0,0) {Step};`,
+	},
+	{
+		title: "Triangle",
+		category: "Geometry",
+		trigger: "triangle",
+		content: String.raw`\draw (0,0) -- (2,0) -- (1,1.7) -- cycle;`,
+	},
+	{
+		title: "Tree Child",
+		category: "Trees",
+		trigger: "tree-child",
+		content: String.raw`child { node {Label} }`,
+	},
+	{
+		title: "Directed Edge",
+		category: "Graphs",
+		trigger: "graph-edge",
+		content: String.raw`\draw[->] (A) -- (B);`,
+	},
+	{
+		title: "Circuit Wire",
+		category: "Circuit Diagrams",
+		trigger: "wire-basic",
+		content: String.raw`\draw (0,0) -- (2,0);`,
+	},
 ];
 
 async function main() {
-  await prisma.template.createMany({
-    data: templates,
-    skipDuplicates: true,
-  });
+	await prisma.template.createMany({
+		data: templates,
+		skipDuplicates: true,
+	});
 
-  await prisma.snippet.createMany({
-    data: snippets,
-    skipDuplicates: true,
-  });
+	await prisma.snippet.createMany({
+		data: snippets,
+		skipDuplicates: true,
+	});
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (error) => {
-    console.error(error);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+	.then(async () => {
+		await prisma.$disconnect();
+	})
+	.catch(async (error) => {
+		console.error(error);
+		await prisma.$disconnect();
+		process.exit(1);
+	});

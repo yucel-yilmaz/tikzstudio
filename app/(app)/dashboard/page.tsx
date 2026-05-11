@@ -2,7 +2,7 @@ import { DashboardScreen } from "@/features/dashboard/components/dashboard-scree
 import { requireServerSession } from "@/lib/session";
 
 export default async function DashboardPage() {
-  const session = await requireServerSession();
+	const session = await requireServerSession();
 
-  return <DashboardScreen userName={session.user.name} />;
+	return <DashboardScreen userName={session.user.name} />;
 }

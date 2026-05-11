@@ -13,6 +13,15 @@ export const DEFAULT_PROJECT_SOURCE = String.raw`\documentclass[tikz,border=10pt
 \end{document}
 `;
 
-export const SIDEBAR_TABS = ["files", "templates", "snippets", "settings"] as const;
+export const SIDEBAR_TABS = [
+	"files",
+	"templates",
+	"snippets",
+	"settings",
+] as const;
 
-export const COMPILE_TERMINAL_STATUSES = ["SUCCESS", "FAILED", "TIMEOUT"] as const;
+export const COMPILE_TERMINAL_STATUSES = [
+	"SUCCESS",
+	"FAILED",
+	"TIMEOUT",
+] as const;

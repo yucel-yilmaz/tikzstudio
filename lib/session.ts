@@ -1,27 +1,27 @@
-import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { auth } from "@/lib/auth";
 
 export const getServerSession = cache(async () => {
-  return auth.api.getSession({
-    headers: await headers(),
-  });
+	return auth.api.getSession({
+		headers: await headers(),
+	});
 });
 
 export async function requireServerSession() {
-  const session = await getServerSession();
+	const session = await getServerSession();
 
-  if (!session) {
-    redirect("/login");
-  }
+	if (!session) {
+		redirect("/login");
+	}
 
-  return session;
+	return session;
 }
 
 export async function getSessionFromHeaders(requestHeaders: Headers) {
-  return auth.api.getSession({
-    headers: requestHeaders,
-  });
+	return auth.api.getSession({
+		headers: requestHeaders,
+	});
 }
