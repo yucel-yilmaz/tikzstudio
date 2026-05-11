@@ -240,22 +240,24 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 											value={file.id}
 											className="mt-0 flex-1"
 										>
-											<div className="h-[480px]">
+											<div className="max-h-120 overflow-y-auto">
 												<TikzCodeEditor
 													value={file.content}
 													onChange={() => {}}
 													readOnly
+													height="auto"
 												/>
 											</div>
 										</TabsContent>
 									))}
 								</Tabs>
 							) : (
-								<div className="h-[520px]">
+								<div className="max-h-130 overflow-y-auto">
 									<TikzCodeEditor
 										value={activeFile?.content ?? ""}
 										onChange={() => {}}
 										readOnly
+										height="auto"
 									/>
 								</div>
 							)}

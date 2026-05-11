@@ -9,15 +9,17 @@ export function TikzCodeEditor({
 	value,
 	onChange,
 	readOnly = false,
+	height = "100%",
 }: {
 	value: string;
 	onChange(value: string): void;
 	readOnly?: boolean;
+	height?: string;
 }) {
 	return (
 		<CodeMirror
 			value={value}
-			height="100%"
+			height={height}
 			theme="light"
 			readOnly={readOnly}
 			basicSetup={{
