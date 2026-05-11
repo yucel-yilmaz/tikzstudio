@@ -76,6 +76,27 @@ export async function requireOwnedProject(ownerId: string, projectId: string) {
 	return project;
 }
 
+export async function getPublicProject(projectId: string) {
+	return prisma.project.findFirst({
+		where: {
+			id: projectId,
+			isPublic: true,
+			deletedAt: null,
+		},
+		include: projectBaseInclude,
+	});
+}
+
+export async function requirePublicProject(projectId: string) {
+	const project = await getPublicProject(projectId);
+
+	if (!project) {
+		throw new AppError("NOT_FOUND", "Project not found.", 404);
+	}
+
+	return project;
+}
+
 export async function updateProjectForUser(
 	ownerId: string,
 	projectId: string,

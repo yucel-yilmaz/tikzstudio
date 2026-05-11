@@ -8,15 +8,18 @@ import CodeMirror from "@uiw/react-codemirror";
 export function TikzCodeEditor({
 	value,
 	onChange,
+	readOnly = false,
 }: {
 	value: string;
 	onChange(value: string): void;
+	readOnly?: boolean;
 }) {
 	return (
 		<CodeMirror
 			value={value}
 			height="100%"
 			theme="light"
+			readOnly={readOnly}
 			basicSetup={{
 				lineNumbers: true,
 				foldGutter: true,

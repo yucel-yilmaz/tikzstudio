@@ -13,33 +13,32 @@ export async function GET(
 ) {
 	try {
 		const session = await getSessionFromHeaders(request.headers);
-		if (!session) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Authentication required." },
-				},
-				{ status: 401 },
-			);
-		}
-
 		const { jobId } = await context.params;
+
 		const job = await prisma.compileJob.findFirst({
 			where: {
 				id: jobId,
 				project: {
-					ownerId: session.user.id,
 					deletedAt: null,
+					...(session ? { ownerId: session.user.id } : { isPublic: true }),
 				},
 			},
-			include: {
-				project: true,
-			},
+			include: { project: true },
 		});
 
 		if (!job) {
 			return Response.json(
 				{ error: { code: "NOT_FOUND", message: "Output not found." } },
 				{ status: 404 },
+			);
+		}
+
+		if (!session && !job.project.isPublic) {
+			return Response.json(
+				{
+					error: { code: "UNAUTHORIZED", message: "Authentication required." },
+				},
+				{ status: 401 },
 			);
 		}
 
@@ -61,13 +60,16 @@ export async function GET(
 				: await readCompileOutput(jobId);
 		const extension = format === "svg" ? "svg" : "pdf";
 		const fileName = `${slugifyFilename(job.project.title) || "tikzlab-project"}.${extension}`;
+		const isPublic = job.project.isPublic;
 
 		return new Response(buffer, {
 			status: 200,
 			headers: {
 				"Content-Type": format === "svg" ? "image/svg+xml" : "application/pdf",
 				"Content-Disposition": `${download ? "attachment" : "inline"}; filename="${fileName}"`,
-				"Cache-Control": "private, max-age=60",
+				"Cache-Control": isPublic
+					? "public, max-age=60"
+					: "private, max-age=60",
 			},
 		});
 	} catch (error) {

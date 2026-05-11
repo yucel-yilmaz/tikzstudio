@@ -146,6 +146,10 @@ export function getCompileJob(jobId: string) {
 	return requestJson<CompileJobDto>(`/api/compile-jobs/${jobId}`);
 }
 
+export function getPublicProject(projectId: string) {
+	return requestJson<ProjectDetail>(`/api/share/${projectId}`);
+}
+
 export function getTemplates(search = "") {
 	return requestJson<{ templates: TemplateDto[] }>(
 		`/api/templates${search ? `?search=${encodeURIComponent(search)}` : ""}`,

@@ -1,9 +1,13 @@
 {
-	"permissions": {
-		"allow": [
-			"Bash(npm run *)",
-			"Bash(npx biome *)",
-			"Bash(curl -sS -I --max-time 10 https://relay.fullyjustified.net/default_bundle_v33.tar.index.gz)"
-		]
-	}
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npx biome *)",
+      "Bash(curl -sS -I --max-time 10 https://relay.fullyjustified.net/default_bundle_v33.tar.index.gz)",
+      "Bash(cd \"c:\\\\Projects\\\\tikzstudio\" && mkdir -p app/api/share/\\\\[projectId\\\\])"
+    ],
+    "additionalDirectories": [
+      "C:\\Projects\\tikzstudio\\app\\api\\share"
+    ]
+  }
 }

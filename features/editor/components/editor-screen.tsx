@@ -16,6 +16,7 @@ import {
 	Play,
 	Save,
 	Settings2,
+	Share2,
 	WandSparkles,
 	XCircle,
 } from "lucide-react";
@@ -442,6 +443,21 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 								>
 									{projectPanelOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
 								</Button>
+								{projectQuery.data?.isPublic ? (
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={() => {
+											const url = `${window.location.origin}/p/${projectId}`;
+											navigator.clipboard.writeText(url);
+											toast.success("Paylaşım linki kopyalandı");
+										}}
+									>
+										<Share2 />
+										Paylaş
+									</Button>
+								) : null}
 								<Button asChild variant="outline" size="sm">
 									<Link href="/dashboard">Panele dön</Link>
 								</Button>
