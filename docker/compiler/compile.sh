@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eu
+set -u
 
 ENGINE="${1:-tectonic}"
 MAIN_FILE="${2:-main.tex}"
@@ -13,18 +13,19 @@ if [ ! -d "$XDG_CACHE_HOME/Tectonic" ] && [ -d /root/.cache/Tectonic ]; then
   cp -R /root/.cache/Tectonic "$XDG_CACHE_HOME/Tectonic"
 fi
 
+COMPILE_EXIT=0
 case "$ENGINE" in
   tectonic)
-    tectonic -X compile --only-cached --keep-logs --outdir /output --untrusted "$MAIN_FILE"
+    tectonic -X compile --only-cached --keep-logs --outdir /output --untrusted "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
   pdflatex)
-    pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE"
+    pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
   xelatex)
-    xelatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE"
+    xelatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
   lualatex)
-    lualatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE"
+    lualatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
   *)
     echo "Unsupported engine: $ENGINE" >&2
@@ -38,16 +39,18 @@ if [ -f "/output/${BASE_NAME}.pdf" ] && [ "/output/${BASE_NAME}.pdf" != "/output
 fi
 
 if [ -f /output/output.pdf ]; then
-  pdf2svg /output/output.pdf /output/output.svg
+  pdf2svg /output/output.pdf /output/output.svg || true
 fi
 
 if [ -f "/output/${BASE_NAME}.log" ] && [ "/output/${BASE_NAME}.log" != "/output/compile.log" ]; then
   cp "/output/${BASE_NAME}.log" /output/compile.log
 fi
 
-if [ "$ENGINE" = "tectonic" ]; then
-  LOG_FILE="/output/${BASE_NAME}.log"
-  if [ -f "$LOG_FILE" ]; then
-    cat "$LOG_FILE"
-  fi
+# Always print the detailed LaTeX log so the frontend parser can extract `l.<N>`
+# indicators even when the engine failed.
+LOG_FILE="/output/${BASE_NAME}.log"
+if [ -f "$LOG_FILE" ]; then
+  cat "$LOG_FILE"
 fi
+
+exit "$COMPILE_EXIT"

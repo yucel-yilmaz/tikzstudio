@@ -11,7 +11,8 @@
       "Bash(npm install *)",
       "Bash(grep -n \"currentCompile,\\\\|compileMeta,$\" features/editor/components/desktop-editor-layout.tsx)",
       "Bash(git add *)",
-      "Bash(git commit -m 'feat: highlight compile errors on the affected code line *)"
+      "Bash(git commit -m 'feat: highlight compile errors on the affected code line *)",
+      "Bash(git push *)"
     ],
     "additionalDirectories": [
       "C:\\Projects\\tikzstudio\\app\\api\\share"
