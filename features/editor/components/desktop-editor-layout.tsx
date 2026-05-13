@@ -12,6 +12,7 @@ import {
 	PanelLeftClose,
 	PanelLeftOpen,
 	Pencil,
+	Search,
 	Settings2,
 	Star,
 	TerminalSquare,
@@ -19,7 +20,7 @@ import {
 	WandSparkles,
 	X,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -170,6 +171,29 @@ export function DesktopEditorLayout({
 	const [newFilePath, setNewFilePath] = useState("");
 	const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
 	const [renameValue, setRenameValue] = useState("");
+	const [templateSearch, setTemplateSearch] = useState("");
+	const [templateCategory, setTemplateCategory] = useState<string | null>(null);
+
+	const templateCategories = useMemo(() => {
+		const set = new Set<string>();
+		for (const t of templates) {
+			if (t.category) set.add(t.category);
+		}
+		return Array.from(set).sort();
+	}, [templates]);
+
+	const filteredTemplates = useMemo(() => {
+		const q = templateSearch.trim().toLowerCase();
+		return templates.filter((t) => {
+			if (templateCategory && t.category !== templateCategory) return false;
+			if (!q) return true;
+			return (
+				t.title.toLowerCase().includes(q) ||
+				(t.description?.toLowerCase().includes(q) ?? false) ||
+				t.category.toLowerCase().includes(q)
+			);
+		});
+	}, [templates, templateSearch, templateCategory]);
 
 	async function submitNewFile() {
 		const normalized = normalizeProjectFilePath(newFilePath);
@@ -653,27 +677,93 @@ export function DesktopEditorLayout({
 
 									<TabsContent
 										value="templates"
-										className="mt-0 min-h-0 flex-1"
+										className="mt-0 flex min-h-0 flex-1 flex-col"
 									>
-										<ScrollArea className="h-full px-4 py-4">
-											<div className="space-y-2">
-												{templates.map((template) => (
+										<div className="space-y-2 border-b border-sidebar-border px-4 py-3">
+											<div className="relative">
+												<Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+												<Input
+													value={templateSearch}
+													onChange={(e) => setTemplateSearch(e.target.value)}
+													placeholder="Şablon ara…"
+													className="h-8 pl-8 text-sm"
+												/>
+											</div>
+											{templateCategories.length > 0 ? (
+												<div className="flex flex-wrap gap-1">
 													<button
-														key={template.id}
 														type="button"
-														onClick={() => insertIntoActive(template.content)}
-														className="w-full rounded-lg border border-transparent px-3 py-3 text-left transition-colors hover:border-border hover:bg-muted/50"
+														onClick={() => setTemplateCategory(null)}
+														className={cn(
+															"rounded-full border px-2.5 py-0.5 text-[11px] transition-colors",
+															templateCategory === null
+																? "border-primary/30 bg-primary/10 text-primary"
+																: "border-border text-muted-foreground hover:bg-muted",
+														)}
 													>
-														<div className="space-y-1">
-															<div className="text-sm font-medium">
-																{template.title}
-															</div>
-															<p className="text-xs text-muted-foreground">
-																{template.category}
-															</p>
-														</div>
+														Tümü
 													</button>
-												))}
+													{templateCategories.map((cat) => (
+														<button
+															key={cat}
+															type="button"
+															onClick={() => setTemplateCategory(cat)}
+															className={cn(
+																"rounded-full border px-2.5 py-0.5 text-[11px] transition-colors",
+																templateCategory === cat
+																	? "border-primary/30 bg-primary/10 text-primary"
+																	: "border-border text-muted-foreground hover:bg-muted",
+															)}
+														>
+															{cat}
+														</button>
+													))}
+												</div>
+											) : null}
+										</div>
+										<ScrollArea className="flex-1">
+											<div className="grid grid-cols-1 gap-2 px-4 py-4 xl:grid-cols-2">
+												{filteredTemplates.length === 0 ? (
+													<p className="col-span-full text-center text-xs text-muted-foreground">
+														Eşleşen şablon bulunamadı.
+													</p>
+												) : null}
+												{filteredTemplates.map((template) => {
+													const preview = template.content
+														.split(/\r?\n/)
+														.slice(0, 5)
+														.join("\n");
+													return (
+														<button
+															key={template.id}
+															type="button"
+															onClick={() => insertIntoActive(template.content)}
+															className="group flex flex-col gap-2 rounded-lg border border-transparent bg-background/50 p-3 text-left transition-colors hover:border-border hover:bg-muted/40"
+														>
+															<div className="flex items-start justify-between gap-2">
+																<div className="min-w-0 space-y-0.5">
+																	<div className="truncate text-sm font-medium">
+																		{template.title}
+																	</div>
+																	{template.description ? (
+																		<p className="line-clamp-1 text-[11px] text-muted-foreground">
+																			{template.description}
+																		</p>
+																	) : null}
+																</div>
+																<Badge
+																	variant="outline"
+																	className="shrink-0 text-[10px]"
+																>
+																	{template.category}
+																</Badge>
+															</div>
+															<pre className="overflow-hidden rounded-md bg-muted/60 px-2 py-1.5 font-mono text-[10px] leading-4 text-muted-foreground group-hover:text-foreground">
+																{preview}
+															</pre>
+														</button>
+													);
+												})}
 											</div>
 										</ScrollArea>
 									</TabsContent>
