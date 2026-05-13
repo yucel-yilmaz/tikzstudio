@@ -2,10 +2,10 @@
 
 import { bracketMatching, StreamLanguage } from "@codemirror/language";
 import { stex } from "@codemirror/legacy-modes/mode/stex";
-import { type Diagnostic, linter } from "@codemirror/lint";
+import { type Diagnostic, lintGutter, setDiagnostics } from "@codemirror/lint";
 import { EditorView } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import type { CompileDiagnostic } from "@/lib/compile-log";
 
@@ -22,38 +22,39 @@ export function TikzCodeEditor({
 	height?: string;
 	diagnostics?: CompileDiagnostic[];
 }) {
-	const lintExtension = useMemo(
-		() =>
-			linter((view) => {
-				if (diagnostics.length === 0) return [];
-				const totalLines = view.state.doc.lines;
-				const items: Diagnostic[] = [];
-
-				for (const d of diagnostics) {
-					if (d.line < 1 || d.line > totalLines) continue;
-					const line = view.state.doc.line(d.line);
-					items.push({
-						from: line.from,
-						to: line.to,
-						severity: d.severity,
-						message: d.message,
-					});
-				}
-
-				return items;
-			}),
-		[diagnostics],
-	);
+	const viewRef = useRef<EditorView | null>(null);
 
 	const extensions = useMemo(
 		() => [
 			StreamLanguage.define(stex),
 			bracketMatching(),
 			EditorView.lineWrapping,
-			lintExtension,
+			lintGutter(),
 		],
-		[lintExtension],
+		[],
 	);
+
+	useEffect(() => {
+		const view = viewRef.current;
+		if (!view) return;
+
+		const totalLines = view.state.doc.lines;
+		const items: Diagnostic[] = [];
+
+		for (const d of diagnostics) {
+			if (d.line < 1) continue;
+			const targetLine = Math.min(d.line, totalLines);
+			const line = view.state.doc.line(targetLine);
+			items.push({
+				from: line.from,
+				to: line.to,
+				severity: d.severity,
+				message: d.message,
+			});
+		}
+
+		view.dispatch(setDiagnostics(view.state, items));
+	}, [diagnostics]);
 
 	return (
 		<CodeMirror
@@ -67,6 +68,9 @@ export function TikzCodeEditor({
 				autocompletion: false,
 			}}
 			extensions={extensions}
+			onCreateEditor={(view) => {
+				viewRef.current = view;
+			}}
 			onChange={onChange}
 		/>
 	);
