@@ -12,6 +12,27 @@ import { requireOwnedProject } from "@/server/services/projects";
 
 const compiler = new DockerCompilerAdapter();
 
+const COMPILE_RATE_WINDOW_MS = 60_000;
+const COMPILE_RATE_MAX = 5;
+
+async function enforceCompileRateLimit(ownerId: string) {
+	const recentCount = await prisma.compileJob.count({
+		where: {
+			project: { ownerId, deletedAt: null },
+			createdAt: { gte: new Date(Date.now() - COMPILE_RATE_WINDOW_MS) },
+		},
+	});
+
+	if (recentCount >= COMPILE_RATE_MAX) {
+		throw new AppError(
+			"RATE_LIMITED",
+			`Çok fazla derleme isteği. Dakikada en fazla ${COMPILE_RATE_MAX} derleme yapabilirsiniz.`,
+			429,
+			{ retryAfterSeconds: 60 },
+		);
+	}
+}
+
 export async function enqueueCompileForProject(input: {
 	ownerId: string;
 	projectId: string;
@@ -28,6 +49,8 @@ export async function enqueueCompileForProject(input: {
 	if (!mainFile) {
 		throw new AppError("MISSING_FILE", "Main file not found.", 400);
 	}
+
+	await enforceCompileRateLimit(input.ownerId);
 
 	const job = await prisma.compileJob.create({
 		data: {

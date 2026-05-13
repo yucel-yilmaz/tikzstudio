@@ -45,6 +45,7 @@ import { DesktopEditorLayout } from "@/features/editor/components/desktop-editor
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
 import { useEditorStore } from "@/features/editor/store/use-editor-store";
 import {
+	ClientApiError,
 	compileProject,
 	createFile,
 	deleteFile,
@@ -244,6 +245,15 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 			queryClient.setQueryData(["latest-compile-output", projectId], {
 				compileJob: job,
 			});
+		},
+		onError: (error) => {
+			if (error instanceof ClientApiError && error.code === "RATE_LIMITED") {
+				toast.error(error.message);
+				return;
+			}
+			toast.error(
+				error instanceof Error ? error.message : "Derleme başlatılamadı.",
+			);
 		},
 	});
 

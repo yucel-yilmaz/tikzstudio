@@ -4,6 +4,7 @@ export type AppErrorCode =
 	| "NOT_FOUND"
 	| "CONFLICT"
 	| "VALIDATION_ERROR"
+	| "RATE_LIMITED"
 	| "TIMEOUT"
 	| "LATEX_SYNTAX_ERROR"
 	| "MISSING_PACKAGE"
