@@ -5,6 +5,7 @@ import { compileProjectSchema } from "@/server/schemas/project";
 import {
 	enqueueCompileForProject,
 	getLatestCompileOutputForProject,
+	listCompileHistoryForProject,
 } from "@/server/services/compile";
 
 export async function GET(
@@ -18,6 +19,21 @@ export async function GET(
 		}
 
 		const { projectId } = await context.params;
+		const url = new URL(request.url);
+
+		if (url.searchParams.get("history") === "1") {
+			const limit = Number.parseInt(
+				url.searchParams.get("limit") ?? "20",
+				10,
+			);
+			const jobs = await listCompileHistoryForProject(
+				session.user.id,
+				projectId,
+				Number.isFinite(limit) ? limit : 20,
+			);
+			return Response.json({ jobs: jobs.map(toCompileJobDto) });
+		}
+
 		const job = await getLatestCompileOutputForProject(
 			session.user.id,
 			projectId,

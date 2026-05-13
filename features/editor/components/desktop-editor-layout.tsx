@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
 	Check,
 	Download,
@@ -47,10 +48,11 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { TikzCodeEditor } from "@/features/editor/components/code-editor";
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
+import { getCompileHistory } from "@/lib/client-api";
 import type { CompileDiagnostic } from "@/lib/compile-log";
 import type {
 	CompileJobDto,
@@ -173,6 +175,14 @@ export function DesktopEditorLayout({
 	const [renameValue, setRenameValue] = useState("");
 	const [templateSearch, setTemplateSearch] = useState("");
 	const [templateCategory, setTemplateCategory] = useState<string | null>(null);
+	const [outputTab, setOutputTab] = useState<"preview" | "history">("preview");
+
+	const historyQuery = useQuery({
+		queryKey: ["compile-history", project?.id],
+		queryFn: () => getCompileHistory(project?.id ?? ""),
+		enabled: Boolean(project?.id) && outputTab === "history",
+		refetchInterval: outputTab === "history" ? 5000 : false,
+	});
 
 	const templateCategories = useMemo(() => {
 		const set = new Set<string>();
@@ -332,7 +342,7 @@ export function DesktopEditorLayout({
 						className="min-w-80"
 					>
 						<Card className="flex h-full min-h-0 min-w-80 flex-col rounded-none border-0 shadow-none">
-							<CardHeader className="border-b">
+							<CardHeader className="gap-3 border-b">
 								<div className="flex items-start justify-between gap-3">
 									<div className="min-w-0">
 										<CardTitle className="text-base">Çıktı Paneli</CardTitle>
@@ -356,70 +366,166 @@ export function DesktopEditorLayout({
 										{compileMeta.label}
 									</Badge>
 								</div>
+								<Tabs
+									value={outputTab}
+									onValueChange={(v) =>
+										setOutputTab(v as "preview" | "history")
+									}
+								>
+									<TabsList variant="line" className="h-8 gap-1">
+										<TabsTrigger value="preview" className="text-xs">
+											Önizleme
+										</TabsTrigger>
+										<TabsTrigger value="history" className="text-xs">
+											Geçmiş
+										</TabsTrigger>
+									</TabsList>
+								</Tabs>
 							</CardHeader>
-							<CardContent className="min-h-0 flex-1 overflow-hidden p-0">
-								<ScrollArea className="h-full">
-									<div className="flex min-w-0 flex-col gap-3 p-3">
-										<div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs">
-											<div className="flex items-center gap-1.5">
-												<span className="text-muted-foreground">Motor:</span>
-												<code className="rounded bg-background px-1.5 py-0.5 font-mono font-medium">
-													{currentCompile?.engine ?? "TECTONIC"}
-												</code>
-											</div>
-											<span className="text-muted-foreground/40">•</span>
-											<div className="flex items-center gap-1.5">
-												<span className="text-muted-foreground">Son:</span>
-												<span className="font-medium">
-													{currentCompile?.finishedAt
-														? formatRelativeDate(currentCompile.finishedAt)
-														: "Henüz yok"}
-												</span>
-											</div>
-											{currentCompile?.outputUrl ? (
-												<Button
-													asChild
-													variant="outline"
-													size="xs"
-													className="ml-auto"
+							{outputTab === "history" ? (
+								<CardContent className="min-h-0 flex-1 overflow-hidden p-0">
+									<ScrollArea className="h-full">
+										<div className="flex min-w-0 flex-col gap-2 p-3">
+											{historyQuery.isLoading ? (
+												<p className="px-2 py-4 text-center text-xs text-muted-foreground">
+													Yükleniyor…
+												</p>
+											) : null}
+											{!historyQuery.isLoading &&
+											(historyQuery.data?.jobs.length ?? 0) === 0 ? (
+												<p className="px-2 py-4 text-center text-xs text-muted-foreground">
+													Henüz derleme yapılmadı.
+												</p>
+											) : null}
+											{historyQuery.data?.jobs.map((job) => (
+												<div
+													key={job.id}
+													className="space-y-1 rounded-lg border bg-background px-3 py-2 text-xs"
 												>
-													<a href={`${currentCompile.outputUrl}?download=1`}>
-														<Download />
-														PDF indir
-													</a>
-												</Button>
-											) : null}
-											{currentCompile?.svgOutputUrl ? (
-												<Button asChild variant="outline" size="xs">
-													<a href={`${currentCompile.svgOutputUrl}&download=1`}>
-														<FileImage />
-														SVG indir
-													</a>
-												</Button>
-											) : null}
+													<div className="flex items-center justify-between gap-2">
+														<Badge
+															variant="outline"
+															className={cn(
+																"gap-1.5 px-2 py-0.5 text-[10px]",
+																job.status === "SUCCESS" &&
+																	"border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
+																job.status === "FAILED" &&
+																	"border-destructive/20 bg-destructive/10 text-destructive",
+																job.status === "TIMEOUT" &&
+																	"border-amber-200 bg-amber-50 text-amber-700",
+															)}
+														>
+															{job.status}
+														</Badge>
+														<span className="text-muted-foreground">
+															{formatRelativeDate(
+																job.finishedAt ?? job.createdAt,
+															)}
+														</span>
+													</div>
+													<div className="flex flex-wrap items-center gap-1.5">
+														<code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+															{job.engine}
+														</code>
+														{job.outputUrl ? (
+															<Button
+																asChild
+																variant="outline"
+																size="xs"
+																className="h-6 text-[10px]"
+															>
+																<a href={`${job.outputUrl}?download=1`}>
+																	<Download className="size-3" />
+																	PDF
+																</a>
+															</Button>
+														) : null}
+														{job.svgOutputUrl ? (
+															<Button
+																asChild
+																variant="outline"
+																size="xs"
+																className="h-6 text-[10px]"
+															>
+																<a href={`${job.svgOutputUrl}&download=1`}>
+																	<FileImage className="size-3" />
+																	SVG
+																</a>
+															</Button>
+														) : null}
+													</div>
+												</div>
+											))}
 										</div>
-
-										<div className="h-72 min-h-72 flex flex-col">
-											<PdfPreview
-												src={currentCompile?.outputUrl ?? null}
-												zoom={previewZoom}
-												onZoomChange={onSetPreviewZoom}
-											/>
-										</div>
-										<div className="flex h-48 min-h-48 min-w-0 flex-col overflow-hidden rounded-xl border bg-background">
-											<div className="flex items-center gap-2 border-b px-3 py-2 text-sm font-medium">
-												<TerminalSquare className="size-4" />
-												Derleme Günlüğü
+									</ScrollArea>
+								</CardContent>
+							) : (
+								<CardContent className="min-h-0 flex-1 overflow-hidden p-0">
+									<ScrollArea className="h-full">
+										<div className="flex min-w-0 flex-col gap-3 p-3">
+											<div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs">
+												<div className="flex items-center gap-1.5">
+													<span className="text-muted-foreground">Motor:</span>
+													<code className="rounded bg-background px-1.5 py-0.5 font-mono font-medium">
+														{currentCompile?.engine ?? "TECTONIC"}
+													</code>
+												</div>
+												<span className="text-muted-foreground/40">•</span>
+												<div className="flex items-center gap-1.5">
+													<span className="text-muted-foreground">Son:</span>
+													<span className="font-medium">
+														{currentCompile?.finishedAt
+															? formatRelativeDate(currentCompile.finishedAt)
+															: "Henüz yok"}
+													</span>
+												</div>
+												{currentCompile?.outputUrl ? (
+													<Button
+														asChild
+														variant="outline"
+														size="xs"
+														className="ml-auto"
+													>
+														<a href={`${currentCompile.outputUrl}?download=1`}>
+															<Download />
+															PDF indir
+														</a>
+													</Button>
+												) : null}
+												{currentCompile?.svgOutputUrl ? (
+													<Button asChild variant="outline" size="xs">
+														<a
+															href={`${currentCompile.svgOutputUrl}&download=1`}
+														>
+															<FileImage />
+															SVG indir
+														</a>
+													</Button>
+												) : null}
 											</div>
-											<ScrollArea className="min-h-0 flex-1">
-												<pre className="whitespace-pre-wrap wrap-break-word p-2 font-mono text-xs leading-5 text-muted-foreground">
-													{logSummary.join("\n")}
-												</pre>
-											</ScrollArea>
+
+											<div className="h-72 min-h-72 flex flex-col">
+												<PdfPreview
+													src={currentCompile?.outputUrl ?? null}
+													zoom={previewZoom}
+													onZoomChange={onSetPreviewZoom}
+												/>
+											</div>
+											<div className="flex h-48 min-h-48 min-w-0 flex-col overflow-hidden rounded-xl border bg-background">
+												<div className="flex items-center gap-2 border-b px-3 py-2 text-sm font-medium">
+													<TerminalSquare className="size-4" />
+													Derleme Günlüğü
+												</div>
+												<ScrollArea className="min-h-0 flex-1">
+													<pre className="whitespace-pre-wrap wrap-break-word p-2 font-mono text-xs leading-5 text-muted-foreground">
+														{logSummary.join("\n")}
+													</pre>
+												</ScrollArea>
+											</div>
 										</div>
-									</div>
-								</ScrollArea>
-							</CardContent>
+									</ScrollArea>
+								</CardContent>
+							)}
 						</Card>
 					</ResizablePanel>
 				</ResizablePanelGroup>

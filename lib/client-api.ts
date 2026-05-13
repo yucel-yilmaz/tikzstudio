@@ -142,6 +142,12 @@ export function getLatestCompileOutput(projectId: string) {
 	);
 }
 
+export function getCompileHistory(projectId: string, limit = 20) {
+	return requestJson<{ jobs: CompileJobDto[] }>(
+		`/api/projects/${projectId}/compile?history=1&limit=${limit}`,
+	);
+}
+
 export function getCompileJob(jobId: string) {
 	return requestJson<CompileJobDto>(`/api/compile-jobs/${jobId}`);
 }

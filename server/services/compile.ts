@@ -153,6 +153,22 @@ export async function getCompileJobForUser(ownerId: string, jobId: string) {
 	return job;
 }
 
+export async function listCompileHistoryForProject(
+	ownerId: string,
+	projectId: string,
+	limit = 20,
+) {
+	await requireOwnedProject(ownerId, projectId);
+	return prisma.compileJob.findMany({
+		where: {
+			projectId,
+			project: { ownerId, deletedAt: null },
+		},
+		orderBy: { createdAt: "desc" },
+		take: Math.min(Math.max(limit, 1), 50),
+	});
+}
+
 export async function getLatestCompileOutputForProject(
 	ownerId: string,
 	projectId: string,
