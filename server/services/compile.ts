@@ -1,6 +1,7 @@
 import { CompileStatus, type LatexEngine } from "@/generated/prisma";
 import { DEFAULT_MAIN_FILE_PATH } from "@/lib/defaults";
 import { AppError } from "@/lib/errors";
+import { COMPILE_QUEUE, type CompileJobPayload, getBoss } from "@/lib/pgboss";
 import { prisma } from "@/lib/prisma";
 import { DockerCompilerAdapter } from "@/server/compiler/docker-adapter";
 import {
@@ -36,19 +37,8 @@ export async function enqueueCompileForProject(input: {
 		},
 	});
 
-	void runCompileJob(job.id).catch(async (error) => {
-		const message =
-			error instanceof Error ? error.message : "Compile job failed.";
-		await prisma.compileJob.update({
-			where: { id: job.id },
-			data: {
-				status: CompileStatus.FAILED,
-				log: message,
-				errorCode: "UNKNOWN_ERROR",
-				finishedAt: new Date(),
-			},
-		});
-	});
+	const boss = await getBoss();
+	await boss.send<CompileJobPayload>(COMPILE_QUEUE, { jobId: job.id });
 
 	return job;
 }
