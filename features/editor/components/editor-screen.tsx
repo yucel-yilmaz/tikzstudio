@@ -57,6 +57,7 @@ import {
 	getTemplates,
 	updateFile,
 	updateProject,
+	uploadFile,
 } from "@/lib/client-api";
 import { diagnosticsForFile, parseCompileLog } from "@/lib/compile-log";
 import { COMPILE_TERMINAL_STATUSES } from "@/lib/defaults";
@@ -359,6 +360,24 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 		},
 	});
 
+	const uploadFileMutation = useMutation({
+		mutationFn: (file: File) => uploadFile(projectId, file),
+		onSuccess: (file) => {
+			queryClient.setQueryData<{ files: ProjectFileDto[] }>(
+				["project-files", projectId],
+				(current) =>
+					current ? { files: [...current.files, file] } : { files: [file] },
+			);
+			setActiveFile(file.id);
+			toast.success(`"${file.path}" yüklendi`);
+		},
+		onError: (error) => {
+			toast.error(
+				error instanceof Error ? error.message : "Dosya yüklenemedi.",
+			);
+		},
+	});
+
 	useEffect(() => {
 		if (filesQuery.data?.files) {
 			initialize(filesQuery.data.files);
@@ -553,6 +572,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 					onSetMainFile={async (fileId) => {
 						await setMainFileMutation.mutateAsync(fileId);
 					}}
+					onUploadFile={(file) => uploadFileMutation.mutate(file)}
 				/>
 
 				<div className="space-y-4 lg:hidden">

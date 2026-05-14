@@ -69,7 +69,6 @@ import {
 	deleteSnippet,
 	deleteTemplate,
 	getCompileHistory,
-	uploadFile,
 } from "@/lib/client-api";
 import type { CompileDiagnostic } from "@/lib/compile-log";
 import type {
@@ -137,6 +136,7 @@ type DesktopEditorLayoutProps = {
 	onDeleteFile(fileId: string): Promise<void>;
 	onRenameFile(fileId: string, path: string): Promise<void>;
 	onSetMainFile(fileId: string): Promise<void>;
+	onUploadFile(file: File): void;
 };
 
 function summarizeCompileLog(log: string | null) {
@@ -186,6 +186,7 @@ export function DesktopEditorLayout({
 	onDeleteFile,
 	onRenameFile,
 	onSetMainFile,
+	onUploadFile,
 }: DesktopEditorLayoutProps) {
 	const CompileIcon = compileMeta.icon;
 	const logSummary = summarizeCompileLog(currentCompile?.log ?? null);
@@ -256,13 +257,6 @@ export function DesktopEditorLayout({
 	});
 
 	const fileInputRef = useRef<HTMLInputElement>(null);
-
-	const uploadMutation = useMutation({
-		mutationFn: (file: File) => uploadFile(project?.id ?? "", file),
-		onSuccess: (uploaded) => {
-			onSetActiveFile(uploaded.id);
-		},
-	});
 
 	const historyQuery = useQuery({
 		queryKey: ["compile-history", project?.id],
@@ -721,7 +715,6 @@ export function DesktopEditorLayout({
 															variant="outline"
 															size="sm"
 															className="shrink-0 border-dashed px-2"
-															disabled={uploadMutation.isPending}
 															onClick={() => fileInputRef.current?.click()}
 															title="Dosya yükle"
 														>
@@ -733,7 +726,7 @@ export function DesktopEditorLayout({
 															className="hidden"
 															onChange={(e) => {
 																const file = e.target.files?.[0];
-																if (file) uploadMutation.mutate(file);
+																if (file) onUploadFile(file);
 																e.target.value = "";
 															}}
 														/>
