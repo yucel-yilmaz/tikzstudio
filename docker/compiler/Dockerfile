@@ -15,8 +15,14 @@ RUN apt-get update \
 RUN cargo install tectonic
 
 WORKDIR /warmup
-COPY docker/compiler/warmup.tex main.tex
-RUN tectonic -X compile --keep-logs main.tex
+COPY docker/compiler/warmup.tex          warmup.tex
+COPY docker/compiler/warmup-article.tex  warmup-article.tex
+COPY docker/compiler/warmup-beamer.tex   warmup-beamer.tex
+COPY docker/compiler/warmup-report.tex   warmup-report.tex
+RUN tectonic -X compile --keep-logs warmup.tex         || true \
+ && tectonic -X compile --keep-logs warmup-article.tex || true \
+ && tectonic -X compile --keep-logs warmup-beamer.tex  || true \
+ && tectonic -X compile --keep-logs warmup-report.tex  || true
 
 FROM debian:bookworm-slim
 
