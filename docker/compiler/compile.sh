@@ -7,10 +7,15 @@ MAIN_FILE="${2:-main.tex}"
 # Reuse the cache warmed at image build time, but move it into a writable runtime cache
 # so Tectonic and Fontconfig can both work without noisy cache warnings.
 export XDG_CACHE_HOME=/tmp/xdg-cache
-mkdir -p "$XDG_CACHE_HOME"
+export XDG_CONFIG_HOME=/tmp/xdg-config
+mkdir -p "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME"
 
 if [ ! -d "$XDG_CACHE_HOME/Tectonic" ] && [ -d /root/.cache/Tectonic ]; then
   cp -R /root/.cache/Tectonic "$XDG_CACHE_HOME/Tectonic"
+fi
+
+if [ ! -d "$XDG_CONFIG_HOME/Tectonic" ] && [ -d /root/.config/Tectonic ]; then
+  cp -R /root/.config/Tectonic "$XDG_CONFIG_HOME/Tectonic"
 fi
 
 COMPILE_EXIT=0
