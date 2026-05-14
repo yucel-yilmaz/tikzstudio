@@ -17,6 +17,7 @@ model User {
   sessions      Session[]
   projects      Project[]
   snippets      Snippet[]
+  templates     Template[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 }
@@ -123,8 +124,12 @@ model Template {
   content     String   @db.Text
   previewUrl  String?
   isOfficial  Boolean  @default(true)
+  ownerId     String?
+  owner       User?    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([ownerId])
 }
 
 model Snippet {

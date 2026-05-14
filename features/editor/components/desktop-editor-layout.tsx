@@ -58,13 +58,16 @@ import {
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
 import {
 	createSnippet,
+	createTemplate,
 	deleteSnippet,
+	deleteTemplate,
 	getCompileHistory,
 } from "@/lib/client-api";
 import type { CompileDiagnostic } from "@/lib/compile-log";
 import type {
 	CompileJobDto,
 	CreateSnippetInput,
+	CreateTemplateInput,
 	ProjectDetail,
 	ProjectFileDto,
 	SnippetDto,
@@ -218,6 +221,29 @@ export function DesktopEditorLayout({
 		mutationFn: (id: string) => deleteSnippet(id),
 		onSuccess: () => {
 			void queryClient.invalidateQueries({ queryKey: ["snippets"] });
+		},
+	});
+
+	const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
+	const [templateForm, setTemplateForm] = useState<CreateTemplateInput>({
+		title: "",
+		category: "",
+		content: "",
+	});
+
+	const createTemplateMutation = useMutation({
+		mutationFn: (data: CreateTemplateInput) => createTemplate(data),
+		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: ["templates"] });
+			setIsCreatingTemplate(false);
+			setTemplateForm({ title: "", category: "", content: "" });
+		},
+	});
+
+	const deleteTemplateMutation = useMutation({
+		mutationFn: (id: string) => deleteTemplate(id),
+		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: ["templates"] });
 		},
 	});
 
@@ -829,17 +855,28 @@ export function DesktopEditorLayout({
 
 									<TabsContent
 										value="templates"
-										className="mt-0 flex min-h-0 flex-1 flex-col"
+										className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
 									>
-										<div className="space-y-2 border-b border-sidebar-border px-4 py-3">
-											<div className="relative">
-												<Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-												<Input
-													value={templateSearch}
-													onChange={(e) => setTemplateSearch(e.target.value)}
-													placeholder="Şablon ara…"
-													className="h-8 pl-8 text-sm"
-												/>
+										<div className="shrink-0 space-y-2 border-b border-sidebar-border px-4 py-3">
+											<div className="flex gap-2">
+												<div className="relative flex-1">
+													<Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+													<Input
+														value={templateSearch}
+														onChange={(e) => setTemplateSearch(e.target.value)}
+														placeholder="Şablon ara…"
+														className="h-8 pl-8 text-sm"
+													/>
+												</div>
+												<Button
+													size="sm"
+													variant="ghost"
+													className="h-8 shrink-0 gap-1 px-2 text-xs"
+													onClick={() => setIsCreatingTemplate((v) => !v)}
+												>
+													<Plus className="size-3" />
+													Yeni
+												</Button>
 											</div>
 											{templateCategories.length > 0 ? (
 												<div className="flex flex-wrap gap-1">
@@ -873,7 +910,73 @@ export function DesktopEditorLayout({
 												</div>
 											) : null}
 										</div>
-										<ScrollArea className="flex-1">
+
+										{isCreatingTemplate && (
+											<form
+												className="mx-4 my-3 shrink-0 space-y-2 rounded-lg border bg-muted/30 p-3"
+												onSubmit={(e) => {
+													e.preventDefault();
+													createTemplateMutation.mutate(templateForm);
+												}}
+											>
+												<Input
+													placeholder="Başlık"
+													className="h-7 text-xs"
+													value={templateForm.title}
+													onChange={(e) =>
+														setTemplateForm((f) => ({
+															...f,
+															title: e.target.value,
+														}))
+													}
+													required
+												/>
+												<Input
+													placeholder="Kategori"
+													className="h-7 text-xs"
+													value={templateForm.category}
+													onChange={(e) =>
+														setTemplateForm((f) => ({
+															...f,
+															category: e.target.value,
+														}))
+													}
+												/>
+												<Textarea
+													placeholder="İçerik"
+													className="min-h-20 font-mono text-xs"
+													value={templateForm.content}
+													onChange={(e) =>
+														setTemplateForm((f) => ({
+															...f,
+															content: e.target.value,
+														}))
+													}
+													required
+												/>
+												<div className="flex justify-end gap-2">
+													<Button
+														type="button"
+														size="sm"
+														variant="ghost"
+														className="h-6 px-2 text-xs"
+														onClick={() => setIsCreatingTemplate(false)}
+													>
+														İptal
+													</Button>
+													<Button
+														type="submit"
+														size="sm"
+														className="h-6 px-2 text-xs"
+														disabled={createTemplateMutation.isPending}
+													>
+														Kaydet
+													</Button>
+												</div>
+											</form>
+										)}
+
+										<ScrollArea className="min-h-0 flex-1">
 											<div className="grid grid-cols-1 gap-2 px-4 py-4 xl:grid-cols-2">
 												{filteredTemplates.length === 0 ? (
 													<p className="col-span-full text-center text-xs text-muted-foreground">
@@ -886,34 +989,47 @@ export function DesktopEditorLayout({
 														.slice(0, 5)
 														.join("\n");
 													return (
-														<button
-															key={template.id}
-															type="button"
-															onClick={() => handleInsert(template.content)}
-															className="group flex flex-col gap-2 rounded-lg border border-transparent bg-background/50 p-3 text-left transition-colors hover:border-border hover:bg-muted/40"
-														>
-															<div className="flex items-start justify-between gap-2">
-																<div className="min-w-0 space-y-0.5">
-																	<div className="truncate text-sm font-medium">
-																		{template.title}
+														<div key={template.id} className="group relative">
+															<button
+																type="button"
+																onClick={() => handleInsert(template.content)}
+																className="w-full flex flex-col gap-2 rounded-lg border border-transparent bg-background/50 p-3 text-left transition-colors hover:border-border hover:bg-muted/40"
+															>
+																<div className="flex items-start justify-between gap-2">
+																	<div className="min-w-0 space-y-0.5">
+																		<div className="truncate text-sm font-medium">
+																			{template.title}
+																		</div>
+																		{template.description ? (
+																			<p className="line-clamp-1 text-[11px] text-muted-foreground">
+																				{template.description}
+																			</p>
+																		) : null}
 																	</div>
-																	{template.description ? (
-																		<p className="line-clamp-1 text-[11px] text-muted-foreground">
-																			{template.description}
-																		</p>
-																	) : null}
+																	<Badge
+																		variant="outline"
+																		className="shrink-0 text-[10px]"
+																	>
+																		{template.category}
+																	</Badge>
 																</div>
-																<Badge
-																	variant="outline"
-																	className="shrink-0 text-[10px]"
+																<pre className="overflow-hidden rounded-md bg-muted/60 px-2 py-1.5 font-mono text-[10px] leading-4 text-muted-foreground group-hover:text-foreground">
+																	{preview}
+																</pre>
+															</button>
+															{template.ownerId !== null && (
+																<button
+																	type="button"
+																	className="absolute right-2 top-2 hidden rounded p-0.5 text-muted-foreground hover:text-destructive group-hover:flex"
+																	onClick={() =>
+																		deleteTemplateMutation.mutate(template.id)
+																	}
+																	aria-label="Sil"
 																>
-																	{template.category}
-																</Badge>
-															</div>
-															<pre className="overflow-hidden rounded-md bg-muted/60 px-2 py-1.5 font-mono text-[10px] leading-4 text-muted-foreground group-hover:text-foreground">
-																{preview}
-															</pre>
-														</button>
+																	<Trash2 className="size-3" />
+																</button>
+															)}
+														</div>
 													);
 												})}
 											</div>
