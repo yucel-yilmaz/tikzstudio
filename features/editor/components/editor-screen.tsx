@@ -573,6 +573,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										}
 									}}
 									diagnostics={activeFileDiagnostics}
+									snippets={snippetsQuery.data?.snippets ?? []}
 								/>
 							</div>
 						</CardContent>

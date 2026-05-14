@@ -327,6 +327,7 @@ export function DesktopEditorLayout({
 											}
 										}}
 										diagnostics={diagnostics}
+										snippets={snippets}
 									/>
 								</div>
 							</CardContent>
