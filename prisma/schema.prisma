@@ -16,6 +16,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   projects      Project[]
+  snippets      Snippet[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 }
@@ -133,8 +134,12 @@ model Snippet {
   trigger     String
   category    String
   content     String   @db.Text
+  ownerId     String?
+  owner       User?    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([ownerId])
 }
 
 enum CompileStatus {

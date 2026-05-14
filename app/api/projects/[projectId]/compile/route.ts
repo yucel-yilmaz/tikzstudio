@@ -22,10 +22,7 @@ export async function GET(
 		const url = new URL(request.url);
 
 		if (url.searchParams.get("history") === "1") {
-			const limit = Number.parseInt(
-				url.searchParams.get("limit") ?? "20",
-				10,
-			);
+			const limit = Number.parseInt(url.searchParams.get("limit") ?? "20", 10);
 			const jobs = await listCompileHistoryForProject(
 				session.user.id,
 				projectId,

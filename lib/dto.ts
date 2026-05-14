@@ -83,5 +83,6 @@ export function toSnippetDto(snippet: Snippet): SnippetDto {
 		trigger: snippet.trigger,
 		category: snippet.category,
 		content: snippet.content,
+		ownerId: snippet.ownerId,
 	};
 }

@@ -54,6 +54,15 @@ export type SnippetDto = {
 	trigger: string;
 	category: string;
 	content: string;
+	ownerId: string | null;
+};
+
+export type CreateSnippetInput = {
+	title: string;
+	trigger: string;
+	category: string;
+	content: string;
+	description?: string;
 };
 
 export type CreateProjectInput = {
