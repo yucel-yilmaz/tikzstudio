@@ -922,7 +922,7 @@ export function DesktopEditorLayout({
 
 									<TabsContent
 										value="snippets"
-										className="mt-0 min-h-0 flex-1 flex flex-col"
+										className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
 									>
 										<div className="flex items-center justify-between px-4 pt-3 pb-2">
 											<span className="text-xs text-muted-foreground">
@@ -1018,7 +1018,7 @@ export function DesktopEditorLayout({
 											</form>
 										)}
 
-										<ScrollArea className="flex-1 px-4 pb-4">
+										<ScrollArea className="min-h-0 flex-1 px-4 pb-4">
 											<div className="space-y-2">
 												{snippets.map((snippet) => (
 													<div key={snippet.id} className="group relative">
