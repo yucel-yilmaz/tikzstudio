@@ -40,6 +40,7 @@ RUN apt-get update \
 
 COPY --from=builder /usr/local/cargo/bin/tectonic /usr/local/bin/tectonic
 COPY --from=builder /root/.cache/Tectonic /root/.cache/Tectonic
+COPY --from=builder /root/.config/Tectonic /root/.config/Tectonic
 COPY docker/compiler/compile.sh /usr/local/bin/compile.sh
 
 RUN chmod +x /usr/local/bin/compile.sh
