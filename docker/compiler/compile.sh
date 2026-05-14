@@ -18,7 +18,7 @@ TECTONIC_BUNDLE="https://relay.fullyjustified.net/default_bundle_v33.tar.index.g
 COMPILE_EXIT=0
 case "$ENGINE" in
   tectonic)
-    tectonic -X compile --web-bundle "$TECTONIC_BUNDLE" --only-cached --keep-logs --outdir /output --untrusted "$MAIN_FILE" || COMPILE_EXIT=$?
+    tectonic --web-bundle "$TECTONIC_BUNDLE" --only-cached --keep-logs --outdir /output "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
   pdflatex)
     pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?

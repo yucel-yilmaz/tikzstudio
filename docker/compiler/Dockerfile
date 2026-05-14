@@ -25,10 +25,10 @@ COPY docker/compiler/warmup-article.tex  warmup-article.tex
 COPY docker/compiler/warmup-beamer.tex   warmup-beamer.tex
 COPY docker/compiler/warmup-report.tex   warmup-report.tex
 
-RUN tectonic -X compile --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup.tex         || true \
- && tectonic -X compile --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup-article.tex || true \
- && tectonic -X compile --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup-beamer.tex  || true \
- && tectonic -X compile --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup-report.tex  || true
+RUN tectonic --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup.tex         || true \
+ && tectonic --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup-article.tex || true \
+ && tectonic --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup-beamer.tex  || true \
+ && tectonic --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup-report.tex  || true
 
 FROM debian:bookworm-slim
 
