@@ -34,6 +34,12 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -911,70 +917,85 @@ export function DesktopEditorLayout({
 											) : null}
 										</div>
 
-										{isCreatingTemplate && (
-											<form
-												className="mx-4 my-3 shrink-0 space-y-2 rounded-lg border bg-muted/30 p-3"
-												onSubmit={(e) => {
-													e.preventDefault();
-													createTemplateMutation.mutate(templateForm);
-												}}
-											>
-												<Input
-													placeholder="Başlık"
-													className="h-7 text-xs"
-													value={templateForm.title}
-													onChange={(e) =>
-														setTemplateForm((f) => ({
-															...f,
-															title: e.target.value,
-														}))
-													}
-													required
-												/>
-												<Input
-													placeholder="Kategori"
-													className="h-7 text-xs"
-													value={templateForm.category}
-													onChange={(e) =>
-														setTemplateForm((f) => ({
-															...f,
-															category: e.target.value,
-														}))
-													}
-												/>
-												<Textarea
-													placeholder="İçerik"
-													className="min-h-20 font-mono text-xs"
-													value={templateForm.content}
-													onChange={(e) =>
-														setTemplateForm((f) => ({
-															...f,
-															content: e.target.value,
-														}))
-													}
-													required
-												/>
-												<div className="flex justify-end gap-2">
-													<Button
-														type="button"
-														size="sm"
-														variant="ghost"
-														className="h-6 px-2 text-xs"
-														onClick={() => setIsCreatingTemplate(false)}
-													>
-														İptal
-													</Button>
-													<Button
-														type="submit"
-														size="sm"
-														className="h-6 px-2 text-xs"
-														disabled={createTemplateMutation.isPending}
-													>
-														Kaydet
-													</Button>
-												</div>
-											</form>
-										)}
+										<Dialog
+											open={isCreatingTemplate}
+											onOpenChange={(open) => {
+												setIsCreatingTemplate(open);
+												if (!open)
+													setTemplateForm({
+														title: "",
+														category: "",
+														content: "",
+													});
+											}}
+										>
+											<DialogContent className="flex max-h-[80vh] flex-col gap-0 p-0 sm:max-w-lg">
+												<DialogHeader className="border-b px-4 py-3">
+													<DialogTitle className="text-sm font-medium">
+														Yeni Şablon
+													</DialogTitle>
+												</DialogHeader>
+												<form
+													className="flex min-h-0 flex-1 flex-col"
+													onSubmit={(e) => {
+														e.preventDefault();
+														createTemplateMutation.mutate(templateForm);
+													}}
+												>
+													<div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
+														<Input
+															placeholder="Başlık"
+															value={templateForm.title}
+															onChange={(e) =>
+																setTemplateForm((f) => ({
+																	...f,
+																	title: e.target.value,
+																}))
+															}
+															required
+															autoFocus
+														/>
+														<Input
+															placeholder="Kategori"
+															value={templateForm.category}
+															onChange={(e) =>
+																setTemplateForm((f) => ({
+																	...f,
+																	category: e.target.value,
+																}))
+															}
+														/>
+														<Textarea
+															placeholder="İçerik"
+															className="min-h-60 flex-1 font-mono text-xs"
+															value={templateForm.content}
+															onChange={(e) =>
+																setTemplateForm((f) => ({
+																	...f,
+																	content: e.target.value,
+																}))
+															}
+															required
+														/>
+													</div>
+													<div className="flex justify-end gap-2 border-t px-4 py-3">
+														<Button
+															type="button"
+															variant="ghost"
+															onClick={() => setIsCreatingTemplate(false)}
+														>
+															İptal
+														</Button>
+														<Button
+															type="submit"
+															disabled={createTemplateMutation.isPending}
+														>
+															Kaydet
+														</Button>
+													</div>
+												</form>
+											</DialogContent>
+										</Dialog>
 
 										<ScrollArea className="min-h-0 flex-1">
 											<div className="grid grid-cols-1 gap-2 px-4 py-4 xl:grid-cols-2">
@@ -1055,84 +1076,99 @@ export function DesktopEditorLayout({
 											</Button>
 										</div>
 
-										{isCreatingSnippet && (
-											<form
-												className="mx-4 mb-3 space-y-2 rounded-lg border bg-muted/30 p-3"
-												onSubmit={(e) => {
-													e.preventDefault();
-													createSnippetMutation.mutate(snippetForm);
-												}}
-											>
-												<Input
-													placeholder="Başlık"
-													className="h-7 text-xs"
-													value={snippetForm.title}
-													onChange={(e) =>
-														setSnippetForm((f) => ({
-															...f,
-															title: e.target.value,
-														}))
-													}
-													required
-												/>
-												<div className="flex gap-2">
-													<Input
-														placeholder="\\trigger"
-														className="h-7 text-xs"
-														value={snippetForm.trigger}
-														onChange={(e) =>
-															setSnippetForm((f) => ({
-																...f,
-																trigger: e.target.value,
-															}))
-														}
-														required
-													/>
-													<Input
-														placeholder="Kategori"
-														className="h-7 text-xs"
-														value={snippetForm.category}
-														onChange={(e) =>
-															setSnippetForm((f) => ({
-																...f,
-																category: e.target.value,
-															}))
-														}
-													/>
-												</div>
-												<Textarea
-													placeholder="İçerik"
-													className="min-h-16 font-mono text-xs"
-													value={snippetForm.content}
-													onChange={(e) =>
-														setSnippetForm((f) => ({
-															...f,
-															content: e.target.value,
-														}))
-													}
-													required
-												/>
-												<div className="flex justify-end gap-2">
-													<Button
-														type="button"
-														size="sm"
-														variant="ghost"
-														className="h-6 px-2 text-xs"
-														onClick={() => setIsCreatingSnippet(false)}
-													>
-														İptal
-													</Button>
-													<Button
-														type="submit"
-														size="sm"
-														className="h-6 px-2 text-xs"
-														disabled={createSnippetMutation.isPending}
-													>
-														Kaydet
-													</Button>
-												</div>
-											</form>
-										)}
+										<Dialog
+											open={isCreatingSnippet}
+											onOpenChange={(open) => {
+												setIsCreatingSnippet(open);
+												if (!open)
+													setSnippetForm({
+														title: "",
+														trigger: "",
+														category: "",
+														content: "",
+													});
+											}}
+										>
+											<DialogContent className="flex max-h-[80vh] flex-col gap-0 p-0 sm:max-w-lg">
+												<DialogHeader className="border-b px-4 py-3">
+													<DialogTitle className="text-sm font-medium">
+														Yeni Snippet
+													</DialogTitle>
+												</DialogHeader>
+												<form
+													className="flex min-h-0 flex-1 flex-col"
+													onSubmit={(e) => {
+														e.preventDefault();
+														createSnippetMutation.mutate(snippetForm);
+													}}
+												>
+													<div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
+														<Input
+															placeholder="Başlık"
+															value={snippetForm.title}
+															onChange={(e) =>
+																setSnippetForm((f) => ({
+																	...f,
+																	title: e.target.value,
+																}))
+															}
+															required
+															autoFocus
+														/>
+														<div className="flex gap-2">
+															<Input
+																placeholder="\trigger"
+																value={snippetForm.trigger}
+																onChange={(e) =>
+																	setSnippetForm((f) => ({
+																		...f,
+																		trigger: e.target.value,
+																	}))
+																}
+																required
+															/>
+															<Input
+																placeholder="Kategori"
+																value={snippetForm.category}
+																onChange={(e) =>
+																	setSnippetForm((f) => ({
+																		...f,
+																		category: e.target.value,
+																	}))
+																}
+															/>
+														</div>
+														<Textarea
+															placeholder="İçerik"
+															className="min-h-40 flex-1 font-mono text-xs"
+															value={snippetForm.content}
+															onChange={(e) =>
+																setSnippetForm((f) => ({
+																	...f,
+																	content: e.target.value,
+																}))
+															}
+															required
+														/>
+													</div>
+													<div className="flex justify-end gap-2 border-t px-4 py-3">
+														<Button
+															type="button"
+															variant="ghost"
+															onClick={() => setIsCreatingSnippet(false)}
+														>
+															İptal
+														</Button>
+														<Button
+															type="submit"
+															disabled={createSnippetMutation.isPending}
+														>
+															Kaydet
+														</Button>
+													</div>
+												</form>
+											</DialogContent>
+										</Dialog>
 
 										<ScrollArea className="min-h-0 flex-1 px-4 pb-4">
 											<div className="space-y-2">
