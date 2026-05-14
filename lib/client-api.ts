@@ -4,6 +4,7 @@ import type {
 	CompileJobDto,
 	CreateFileInput,
 	CreateProjectInput,
+	CreateSnippetInput,
 	ProjectDetail,
 	ProjectFileDto,
 	ProjectSummary,
@@ -172,4 +173,16 @@ export function getSnippets(search = "") {
 	return requestJson<{ snippets: SnippetDto[] }>(
 		`/api/snippets${search ? `?search=${encodeURIComponent(search)}` : ""}`,
 	);
+}
+
+export function createSnippet(data: CreateSnippetInput) {
+	return requestJson<SnippetDto>("/api/snippets", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(data),
+	});
+}
+
+export function deleteSnippet(id: string) {
+	return requestJson<void>(`/api/snippets/${id}`, { method: "DELETE" });
 }

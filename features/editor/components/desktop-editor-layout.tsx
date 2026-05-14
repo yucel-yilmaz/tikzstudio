@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Check,
 	Download,
@@ -13,6 +13,7 @@ import {
 	PanelLeftClose,
 	PanelLeftOpen,
 	Pencil,
+	Plus,
 	Search,
 	Settings2,
 	Star,
@@ -52,10 +53,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { TikzCodeEditor } from "@/features/editor/components/code-editor";
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
-import { getCompileHistory } from "@/lib/client-api";
+import {
+	createSnippet,
+	deleteSnippet,
+	getCompileHistory,
+} from "@/lib/client-api";
 import type { CompileDiagnostic } from "@/lib/compile-log";
 import type {
 	CompileJobDto,
+	CreateSnippetInput,
 	ProjectDetail,
 	ProjectFileDto,
 	SnippetDto,
@@ -176,6 +182,31 @@ export function DesktopEditorLayout({
 	const [templateSearch, setTemplateSearch] = useState("");
 	const [templateCategory, setTemplateCategory] = useState<string | null>(null);
 	const [outputTab, setOutputTab] = useState<"preview" | "history">("preview");
+	const [isCreatingSnippet, setIsCreatingSnippet] = useState(false);
+	const [snippetForm, setSnippetForm] = useState<CreateSnippetInput>({
+		title: "",
+		trigger: "",
+		category: "",
+		content: "",
+	});
+
+	const queryClient = useQueryClient();
+
+	const createSnippetMutation = useMutation({
+		mutationFn: (data: CreateSnippetInput) => createSnippet(data),
+		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: ["snippets"] });
+			setIsCreatingSnippet(false);
+			setSnippetForm({ title: "", trigger: "", category: "", content: "" });
+		},
+	});
+
+	const deleteSnippetMutation = useMutation({
+		mutationFn: (id: string) => deleteSnippet(id),
+		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: ["snippets"] });
+		},
+	});
 
 	const historyQuery = useQuery({
 		queryKey: ["compile-history", project?.id],
@@ -875,28 +906,140 @@ export function DesktopEditorLayout({
 										</ScrollArea>
 									</TabsContent>
 
-									<TabsContent value="snippets" className="mt-0 min-h-0 flex-1">
-										<ScrollArea className="h-full px-4 py-4">
+									<TabsContent
+										value="snippets"
+										className="mt-0 min-h-0 flex-1 flex flex-col"
+									>
+										<div className="flex items-center justify-between px-4 pt-3 pb-2">
+											<span className="text-xs text-muted-foreground">
+												{snippets.length} snippet
+											</span>
+											<Button
+												size="sm"
+												variant="ghost"
+												className="h-7 gap-1 px-2 text-xs"
+												onClick={() => setIsCreatingSnippet((v) => !v)}
+											>
+												<Plus className="size-3" />
+												Yeni
+											</Button>
+										</div>
+
+										{isCreatingSnippet && (
+											<form
+												className="mx-4 mb-3 space-y-2 rounded-lg border bg-muted/30 p-3"
+												onSubmit={(e) => {
+													e.preventDefault();
+													createSnippetMutation.mutate(snippetForm);
+												}}
+											>
+												<Input
+													placeholder="Başlık"
+													className="h-7 text-xs"
+													value={snippetForm.title}
+													onChange={(e) =>
+														setSnippetForm((f) => ({
+															...f,
+															title: e.target.value,
+														}))
+													}
+													required
+												/>
+												<div className="flex gap-2">
+													<Input
+														placeholder="\\trigger"
+														className="h-7 text-xs"
+														value={snippetForm.trigger}
+														onChange={(e) =>
+															setSnippetForm((f) => ({
+																...f,
+																trigger: e.target.value,
+															}))
+														}
+														required
+													/>
+													<Input
+														placeholder="Kategori"
+														className="h-7 text-xs"
+														value={snippetForm.category}
+														onChange={(e) =>
+															setSnippetForm((f) => ({
+																...f,
+																category: e.target.value,
+															}))
+														}
+													/>
+												</div>
+												<Textarea
+													placeholder="İçerik"
+													className="min-h-16 font-mono text-xs"
+													value={snippetForm.content}
+													onChange={(e) =>
+														setSnippetForm((f) => ({
+															...f,
+															content: e.target.value,
+														}))
+													}
+													required
+												/>
+												<div className="flex justify-end gap-2">
+													<Button
+														type="button"
+														size="sm"
+														variant="ghost"
+														className="h-6 px-2 text-xs"
+														onClick={() => setIsCreatingSnippet(false)}
+													>
+														İptal
+													</Button>
+													<Button
+														type="submit"
+														size="sm"
+														className="h-6 px-2 text-xs"
+														disabled={createSnippetMutation.isPending}
+													>
+														Kaydet
+													</Button>
+												</div>
+											</form>
+										)}
+
+										<ScrollArea className="flex-1 px-4 pb-4">
 											<div className="space-y-2">
 												{snippets.map((snippet) => (
-													<button
-														key={snippet.id}
-														type="button"
-														onClick={() => insertIntoActive(snippet.content)}
-														className="w-full rounded-lg border border-transparent px-3 py-3 text-left transition-colors hover:border-border hover:bg-muted/50"
-													>
-														<div className="flex items-start justify-between gap-3">
-															<div className="space-y-1">
-																<div className="text-sm font-medium">
-																	{snippet.title}
+													<div key={snippet.id} className="group relative">
+														<button
+															type="button"
+															onClick={() => insertIntoActive(snippet.content)}
+															className="w-full rounded-lg border border-transparent px-3 py-3 text-left transition-colors hover:border-border hover:bg-muted/50"
+														>
+															<div className="flex items-start justify-between gap-3">
+																<div className="min-w-0 space-y-1">
+																	<div className="text-sm font-medium">
+																		{snippet.title}
+																	</div>
+																	<p className="text-xs text-muted-foreground">
+																		{snippet.category}
+																	</p>
 																</div>
-																<p className="text-xs text-muted-foreground">
-																	{snippet.category}
-																</p>
+																<Badge variant="outline" className="shrink-0">
+																	\{snippet.trigger}
+																</Badge>
 															</div>
-															<Badge variant="outline">{snippet.trigger}</Badge>
-														</div>
-													</button>
+														</button>
+														{snippet.ownerId !== null && (
+															<button
+																type="button"
+																className="absolute right-2 top-2 hidden rounded p-0.5 text-muted-foreground hover:text-destructive group-hover:flex"
+																onClick={() =>
+																	deleteSnippetMutation.mutate(snippet.id)
+																}
+																aria-label="Sil"
+															>
+																<Trash2 className="size-3" />
+															</button>
+														)}
+													</div>
 												))}
 											</div>
 										</ScrollArea>

@@ -3,6 +3,7 @@ export type AppErrorCode =
 	| "FORBIDDEN"
 	| "NOT_FOUND"
 	| "CONFLICT"
+	| "BAD_REQUEST"
 	| "VALIDATION_ERROR"
 	| "RATE_LIMITED"
 	| "TIMEOUT"
