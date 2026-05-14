@@ -13,6 +13,7 @@ export type ProjectFileDto = {
 	projectId: string;
 	path: string;
 	content: string;
+	isBinary: boolean;
 	language: string;
 	isMain: boolean;
 	updatedAt: string;

@@ -3,6 +3,7 @@ import type { CompileStatus, LatexEngine } from "@/generated/prisma";
 export type CompilerFile = {
 	path: string;
 	content: string;
+	binaryContent?: Uint8Array | null;
 };
 
 export type CompileInput = {

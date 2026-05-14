@@ -85,15 +85,17 @@ model Project {
 }
 
 model ProjectFile {
-  id        String   @id @default(cuid())
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  path      String
-  content   String   @db.Text
-  language  String   @default("latex")
-  isMain    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  path          String
+  content       String   @db.Text
+  isBinary      Boolean  @default(false)
+  binaryContent Bytes?
+  language      String   @default("latex")
+  isMain        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([projectId, path])
   @@index([projectId])

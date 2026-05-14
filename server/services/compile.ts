@@ -109,6 +109,7 @@ export async function runCompileJob(jobId: string) {
 		files: job.project.files.map((file) => ({
 			path: file.path,
 			content: file.content,
+			binaryContent: file.isBinary ? file.binaryContent : null,
 		})),
 	});
 

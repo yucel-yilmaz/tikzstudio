@@ -128,6 +128,16 @@ export function deleteFile(projectId: string, fileId: string) {
 	});
 }
 
+export function uploadFile(projectId: string, file: File, path?: string) {
+	const form = new FormData();
+	form.append("file", file);
+	if (path) form.append("path", path);
+	return requestJson<ProjectFileDto>(
+		`/api/projects/${projectId}/files/upload`,
+		{ method: "POST", body: form },
+	);
+}
+
 export function compileProject(
 	projectId: string,
 	payload?: { engine?: string; mainFileId?: string },

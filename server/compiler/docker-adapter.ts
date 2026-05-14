@@ -23,10 +23,14 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 	async compile(input: CompileInput): Promise<CompileResult> {
 		const startedAt = new Date();
 		const workspace = await mkdtemp(path.join(os.tmpdir(), "tikzlab-"));
-		const sourceBytes = Buffer.byteLength(
-			input.files.map((file) => file.content).join("\n"),
-			"utf8",
-		);
+		const sourceBytes = input.files.reduce((sum, file) => {
+			return (
+				sum +
+				(file.binaryContent
+					? file.binaryContent.length
+					: Buffer.byteLength(file.content, "utf8"))
+			);
+		}, 0);
 
 		if (sourceBytes > env.MAX_SOURCE_SIZE_KB * 1024) {
 			throw new AppError(
@@ -46,7 +50,11 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 			for (const file of input.files) {
 				const target = path.join(workspace, file.path);
 				await mkdir(path.dirname(target), { recursive: true });
-				await writeFile(target, file.content, "utf8");
+				if (file.binaryContent) {
+					await writeFile(target, file.binaryContent);
+				} else {
+					await writeFile(target, file.content, "utf8");
+				}
 			}
 
 			const args = [
