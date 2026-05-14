@@ -10,10 +10,14 @@ import { stex } from "@codemirror/legacy-modes/mode/stex";
 import { type Diagnostic, lintGutter, setDiagnostics } from "@codemirror/lint";
 import { EditorView } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useImperativeHandle, useMemo, useRef } from "react";
 
 import type { CompileDiagnostic } from "@/lib/compile-log";
 import type { SnippetDto } from "@/lib/types";
+
+export type TikzCodeEditorHandle = {
+	insertAtCursor(content: string): void;
+};
 
 function makeSnippetSource(snippets: SnippetDto[]) {
 	return (context: CompletionContext): CompletionResult | null => {
@@ -55,6 +59,7 @@ function makeSnippetSource(snippets: SnippetDto[]) {
 }
 
 export function TikzCodeEditor({
+	ref,
 	value,
 	onChange,
 	readOnly = false,
@@ -62,6 +67,7 @@ export function TikzCodeEditor({
 	diagnostics = [],
 	snippets = [],
 }: {
+	ref?: React.Ref<TikzCodeEditorHandle>;
 	value: string;
 	onChange(value: string): void;
 	readOnly?: boolean;
@@ -70,6 +76,19 @@ export function TikzCodeEditor({
 	snippets?: SnippetDto[];
 }) {
 	const viewRef = useRef<EditorView | null>(null);
+
+	useImperativeHandle(ref, () => ({
+		insertAtCursor(content: string) {
+			const view = viewRef.current;
+			if (!view) return;
+			const { from, to } = view.state.selection.main;
+			view.dispatch({
+				changes: { from, to, insert: content },
+				selection: { anchor: from + content.length },
+			});
+			view.focus();
+		},
+	}));
 
 	const extensions = useMemo(
 		() => [

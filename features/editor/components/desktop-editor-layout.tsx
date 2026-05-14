@@ -22,7 +22,7 @@ import {
 	WandSparkles,
 	X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,10 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { TikzCodeEditor } from "@/features/editor/components/code-editor";
+import {
+	TikzCodeEditor,
+	type TikzCodeEditorHandle,
+} from "@/features/editor/components/code-editor";
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
 import {
 	createSnippet,
@@ -175,6 +178,16 @@ export function DesktopEditorLayout({
 }: DesktopEditorLayoutProps) {
 	const CompileIcon = compileMeta.icon;
 	const logSummary = summarizeCompileLog(currentCompile?.log ?? null);
+	const editorRef = useRef<TikzCodeEditorHandle>(null);
+
+	function handleInsert(content: string) {
+		if (editorRef.current) {
+			editorRef.current.insertAtCursor(content);
+		} else {
+			insertIntoActive(content);
+		}
+	}
+
 	const [isCreating, setIsCreating] = useState(false);
 	const [newFilePath, setNewFilePath] = useState("");
 	const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
@@ -351,6 +364,7 @@ export function DesktopEditorLayout({
 							<CardContent className="flex-1 min-h-0 p-0">
 								<div className="h-full bg-background">
 									<TikzCodeEditor
+										ref={editorRef}
 										value={activeValue}
 										onChange={(value) => {
 											if (activeFile) {
@@ -875,7 +889,7 @@ export function DesktopEditorLayout({
 														<button
 															key={template.id}
 															type="button"
-															onClick={() => insertIntoActive(template.content)}
+															onClick={() => handleInsert(template.content)}
 															className="group flex flex-col gap-2 rounded-lg border border-transparent bg-background/50 p-3 text-left transition-colors hover:border-border hover:bg-muted/40"
 														>
 															<div className="flex items-start justify-between gap-2">
@@ -1010,7 +1024,7 @@ export function DesktopEditorLayout({
 													<div key={snippet.id} className="group relative">
 														<button
 															type="button"
-															onClick={() => insertIntoActive(snippet.content)}
+															onClick={() => handleInsert(snippet.content)}
 															className="w-full rounded-lg border border-transparent px-3 py-3 text-left transition-colors hover:border-border hover:bg-muted/50"
 														>
 															<div className="flex items-start justify-between gap-3">
