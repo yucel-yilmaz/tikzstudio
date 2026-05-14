@@ -248,6 +248,35 @@ export async function createProjectFileForUser(
 	});
 }
 
+export async function uploadBinaryFileForUser(
+	ownerId: string,
+	projectId: string,
+	filePath: string,
+	buffer: Uint8Array<ArrayBuffer>,
+) {
+	const project = await requireOwnedProject(ownerId, projectId);
+	const conflict = project.files.find((f) => f.path === filePath);
+	if (conflict) {
+		throw new AppError(
+			"CONFLICT",
+			"A file with the same path already exists.",
+			409,
+		);
+	}
+
+	return prisma.projectFile.create({
+		data: {
+			projectId,
+			path: filePath,
+			content: "",
+			isBinary: true,
+			binaryContent: buffer,
+			language: "binary",
+			isMain: false,
+		},
+	});
+}
+
 export async function deleteProjectFileForUser(
 	ownerId: string,
 	projectId: string,

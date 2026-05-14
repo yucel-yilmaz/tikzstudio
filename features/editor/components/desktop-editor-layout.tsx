@@ -19,6 +19,7 @@ import {
 	Star,
 	TerminalSquare,
 	Trash2,
+	Upload,
 	WandSparkles,
 	X,
 } from "lucide-react";
@@ -68,6 +69,7 @@ import {
 	deleteSnippet,
 	deleteTemplate,
 	getCompileHistory,
+	uploadFile,
 } from "@/lib/client-api";
 import type { CompileDiagnostic } from "@/lib/compile-log";
 import type {
@@ -250,6 +252,15 @@ export function DesktopEditorLayout({
 		mutationFn: (id: string) => deleteTemplate(id),
 		onSuccess: () => {
 			void queryClient.invalidateQueries({ queryKey: ["templates"] });
+		},
+	});
+
+	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	const uploadMutation = useMutation({
+		mutationFn: (file: File) => uploadFile(project?.id ?? "", file),
+		onSuccess: (uploaded) => {
+			onSetActiveFile(uploaded.id);
 		},
 	});
 
@@ -694,16 +705,39 @@ export function DesktopEditorLayout({
 														) : null}
 													</div>
 												) : (
-													<Button
-														type="button"
-														variant="outline"
-														size="sm"
-														className="w-full justify-start gap-2 border-dashed"
-														onClick={() => setIsCreating(true)}
-													>
-														<FilePlus className="size-4" />
-														Yeni dosya
-													</Button>
+													<div className="flex gap-1.5">
+														<Button
+															type="button"
+															variant="outline"
+															size="sm"
+															className="flex-1 justify-start gap-2 border-dashed"
+															onClick={() => setIsCreating(true)}
+														>
+															<FilePlus className="size-4" />
+															Yeni dosya
+														</Button>
+														<Button
+															type="button"
+															variant="outline"
+															size="sm"
+															className="shrink-0 border-dashed px-2"
+															disabled={uploadMutation.isPending}
+															onClick={() => fileInputRef.current?.click()}
+															title="Dosya yükle"
+														>
+															<Upload className="size-4" />
+														</Button>
+														<input
+															ref={fileInputRef}
+															type="file"
+															className="hidden"
+															onChange={(e) => {
+																const file = e.target.files?.[0];
+																if (file) uploadMutation.mutate(file);
+																e.target.value = "";
+															}}
+														/>
+													</div>
 												)}
 
 												{files.map((file) => {
