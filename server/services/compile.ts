@@ -61,7 +61,8 @@ export async function enqueueCompileForProject(input: {
 	});
 
 	const boss = await getBoss();
-	await boss.send<CompileJobPayload>(COMPILE_QUEUE, { jobId: job.id });
+	const payload: CompileJobPayload = { jobId: job.id };
+	await boss.send(COMPILE_QUEUE, payload);
 
 	return job;
 }

@@ -152,6 +152,12 @@ export function getCompileJob(jobId: string) {
 	return requestJson<CompileJobDto>(`/api/compile-jobs/${jobId}`);
 }
 
+export function forkProject(sourceProjectId: string) {
+	return requestJson<ProjectDetail>(`/api/share/${sourceProjectId}/fork`, {
+		method: "POST",
+	});
+}
+
 export function getPublicProject(projectId: string) {
 	return requestJson<ProjectDetail>(`/api/share/${projectId}`);
 }

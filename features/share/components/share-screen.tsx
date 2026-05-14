@@ -1,17 +1,18 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
 	CheckCircle2,
 	Clock3,
 	Code2,
 	Download,
-	ExternalLink,
 	FileCode2,
+	GitFork,
 	LoaderCircle,
 	XCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +29,12 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TikzCodeEditor } from "@/features/editor/components/code-editor";
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
-import { getLatestCompileOutput, getPublicProject } from "@/lib/client-api";
+import {
+	ClientApiError,
+	forkProject,
+	getLatestCompileOutput,
+	getPublicProject,
+} from "@/lib/client-api";
 import type { ProjectFileDto } from "@/lib/types";
 import { formatRelativeDate } from "@/lib/utils";
 
@@ -75,8 +81,21 @@ function StatusBadge({ status }: { status: string | undefined }) {
 }
 
 export function ShareScreen({ projectId }: { projectId: string }) {
+	const router = useRouter();
 	const [activeFileId, setActiveFileId] = useState<string | null>(null);
 	const [previewZoom, setPreviewZoom] = useState(1);
+
+	const forkMutation = useMutation({
+		mutationFn: () => forkProject(projectId),
+		onSuccess: (project) => {
+			router.push(`/projects/${project.id}/editor`);
+		},
+		onError: (error) => {
+			if (error instanceof ClientApiError && error.status === 401) {
+				router.push(`/signup?next=/p/${projectId}`);
+			}
+		},
+	});
 
 	const projectQuery = useQuery({
 		queryKey: ["share-project", projectId],
@@ -161,11 +180,17 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 								</a>
 							</Button>
 						) : null}
-						<Button asChild size="sm">
-							<Link href="/signup">
-								<ExternalLink className="size-4" />
-								Kullan
-							</Link>
+						<Button
+							size="sm"
+							disabled={forkMutation.isPending}
+							onClick={() => forkMutation.mutate()}
+						>
+							{forkMutation.isPending ? (
+								<LoaderCircle className="size-4 animate-spin" />
+							) : (
+								<GitFork className="size-4" />
+							)}
+							{forkMutation.isPending ? "Kopyalanıyor…" : "Fork'la"}
 						</Button>
 					</div>
 				</div>
@@ -281,7 +306,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 								) : null}
 							</CardHeader>
 							<CardContent className="p-3">
-								<div className="h-[400px]">
+								<div className="h-100">
 									<PdfPreview
 										src={compile?.outputUrl ?? null}
 										zoom={previewZoom}

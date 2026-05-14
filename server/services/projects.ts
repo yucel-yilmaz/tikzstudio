@@ -87,6 +87,31 @@ export async function getPublicProject(projectId: string) {
 	});
 }
 
+export async function forkProjectForUser(
+	ownerId: string,
+	sourceProjectId: string,
+) {
+	const source = await requirePublicProject(sourceProjectId);
+
+	return prisma.project.create({
+		data: {
+			ownerId,
+			title: `Copy of ${source.title}`,
+			description: source.description,
+			isPublic: false,
+			files: {
+				create: source.files.map((file) => ({
+					path: file.path,
+					content: file.content,
+					language: file.language,
+					isMain: file.isMain,
+				})),
+			},
+		},
+		include: projectBaseInclude,
+	});
+}
+
 export async function requirePublicProject(projectId: string) {
 	const project = await getPublicProject(projectId);
 

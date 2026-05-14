@@ -16,7 +16,6 @@ function createBoss(): PgBoss {
 	return new PgBoss({
 		connectionString,
 		schema: "pgboss",
-		retentionDays: 7,
 	});
 }
 
