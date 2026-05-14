@@ -7,21 +7,18 @@ MAIN_FILE="${2:-main.tex}"
 # Reuse the cache warmed at image build time, but move it into a writable runtime cache
 # so Tectonic and Fontconfig can both work without noisy cache warnings.
 export XDG_CACHE_HOME=/tmp/xdg-cache
-export XDG_CONFIG_HOME=/tmp/xdg-config
-mkdir -p "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME"
+mkdir -p "$XDG_CACHE_HOME"
 
 if [ ! -d "$XDG_CACHE_HOME/Tectonic" ] && [ -d /root/.cache/Tectonic ]; then
   cp -R /root/.cache/Tectonic "$XDG_CACHE_HOME/Tectonic"
 fi
 
-if [ ! -d "$XDG_CONFIG_HOME/Tectonic" ] && [ -d /root/.config/Tectonic ]; then
-  cp -R /root/.config/Tectonic "$XDG_CONFIG_HOME/Tectonic"
-fi
+TECTONIC_BUNDLE="https://relay.fullyjustified.net/default_bundle_v33.tar.index.gz"
 
 COMPILE_EXIT=0
 case "$ENGINE" in
   tectonic)
-    tectonic -X compile --only-cached --keep-logs --outdir /output --untrusted "$MAIN_FILE" || COMPILE_EXIT=$?
+    tectonic -X compile --web-bundle "$TECTONIC_BUNDLE" --only-cached --keep-logs --outdir /output --untrusted "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
   pdflatex)
     pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
