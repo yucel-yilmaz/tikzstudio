@@ -1,7 +1,6 @@
 import { toProjectFileDto } from "@/lib/dto";
 import { AppError, toErrorResponse } from "@/lib/errors";
 import { getSessionFromHeaders } from "@/lib/session";
-import { normalizeProjectFilePath } from "@/lib/utils";
 import { uploadBinaryFileForUser } from "@/server/services/projects";
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -29,8 +28,9 @@ export async function POST(
 				400,
 			);
 
-		const rawPath = (formData.get("path") as string | null) ?? fileEntry.name;
-		const filePath = normalizeProjectFilePath(rawPath);
+		const filePath = (
+			(formData.get("path") as string | null) ?? fileEntry.name
+		).trim();
 
 		if (!filePath)
 			throw new AppError("BAD_REQUEST", "Geçersiz dosya yolu", 400);
