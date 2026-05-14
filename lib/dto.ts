@@ -72,6 +72,7 @@ export function toTemplateDto(template: Template): TemplateDto {
 		category: template.category,
 		content: template.content,
 		previewUrl: template.previewUrl,
+		ownerId: template.ownerId,
 	};
 }
 

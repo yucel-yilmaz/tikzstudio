@@ -5,6 +5,7 @@ import type {
 	CreateFileInput,
 	CreateProjectInput,
 	CreateSnippetInput,
+	CreateTemplateInput,
 	ProjectDetail,
 	ProjectFileDto,
 	ProjectSummary,
@@ -167,6 +168,18 @@ export function getTemplates(search = "") {
 	return requestJson<{ templates: TemplateDto[] }>(
 		`/api/templates${search ? `?search=${encodeURIComponent(search)}` : ""}`,
 	);
+}
+
+export function createTemplate(data: CreateTemplateInput) {
+	return requestJson<TemplateDto>("/api/templates", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(data),
+	});
+}
+
+export function deleteTemplate(id: string) {
+	return requestJson<void>(`/api/templates/${id}`, { method: "DELETE" });
 }
 
 export function getSnippets(search = "") {

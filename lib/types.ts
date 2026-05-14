@@ -45,6 +45,14 @@ export type TemplateDto = {
 	category: string;
 	content: string;
 	previewUrl: string | null;
+	ownerId: string | null;
+};
+
+export type CreateTemplateInput = {
+	title: string;
+	category: string;
+	content: string;
+	description?: string;
 };
 
 export type SnippetDto = {
