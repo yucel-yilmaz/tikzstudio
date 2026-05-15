@@ -248,6 +248,25 @@ export async function createProjectFileForUser(
 	});
 }
 
+// LaTeX text file extensions that should be treated as text, not binary
+const TEXT_EXTENSIONS = new Set([
+	".cls",
+	".sty",
+	".tex",
+	".clo",
+	".cfg",
+	".ldf",
+	".def",
+	".fd",
+	".txt",
+	".log",
+]);
+
+function isTextFile(filePath: string): boolean {
+	const ext = filePath.slice(filePath.lastIndexOf(".")).toLowerCase();
+	return TEXT_EXTENSIONS.has(ext);
+}
+
 export async function uploadBinaryFileForUser(
 	ownerId: string,
 	projectId: string,
@@ -264,14 +283,19 @@ export async function uploadBinaryFileForUser(
 		);
 	}
 
+	const asText = isTextFile(filePath);
+	const textContent = asText
+		? new TextDecoder("utf-8").decode(buffer)
+		: "";
+
 	return prisma.projectFile.create({
 		data: {
 			projectId,
 			path: filePath,
-			content: "",
-			isBinary: true,
-			binaryContent: buffer,
-			language: "binary",
+			content: textContent,
+			isBinary: !asText,
+			binaryContent: asText ? null : buffer,
+			language: asText ? "latex" : "binary",
 			isMain: false,
 		},
 	});
