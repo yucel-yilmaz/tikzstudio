@@ -9,16 +9,16 @@ MAIN_FILE="${2:-main.tex}"
 export XDG_CACHE_HOME=/tmp/xdg-cache
 mkdir -p "$XDG_CACHE_HOME"
 
-if [ ! -d "$XDG_CACHE_HOME/Tectonic" ] && [ -d /root/.cache/Tectonic ]; then
-  cp -R /root/.cache/Tectonic "$XDG_CACHE_HOME/Tectonic"
+if [ -d /opt/tectonic-cache ]; then
+  cp -R /opt/tectonic-cache/. "$XDG_CACHE_HOME/"
 fi
 
-TECTONIC_BUNDLE="https://relay.fullyjustified.net/default_bundle_v33.tar.index.gz"
+TECTONIC_BUNDLE="https://relay.fullyjustified.net/default_bundle_v33.tar"
 
 COMPILE_EXIT=0
 case "$ENGINE" in
   tectonic)
-    tectonic --web-bundle "$TECTONIC_BUNDLE" --only-cached --keep-logs --outdir /output "$MAIN_FILE" || COMPILE_EXIT=$?
+    tectonic --bundle "$TECTONIC_BUNDLE" --only-cached --keep-logs --outdir /output "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
   pdflatex)
     pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?

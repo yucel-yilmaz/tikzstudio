@@ -15,9 +15,10 @@ RUN apt-get update \
 RUN cargo install tectonic
 
 # Pre-download packages by compiling representative documents.
-# Using an explicit --web-bundle URL so the cache is keyed to that URL,
+# Using an explicit bundle URL so the cache is keyed to that URL,
 # which must match the URL used in compile.sh at runtime.
-ENV TECTONIC_BUNDLE=https://relay.fullyjustified.net/default_bundle_v33.tar.index.gz
+ENV TECTONIC_BUNDLE=https://relay.fullyjustified.net/default_bundle_v33.tar
+ENV XDG_CACHE_HOME=/opt/tectonic-cache
 
 WORKDIR /warmup
 COPY docker/compiler/warmup.tex          warmup.tex
@@ -25,10 +26,11 @@ COPY docker/compiler/warmup-article.tex  warmup-article.tex
 COPY docker/compiler/warmup-beamer.tex   warmup-beamer.tex
 COPY docker/compiler/warmup-report.tex   warmup-report.tex
 
-RUN tectonic --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup.tex         || true \
- && tectonic --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup-article.tex || true \
- && tectonic --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup-beamer.tex  || true \
- && tectonic --web-bundle "$TECTONIC_BUNDLE" --keep-logs warmup-report.tex  || true
+RUN mkdir -p "$XDG_CACHE_HOME" \
+ && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup.tex \
+ && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-article.tex \
+ && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-beamer.tex \
+ && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-report.tex
 
 FROM debian:bookworm-slim
 
@@ -45,7 +47,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/local/cargo/bin/tectonic /usr/local/bin/tectonic
-COPY --from=builder /root/.cache/Tectonic /root/.cache/Tectonic
+COPY --from=builder /opt/tectonic-cache /opt/tectonic-cache
 COPY docker/compiler/compile.sh /usr/local/bin/compile.sh
 
 RUN chmod +x /usr/local/bin/compile.sh
