@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -14,6 +14,7 @@ import {
 	PanelLeftOpen,
 	Pencil,
 	Plus,
+	ScanLine,
 	Search,
 	Settings2,
 	Star,
@@ -69,6 +70,7 @@ import {
 	deleteSnippet,
 	deleteTemplate,
 	getCompileHistory,
+	img2latex,
 } from "@/lib/client-api";
 import type { CompileDiagnostic } from "@/lib/compile-log";
 import type {
@@ -200,6 +202,38 @@ export function DesktopEditorLayout({
 		}
 	}
 
+	const [img2latexOpen, setImg2latexOpen] = useState(false);
+	const [img2latexFile, setImg2latexFile] = useState<File | null>(null);
+	const [img2latexPreview, setImg2latexPreview] = useState<string | null>(null);
+	const [img2latexResult, setImg2latexResult] = useState<string>("");
+	const img2latexInputRef = useRef<HTMLInputElement>(null);
+
+	const img2latexMutation = useMutation({
+		mutationFn: (file: File) => img2latex(file),
+		onSuccess: (data) => setImg2latexResult(data.latex),
+	});
+
+	function openImg2latex() {
+		setImg2latexFile(null);
+		setImg2latexPreview(null);
+		setImg2latexResult("");
+		setImg2latexOpen(true);
+	}
+
+	function handleImg2latexFile(file: File) {
+		setImg2latexFile(file);
+		setImg2latexResult("");
+		const url = URL.createObjectURL(file);
+		setImg2latexPreview(url);
+	}
+
+	function insertImg2latexResult() {
+		if (img2latexResult) {
+			insertIntoActive(img2latexResult);
+		}
+		setImg2latexOpen(false);
+	}
+
 	const [isCreating, setIsCreating] = useState(false);
 	const [newFilePath, setNewFilePath] = useState("");
 	const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
@@ -319,6 +353,7 @@ export function DesktopEditorLayout({
 	}
 
 	return (
+		<>
 		<div className="hidden lg:flex lg:min-h-0 lg:flex-1">
 			<div
 				className={cn(
@@ -393,9 +428,20 @@ export function DesktopEditorLayout({
 											{activeFile ? activeFile.path : "Aktif dosya secilmedi"}
 										</CardDescription>
 									</div>
-									<Badge variant="outline" className={saveMeta.tone}>
-										{saveMeta.label}
-									</Badge>
+									<div className="flex items-center gap-2">
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon-sm"
+											title="Görüntüden LaTeX'e çevir"
+											onClick={openImg2latex}
+										>
+											<ScanLine />
+										</Button>
+										<Badge variant="outline" className={saveMeta.tone}>
+											{saveMeta.label}
+										</Badge>
+									</div>
 								</div>
 							</CardHeader>
 							<CardContent className="flex-1 min-h-0 p-0 overflow-hidden">
@@ -1310,5 +1356,90 @@ export function DesktopEditorLayout({
 				) : null}
 			</div>
 		</div>
+
+		{/* Img2LaTeX dialog */}
+		<Dialog open={img2latexOpen} onOpenChange={setImg2latexOpen}>
+			<DialogContent className="max-w-lg">
+				<DialogHeader>
+					<DialogTitle>Görüntüden LaTeX'e Çevir</DialogTitle>
+				</DialogHeader>
+
+				<div className="flex flex-col gap-4">
+					<div
+						className={cn(
+							"flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors hover:bg-muted/40",
+							img2latexPreview ? "border-border" : "border-muted-foreground/30",
+						)}
+						onClick={() => img2latexInputRef.current?.click()}
+						onDragOver={(e) => e.preventDefault()}
+						onDrop={(e) => {
+							e.preventDefault();
+							const file = e.dataTransfer.files[0];
+							if (file) handleImg2latexFile(file);
+						}}
+					>
+						{img2latexPreview ? (
+							// eslint-disable-next-line @next/next/no-img-element
+							<img
+								src={img2latexPreview}
+								alt="Seçilen görüntü"
+								className="max-h-48 max-w-full rounded object-contain"
+							/>
+						) : (
+							<>
+								<ScanLine className="size-8 text-muted-foreground" />
+								<p className="text-sm text-muted-foreground">
+									Görüntü sürükle ya da tıkla (PNG, JPEG, WebP — maks 4 MB)
+								</p>
+							</>
+						)}
+						<input
+							ref={img2latexInputRef}
+							type="file"
+							accept="image/png,image/jpeg,image/webp"
+							className="hidden"
+							onChange={(e) => {
+								const file = e.target.files?.[0];
+								if (file) handleImg2latexFile(file);
+							}}
+						/>
+					</div>
+
+					<Button
+						type="button"
+						disabled={!img2latexFile || img2latexMutation.isPending}
+						onClick={() =>
+							img2latexFile && img2latexMutation.mutate(img2latexFile)
+						}
+					>
+						{img2latexMutation.isPending ? "Dönüştürülüyor…" : "LaTeX'e Çevir"}
+					</Button>
+
+					{img2latexMutation.error ? (
+						<p className="text-sm text-destructive">
+							{img2latexMutation.error instanceof Error
+								? img2latexMutation.error.message
+								: "Dönüştürme başarısız."}
+						</p>
+					) : null}
+
+					{img2latexResult ? (
+						<div className="flex flex-col gap-2">
+							<p className="text-xs font-medium text-muted-foreground">Sonuç</p>
+							<Textarea
+								value={img2latexResult}
+								onChange={(e) => setImg2latexResult(e.target.value)}
+								className="font-mono text-xs"
+								rows={5}
+							/>
+							<Button type="button" onClick={insertImg2latexResult}>
+								Editöre Ekle
+							</Button>
+						</div>
+					) : null}
+				</div>
+			</DialogContent>
+		</Dialog>
+		</>
 	);
 }
