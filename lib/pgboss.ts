@@ -34,10 +34,17 @@ export async function getBoss(): Promise<PgBoss> {
 			console.error("[pg-boss] error:", error);
 		});
 
-		globalThis.pgBossReady = boss.start().then((started) => {
-			globalThis.pgBoss = started;
-			return started;
-		});
+		globalThis.pgBossReady = boss
+			.start()
+			.then((started) => {
+				globalThis.pgBoss = started;
+				return started;
+			})
+			.catch((error) => {
+				// Clear the cached promise so the next caller retries fresh.
+				globalThis.pgBossReady = undefined;
+				throw error;
+			});
 	}
 
 	return globalThis.pgBossReady;

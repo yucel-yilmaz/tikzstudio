@@ -12,9 +12,9 @@ let workerStarted = false;
  */
 export async function startCompileWorker(): Promise<void> {
 	if (workerStarted) return;
-	workerStarted = true;
 
 	const boss = await getBoss();
+	workerStarted = true;
 	await boss.createQueue(COMPILE_QUEUE);
 
 	await boss.work<CompileJobPayload>(
