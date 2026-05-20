@@ -50,6 +50,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import {
 	ResizableHandle,
 	ResizablePanel,
 	ResizablePanelGroup,
@@ -206,10 +213,11 @@ export function DesktopEditorLayout({
 	const [img2latexFile, setImg2latexFile] = useState<File | null>(null);
 	const [img2latexPreview, setImg2latexPreview] = useState<string | null>(null);
 	const [img2latexResult, setImg2latexResult] = useState<string>("");
+	const [img2latexProvider, setImg2latexProvider] = useState<"docker" | "mathpix">("docker");
 	const img2latexInputRef = useRef<HTMLInputElement>(null);
 
 	const img2latexMutation = useMutation({
-		mutationFn: (file: File) => img2latex(file),
+		mutationFn: (file: File) => img2latex(file, img2latexProvider),
 		onSuccess: (data) => setImg2latexResult(data.latex),
 	});
 
@@ -1377,6 +1385,22 @@ export function DesktopEditorLayout({
 					</DialogHeader>
 
 					<div className="flex flex-col gap-4">
+						<div className="flex items-center gap-3">
+							<span className="text-sm font-medium shrink-0">Provider</span>
+							<Select
+								value={img2latexProvider}
+								onValueChange={(v) => setImg2latexProvider(v as "docker" | "mathpix")}
+							>
+								<SelectTrigger className="h-8 text-sm">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="docker">Docker Model Runner (local)</SelectItem>
+									<SelectItem value="mathpix">Mathpix (ücretli)</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+
 						<label
 							className={cn(
 								"flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors hover:bg-muted/40",

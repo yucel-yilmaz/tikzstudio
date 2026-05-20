@@ -13,6 +13,8 @@ const envSchema = z.object({
 	COMPILE_STORAGE_DIR: z.string().default(".data/compile-artifacts"),
 	MATHPIX_APP_ID: z.string().optional(),
 	MATHPIX_APP_KEY: z.string().optional(),
+	DOCKER_MODEL_RUNNER_URL: z.string().default("http://localhost:12434"),
+	IMG2LATEX_MODEL: z.string().default("ai/qwen3-vl:latest"),
 });
 
 export const env = envSchema.parse({
@@ -28,4 +30,6 @@ export const env = envSchema.parse({
 	COMPILE_STORAGE_DIR: process.env.COMPILE_STORAGE_DIR,
 	MATHPIX_APP_ID: process.env.MATHPIX_APP_ID,
 	MATHPIX_APP_KEY: process.env.MATHPIX_APP_KEY,
+	DOCKER_MODEL_RUNNER_URL: process.env.DOCKER_MODEL_RUNNER_URL,
+	IMG2LATEX_MODEL: process.env.IMG2LATEX_MODEL,
 });
