@@ -34,7 +34,7 @@ export class ErrorBoundary extends Component<Props, State> {
 			}
 
 			return (
-				<div className="flex h-full min-h-[200px] flex-col items-center justify-center gap-4 p-8 text-center">
+				<div className="flex h-full min-h-50 flex-col items-center justify-center gap-4 p-8 text-center">
 					<p className="text-sm font-medium text-destructive">
 						Beklenmeyen bir hata oluştu
 					</p>
