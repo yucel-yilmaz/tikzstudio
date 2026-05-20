@@ -13,9 +13,25 @@ export async function register() {
 	if (process.env.NEXT_PHASE === "phase-production-build") return;
 
 	const { startCompileWorker } = await import("@/server/jobs/compile-worker");
+	const { startCleanupWorker, recoverStaleJobs } = await import(
+		"@/server/jobs/cleanup-worker"
+	);
+
+	try {
+		await recoverStaleJobs();
+	} catch (error) {
+		console.error("[instrumentation] stale job recovery failed:", error);
+	}
+
 	try {
 		await startCompileWorker();
 	} catch (error) {
 		console.error("[instrumentation] failed to start compile worker:", error);
+	}
+
+	try {
+		await startCleanupWorker();
+	} catch (error) {
+		console.error("[instrumentation] failed to start cleanup worker:", error);
 	}
 }
