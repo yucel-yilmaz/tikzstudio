@@ -8,14 +8,17 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams. Built on Next
 
 ## ✨ Features
 
-- 📝 **CodeMirror 6 editor** with LaTeX syntax highlighting, bracket matching, line numbers
-- 🛡️ **Sandboxed compilation** in a hardened Docker container (`--network none`, `--read-only`, capability drops, memory/CPU/timeout caps)
+- 📝 **CodeMirror 6 editor** with LaTeX syntax highlighting, bracket matching, line numbers, and inline error diagnostics
+- 🛡️ **Sandboxed compilation** in a hardened Docker container (`--network none`, `--read-only`, capability drops, memory/CPU/timeout caps, process-level timeout)
 - 🚀 **Tectonic engine** with pre-warmed cache for the most common TikZ libraries (`calc`, `arrows.meta`, `positioning`, `decorations.*`, `pgfplots`, …)
 - 📄 **Live PDF preview** rendered with PDF.js, DPR-aware for high-DPI displays
-- 🎨 **SVG export** alongside PDF for vector workflows
-- 🗂️ **Multi-file projects** — create, rename, delete, mark as main
+- 🎨 **SVG export** alongside PDF for vector workflows (DOMPurify-sanitised before serving)
+- 🗂️ **Multi-file projects** — create, rename, delete, upload binaries (images, fonts, `.cls`, `.sty`), mark as main
+- 📚 **Compile history** — browse past jobs, download archived PDF/SVG outputs
+- 🔁 **Project forking** — copy any public project into your own workspace
 - 🧩 **Templates & snippets** library for quick TikZ scaffolds
 - 🔐 **Authentication** via [better-auth](https://www.better-auth.com/) (email + password)
+- 🚦 **Rate limiting** — 5 compiles per minute per user (database-backed, no extra dependencies)
 - 💾 **Auto-save** with debounce and visible save state
 - 🌗 **Light/dark theme** support (Tailwind v4)
 - 🇹🇷 **Turkish UI** out of the box
@@ -24,31 +27,39 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams. Built on Next
 
 ## 🧱 Tech Stack
 
-| Layer        | Choice                                       |
-| ------------ | -------------------------------------------- |
-| Framework    | Next.js 16 (App Router) + React 19           |
-| Language     | TypeScript                                   |
-| Styling      | Tailwind CSS v4 + shadcn/ui (radix-ui)       |
-| State        | TanStack Query, Zustand                      |
-| Editor       | CodeMirror 6 (`@uiw/react-codemirror`)       |
-| Database     | PostgreSQL via Prisma 7                      |
-| Auth         | better-auth                                  |
-| LaTeX engine | Tectonic (Docker sandbox)                    |
-| PDF render   | PDF.js (legacy build)                        |
-| PDF → SVG    | `pdf2svg`                                    |
-| Lint/Format  | Biome                                        |
+| Layer          | Choice                                          |
+| -------------- | ----------------------------------------------- |
+| Framework      | Next.js 16 (App Router) + React 19              |
+| Language       | TypeScript                                      |
+| Styling        | Tailwind CSS v4 + shadcn/ui (radix-ui)          |
+| State          | TanStack Query, Zustand                         |
+| Editor         | CodeMirror 6 (`@uiw/react-codemirror`)          |
+| Database       | PostgreSQL via Prisma 7                         |
+| Auth           | better-auth                                     |
+| Job queue      | pg-boss (PostgreSQL-backed, no Redis required)  |
+| LaTeX engine   | Tectonic (Docker sandbox)                       |
+| PDF render     | PDF.js (legacy build)                           |
+| PDF → SVG      | `pdf2svg` (output sanitised with DOMPurify)     |
+| SVG sanitiser  | DOMPurify + jsdom (server-side)                 |
+| Tests          | Vitest                                          |
+| Lint/Format    | Biome                                           |
 
 ---
 
 ## 📐 Architecture
 
-```
+```text
                    ┌────────────────────────┐
    browser ─────▶  │  Next.js (App Router)  │  ─── better-auth ──▶  PostgreSQL
                    │  ─ /api/projects/...   │
                    │  ─ /api/compile-jobs/. │  ─── Prisma ──────▶
                    └──────────┬─────────────┘
                               │ POST /api/projects/:id/compile
+                              ▼
+                   ┌────────────────────────┐
+                   │   pg-boss job queue    │  (stored in PostgreSQL)
+                   └──────────┬─────────────┘
+                              │ worker picks up job
                               ▼
                    ┌────────────────────────┐
                    │ DockerCompilerAdapter  │
@@ -65,6 +76,7 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams. Built on Next
                    └────────────────────────┘
                               ▼
                   PDF + SVG ──▶ COMPILE_STORAGE_DIR
+                  SVG ─────▶  DOMPurify sanitiser ──▶ browser
 ```
 
 ---
@@ -74,8 +86,7 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams. Built on Next
 ### Prerequisites
 
 - **Node.js** 20+
-- **PostgreSQL** 14+ (local or container)
-- **Docker** (for the compile sandbox)
+- **Docker** (for the compile sandbox and the development database)
 
 ### 1. Install dependencies
 
@@ -87,30 +98,50 @@ npm install
 
 ```bash
 cp .env.example .env
-# Edit .env, in particular generate a fresh BETTER_AUTH_SECRET:
+# Edit .env — in particular generate a fresh BETTER_AUTH_SECRET:
 node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 ```
 
-### 3. Database setup
+### 3. Start the database
+
+The project requires PostgreSQL. The easiest way is a Docker container:
+
+```bash
+docker run -d \
+  --name tikzlab-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=tikzlab \
+  -p 5432:5432 \
+  -v tikzlab-pgdata:/var/lib/postgresql/data \
+  postgres:16-alpine
+```
+
+To start it again after a reboot:
+
+```bash
+docker start tikzlab-postgres
+```
+
+### 4. Apply migrations and seed
 
 ```bash
 npm run db:generate    # generate Prisma client
-npm run db:migrate     # apply migrations
+npm run db:migrate     # apply all migrations
 npm run db:seed        # seed templates/snippets (optional)
 ```
 
-### 4. Build the compiler image
+### 5. Build the compiler image
 
-This builds a hardened Tectonic image and warms its cache with common TikZ libraries.
-First build takes 5–10 minutes (cargo install + first Tectonic bundle download).
+Builds a hardened Tectonic image and warms its package cache with common TikZ libraries. First build takes 5–10 minutes (cargo compile + bundle download).
 
 ```bash
 npm run compiler:build
 ```
 
-> **If the build fails with "couldn't get bundle from internet"** — see [Troubleshooting](#-troubleshooting).
+> **If the build fails with "couldn't get bundle from internet"** — see the Troubleshooting section below.
 
-### 5. Run the dev server
+### 6. Run the dev server
 
 ```bash
 npm run dev
@@ -122,74 +153,96 @@ Open [http://localhost:3000](http://localhost:3000) and sign up.
 
 ## 📜 Available Scripts
 
-| Script                 | What it does                                      |
-| ---------------------- | ------------------------------------------------- |
-| `npm run dev`          | Start Next.js dev server (Turbopack)              |
-| `npm run build`        | Production build                                  |
-| `npm run start`        | Run the production build                          |
-| `npm run lint`         | Biome check (lint + organize imports + format)    |
-| `npm run format`       | Biome format with auto-fix                        |
-| `npm run test`         | Run vitest test suite                             |
-| `npm run db:generate`  | Generate Prisma client                            |
-| `npm run db:migrate`   | Run Prisma migrations (`prisma migrate dev`)      |
-| `npm run db:seed`      | Seed the database                                 |
-| `npm run compiler:build` | Build the Tectonic Docker image                 |
+| Script                    | What it does                                       |
+| ------------------------- | -------------------------------------------------- |
+| `npm run dev`             | Start Next.js dev server (Turbopack)               |
+| `npm run build`           | Production build + type-check                      |
+| `npm run start`           | Run the production build                           |
+| `npm run lint`            | Biome check (lint + organize imports + format)     |
+| `npm run format`          | Biome format with auto-fix                         |
+| `npm run test`            | Run Vitest test suite (single run)                 |
+| `npm run test:watch`      | Run Vitest in watch mode                           |
+| `npm run db:generate`     | Generate Prisma client                             |
+| `npm run db:migrate`      | Apply Prisma migrations (`prisma migrate dev`)     |
+| `npm run db:seed`         | Seed the database with templates and snippets      |
+| `npm run compiler:build`  | Build the Tectonic Docker compiler image           |
 
 ---
 
 ## 📁 Repository Layout
 
-```
+```text
 app/                  Next.js App Router routes (UI + API handlers)
   api/                REST endpoints (projects, files, compile jobs, auth)
   (app)/              Authenticated routes (dashboard, editor)
   (marketing)/        Public marketing pages
-features/             Feature modules (auth, dashboard, editor)
+features/             Feature modules (auth, dashboard, editor, share)
   editor/components/  Editor UI: code-editor, pdf-preview, layouts
   editor/store/       Zustand stores
-components/           Shared UI primitives (shadcn/ui)
-lib/                  Helpers (client API, types, env, utils)
-server/               Server-side logic (services, schemas, compiler)
-  compiler/           Docker compile adapter, log parser, storage
+components/           Shared UI primitives (shadcn/ui, ErrorBoundary)
+lib/                  Helpers (client API, types, env, compile-log, utils)
+server/               Server-side logic
+  compiler/           Docker adapter, log parser, SVG sanitiser, storage
+  jobs/               pg-boss workers (compile, cleanup)
   services/           Business logic (projects, files, compile jobs)
+  schemas/            Zod request schemas
 prisma/               Schema, migrations, seed
-docker/compiler/      Dockerfile + warmup.tex + compile.sh for the sandbox
-docs/                 Internal notes
-tests/                Vitest tests
+docker/compiler/      Dockerfile + warmup docs + compile.sh for the sandbox
+tests/                Vitest unit tests
 ```
 
 ---
 
 ## 🔒 Security Model
 
-The compile sandbox is the most security-sensitive surface. Each compile request runs:
+### Compile sandbox
 
-```
+Each compile request runs in an isolated container:
+
+```shell
 docker run --rm
   --network none                 # no outbound traffic
   --read-only                    # filesystem is read-only
-  --tmpfs /tmp:rw,noexec         # writable /tmp without exec
-  --memory 256m --cpus 0.5       # resource caps
+  --tmpfs /tmp:rw,noexec,nosuid,size=64m
+  --memory 256m --cpus 0.5       # resource caps (configurable via env)
   --pids-limit 64
   --security-opt no-new-privileges
   --cap-drop ALL
   tikzlab-compiler:latest
 ```
 
-Plus:
+Inside the container, the LaTeX process itself is wrapped with `timeout 12` (3 s below the outer Docker timeout of 15 s). Both limits are configurable via environment variables.
 
-- Tectonic runs `--untrusted` (shell-escape disabled) and `--only-cached` (no network reads at runtime — required by `--network none`)
-- Source code & output are size-capped (`MAX_SOURCE_SIZE_KB`, `MAX_OUTPUT_SIZE_MB`)
-- Compile timeout caps (`COMPILE_TIMEOUT_SECONDS`)
+### SVG output
 
-If a TikZ library is missing, add it to [`docker/compiler/warmup.tex`](docker/compiler/warmup.tex) and rebuild the image.
+`pdf2svg` output is piped through a server-side DOMPurify sanitiser before it reaches the browser, blocking `<script>` tags, event handlers, and other XSS vectors that could appear in maliciously crafted LaTeX.
+
+### Rate limiting
+
+The compile endpoint enforces a 5-per-minute limit per user, checked against the database — no extra infrastructure required.
+
+### Additional limits
+
+- Source bundle is size-capped (`MAX_SOURCE_SIZE_KB`, default 512 KB)
+- Output is size-capped (`MAX_OUTPUT_SIZE_MB`, default 10 MB)
+- Stale RUNNING/PENDING jobs are recovered to FAILED on server restart
+- Compile artifacts are pruned hourly; only the latest successful output per project is kept on disk
 
 ---
 
 ## 🛠️ Troubleshooting
 
-<details>
-<summary><b>Docker build fails with "couldn't get bundle from internet"</b></summary>
+### PostgreSQL connection refused (P1001 / ECONNREFUSED)
+
+The database container is not running. Start it with:
+
+```bash
+docker start tikzlab-postgres
+```
+
+If you haven't created the container yet, follow step 3 in Getting Started.
+
+### Docker build fails with "couldn't get bundle from internet"
 
 Tectonic downloads its bundle on first run. The default Docker `bridge` network sometimes can't reach external mirrors. The build script already passes `--network=host`, but if it still fails:
 
@@ -198,49 +251,41 @@ Tectonic downloads its bundle on first run. The default Docker `bridge` network 
 docker build --dns=8.8.8.8 --dns=1.1.1.1 \
   -t tikzlab-compiler:latest -f docker/compiler/Dockerfile .
 
-# Or fix Docker Desktop DNS
+# Or fix Docker Desktop DNS:
 # Settings → Resources → Network → DNS Server → 8.8.8.8
 ```
-</details>
 
-<details>
-<summary><b>Compile fails with "Package tikz Error: I did not find the tikz library 'X'"</b></summary>
+### Compile fails with "I did not find the tikz library 'X'"
 
 The library isn't in the warmed Tectonic cache (and `--only-cached` is on for security). Add it to the `\usetikzlibrary{...}` block in [`docker/compiler/warmup.tex`](docker/compiler/warmup.tex), then rebuild:
 
 ```bash
 npm run compiler:build
 ```
-</details>
 
-<details>
-<summary><b>PDF preview shows a grey box</b></summary>
+### PDF preview shows a grey box
 
 Most likely a stale browser cache for `pdf.worker.min.mjs`. Hard refresh (Ctrl+Shift+R). If still broken, open DevTools → Console and check for PDF.js errors. The render path is in [`features/editor/components/pdf-preview.tsx`](features/editor/components/pdf-preview.tsx).
-</details>
 
-<details>
-<summary><b>Prisma error: "column ... does not exist"</b></summary>
+### Prisma error: "column ... does not exist"
 
 Migrations not applied. Run:
 
 ```bash
 npm run db:migrate
 ```
-</details>
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Public project sharing via shareable link
+- [ ] Multi-engine UI (XeLaTeX, LuaLaTeX selectable per project)
 - [ ] PNG export
-- [ ] Queue-backed compile worker (BullMQ / pg-boss)
-- [ ] Multi-engine support (XeLaTeX, LuaLaTeX exposed in UI)
 - [ ] Real-time collaboration (Y.js)
 - [ ] Mobile-first editor improvements
-- [ ] Localization (English UI alongside Turkish)
+- [ ] Localisation (English UI alongside Turkish)
 - [ ] OAuth providers (GitHub, Google)
+- [ ] docker-compose.yml for one-command local setup
 
 ---
 
@@ -272,3 +317,5 @@ If you want to use this code, get in touch.
 - [shadcn/ui](https://ui.shadcn.com/) — UI primitives
 - [better-auth](https://www.better-auth.com/) — authentication
 - [pdf2svg](https://github.com/dawbarton/pdf2svg) — PDF → SVG conversion
+- [pg-boss](https://github.com/timgit/pg-boss) — PostgreSQL-backed job queue
+- [DOMPurify](https://github.com/cure53/DOMPurify) — SVG/HTML sanitisation
