@@ -101,7 +101,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 				</CardContent>
 			</Card>
 
-			<Card className="border-white/60 bg-[color:color-mix(in_srgb,var(--surface-1)_90%,white_10%)]">
+			<Card className="border-white/60 bg-[color-mix(in_srgb,var(--surface-1)_90%,white_10%)]">
 				<CardHeader className="space-y-4 pb-3">
 					<div className="flex items-center justify-between gap-3">
 						<Badge variant="default" className="normal-case tracking-normal">
@@ -133,7 +133,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 								<span className="text-sm font-medium">Full name</span>
 								<div className="relative">
 									<User2
-										className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ink-1)]"
+										className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--ink-1)"
 										size={16}
 									/>
 									<Input
@@ -150,7 +150,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 							<span className="text-sm font-medium">Email</span>
 							<div className="relative">
 								<Mail
-									className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ink-1)]"
+									className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--ink-1)"
 									size={16}
 								/>
 								<Input
@@ -167,7 +167,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 							<span className="text-sm font-medium">Password</span>
 							<div className="relative">
 								<LockKeyhole
-									className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ink-1)]"
+									className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--ink-1)"
 									size={16}
 								/>
 								<Input
@@ -182,7 +182,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 						</label>
 
 						{error ? (
-							<div className="rounded-2xl border border-[rgba(180,35,24,0.18)] bg-[rgba(180,35,24,0.08)] px-4 py-3 text-sm text-[var(--danger)]">
+							<div className="rounded-2xl border border-[rgba(180,35,24,0.18)] bg-[rgba(180,35,24,0.08)] px-4 py-3 text-sm text-(--danger)">
 								{error}
 							</div>
 						) : null}
@@ -196,11 +196,11 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 						</Button>
 					</form>
 
-					<div className="rounded-3xl border border-[var(--line)] bg-white/75 p-4 text-sm leading-6 text-[var(--ink-1)]">
+					<div className="rounded-3xl border border-(--line) bg-white/75 p-4 text-sm leading-6 text-(--ink-1)">
 						{mode === "signup" ? "Already have an account?" : "New here?"}{" "}
 						<Link
 							href={mode === "signup" ? "/login" : "/signup"}
-							className="font-medium text-[var(--accent-strong)]"
+							className="font-medium text-(--accent-strong)"
 						>
 							{mode === "signup" ? "Sign in" : "Create account"}
 						</Link>

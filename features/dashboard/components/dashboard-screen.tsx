@@ -78,7 +78,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 	const projectCount = projectsQuery.data?.projects.length ?? 0;
 
 	return (
-		<div className="mx-auto flex min-h-screen w-full max-w-[1500px] flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
+		<div className="mx-auto flex min-h-screen w-full max-w-375 flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
 			<Card className="overflow-hidden border-white/60 bg-[linear-gradient(160deg,rgba(255,250,242,0.96),rgba(244,239,231,0.94))]">
 				<CardContent className="flex flex-col gap-5 p-6 lg:flex-row lg:items-start lg:justify-between lg:p-8">
 					<div className="space-y-4">
@@ -97,28 +97,28 @@ export function DashboardScreen({ userName }: { userName: string }) {
 							<h1 className="text-4xl font-semibold tracking-tight">
 								Hello, {userName}
 							</h1>
-							<p className="max-w-3xl text-sm leading-6 text-[var(--ink-1)] lg:text-base">
+							<p className="max-w-3xl text-sm leading-6 text-(--ink-1) lg:text-base">
 								Manage TikZ projects, start new documents and monitor your
 								latest compile outputs in one place.
 							</p>
 						</div>
 						<div className="grid gap-3 sm:grid-cols-3">
-							<div className="rounded-3xl border border-[var(--line)] bg-white/70 px-4 py-4">
-								<p className="text-xs uppercase tracking-[0.14em] text-[var(--ink-1)]">
+							<div className="rounded-3xl border border-(--line) bg-white/70 px-4 py-4">
+								<p className="text-xs uppercase tracking-[0.14em] text-(--ink-1)">
 									Projects
 								</p>
 								<p className="mt-2 text-2xl font-semibold">{projectCount}</p>
 							</div>
-							<div className="rounded-3xl border border-[var(--line)] bg-white/70 px-4 py-4">
-								<p className="text-xs uppercase tracking-[0.14em] text-[var(--ink-1)]">
+							<div className="rounded-3xl border border-(--line) bg-white/70 px-4 py-4">
+								<p className="text-xs uppercase tracking-[0.14em] text-(--ink-1)">
 									Templates
 								</p>
 								<p className="mt-2 text-2xl font-semibold">
 									{groupedTemplates.length}
 								</p>
 							</div>
-							<div className="rounded-3xl border border-[var(--line)] bg-white/70 px-4 py-4">
-								<p className="text-xs uppercase tracking-[0.14em] text-[var(--ink-1)]">
+							<div className="rounded-3xl border border-(--line) bg-white/70 px-4 py-4">
+								<p className="text-xs uppercase tracking-[0.14em] text-(--ink-1)">
 									Workflow
 								</p>
 								<p className="mt-2 text-base font-semibold">
@@ -159,7 +159,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 				<CardContent className="space-y-5">
 					<label className="relative block">
 						<Search
-							className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ink-1)]"
+							className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--ink-1)"
 							size={16}
 						/>
 						<Input
@@ -184,18 +184,18 @@ export function DashboardScreen({ userName }: { userName: string }) {
 							{projectsQuery.data.projects.map((project) => (
 								<Card
 									key={project.id}
-									className="border-[var(--line)] bg-white/78"
+									className="border-(--line) bg-white/78"
 								>
 									<CardContent className="flex h-full flex-col gap-5 p-5">
 										<div className="flex items-start justify-between gap-4">
 											<div className="space-y-2">
-												<div className="inline-flex items-center gap-2 text-[var(--ink-0)]">
+												<div className="inline-flex items-center gap-2 text-foreground">
 													<FileCode2 size={16} />
 													<h2 className="text-xl font-semibold">
 														{project.title}
 													</h2>
 												</div>
-												<p className="line-clamp-3 text-sm leading-6 text-[var(--ink-1)]">
+												<p className="line-clamp-3 text-sm leading-6 text-(--ink-1)">
 													{project.description || "No description added."}
 												</p>
 											</div>
@@ -204,7 +204,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 												size="icon"
 												onClick={() => deleteMutation.mutate(project.id)}
 												aria-label="Delete project"
-												className="text-[var(--danger)]"
+												className="text-(--danger)"
 											>
 												<Trash2 size={16} />
 											</Button>
@@ -230,7 +230,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 							))}
 						</div>
 					) : (
-						<div className="rounded-[30px] border border-dashed border-[var(--line)] bg-white/65 px-6 py-14 text-center">
+						<div className="rounded-[30px] border border-dashed border-(--line) bg-white/65 px-6 py-14 text-center">
 							<div className="mx-auto max-w-md space-y-3">
 								<Badge
 									variant="outline"
@@ -239,7 +239,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 									Empty workspace
 								</Badge>
 								<h2 className="text-2xl font-semibold">No projects yet</h2>
-								<p className="text-sm leading-6 text-[var(--ink-1)]">
+								<p className="text-sm leading-6 text-(--ink-1)">
 									Start your first TikZ diagram with the default document or a
 									ready-made template.
 								</p>
@@ -315,7 +315,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 								<div className="space-y-3">
 									<div>
 										<p className="text-sm font-medium">Starting template</p>
-										<p className="mt-1 text-sm text-[var(--ink-1)]">
+										<p className="mt-1 text-sm text-(--ink-1)">
 											Start blank or pick a ready example to jump into the
 											editor.
 										</p>
@@ -325,10 +325,10 @@ export function DashboardScreen({ userName }: { userName: string }) {
 										<button
 											type="button"
 											onClick={() => setTemplateId(undefined)}
-											className={`rounded-[26px] border px-4 py-4 text-left transition ${templateId ? "border-[var(--line)] bg-white/75" : "border-[rgba(200,85,61,0.32)] bg-[rgba(200,85,61,0.10)]"}`}
+											className={`rounded-[26px] border px-4 py-4 text-left transition ${templateId ? "border-(--line) bg-white/75" : "border-[rgba(200,85,61,0.32)] bg-[rgba(200,85,61,0.10)]"}`}
 										>
 											<div className="font-medium">Default TikZ</div>
-											<p className="mt-1 text-sm text-[var(--ink-1)]">
+											<p className="mt-1 text-sm text-(--ink-1)">
 												Clean start with Hello TikZ.
 											</p>
 										</button>
@@ -338,10 +338,10 @@ export function DashboardScreen({ userName }: { userName: string }) {
 												key={template.id}
 												type="button"
 												onClick={() => setTemplateId(template.id)}
-												className={`rounded-[26px] border px-4 py-4 text-left transition ${templateId === template.id ? "border-[rgba(200,85,61,0.32)] bg-[rgba(200,85,61,0.10)]" : "border-[var(--line)] bg-white/75"}`}
+												className={`rounded-[26px] border px-4 py-4 text-left transition ${templateId === template.id ? "border-[rgba(200,85,61,0.32)] bg-[rgba(200,85,61,0.10)]" : "border-(--line) bg-white/75"}`}
 											>
 												<div className="font-medium">{template.title}</div>
-												<p className="mt-1 text-sm text-[var(--ink-1)]">
+												<p className="mt-1 text-sm text-(--ink-1)">
 													{template.category}
 												</p>
 											</button>
