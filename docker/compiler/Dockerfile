@@ -25,12 +25,14 @@ COPY docker/compiler/warmup.tex          warmup.tex
 COPY docker/compiler/warmup-article.tex  warmup-article.tex
 COPY docker/compiler/warmup-beamer.tex   warmup-beamer.tex
 COPY docker/compiler/warmup-report.tex   warmup-report.tex
+COPY docker/compiler/warmup-turkish.tex  warmup-turkish.tex
 
 RUN mkdir -p "$XDG_CACHE_HOME" \
  && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup.tex \
  && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-article.tex \
  && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-beamer.tex \
- && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-report.tex
+ && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-report.tex \
+ && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-turkish.tex
 
 FROM debian:bookworm-slim
 
