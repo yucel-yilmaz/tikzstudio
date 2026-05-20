@@ -53,7 +53,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 			const body = (await response.json().catch(() => null)) as {
 				message?: string;
 			} | null;
-			setError(body?.message ?? "Kimlik doğrulama başarısız.");
+			setError(body?.message ?? "Authentication failed.");
 			return;
 		}
 
@@ -74,27 +74,26 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 						</Badge>
 						<div className="space-y-3">
 							<h1 className="max-w-lg text-4xl font-semibold tracking-tight lg:text-5xl">
-								Tarayıcı içinde ciddi TikZ üretimi için tasarlanmış çalışma
-								alanı.
+								A workspace designed for serious TikZ work in the browser.
 							</h1>
-							<p className="max-w-xl text-base leading-7 text-[var(--ink-1)]">
-								Kod editörü, güvenli derleme, PDF önizleme ve günlük akışı aynı
-								yüzeyde. Teknik diyagramlar için gereksiz araç kalabalığı
-								olmadan hızlı bir üretim ortamı.
+							<p className="max-w-xl text-base leading-7 text-(--ink-1)">
+								Code editor, secure compilation, PDF preview and log stream on
+								the same surface. A fast production environment without
+								unnecessary tool clutter for technical diagrams.
 							</p>
 						</div>
 					</div>
 
 					<div className="grid gap-3">
 						{[
-							"Projeleri sakla ve her değişikliği tek oturumda yönet.",
-							"Sandbox içinde derle, çıktı ve hataları anında gör.",
-							"Şablonlar ve parçalarla yeni belgeleri daha hızlı başlat.",
+							"Save projects and manage every change in one session.",
+							"Compile in a sandbox and see output and errors instantly.",
+							"Start new documents faster with templates and snippets.",
 						].map((item) => (
 							<div
 								key={item}
-								className="rounded-3xl border border-[var(--line)] bg-white/70 px-4 py-4 text-sm leading-6 text-[var(--ink-1)]"
-							>
+								className="rounded-3xl border border-(--line) bg-white/70 px-4 py-4 text-sm leading-6 text-(--ink-1)"
+						>
 								{item}
 							</div>
 						))}
@@ -106,24 +105,23 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 				<CardHeader className="space-y-4 pb-3">
 					<div className="flex items-center justify-between gap-3">
 						<Badge variant="default" className="normal-case tracking-normal">
-							{mode === "signup" ? "Yeni hesap" : "Oturum aç"}
+							{mode === "signup" ? "Sign up" : "Sign in"}
 						</Badge>
 						<Button asChild variant="ghost" size="sm">
 							<Link href="/" className="gap-2">
 								<ArrowLeft size={15} />
-								Ana sayfa
+								Home
 							</Link>
 						</Button>
 					</div>
 					<div className="space-y-2">
 						<CardTitle className="text-3xl">
 							{mode === "signup"
-								? "TikZLab hesabını oluştur"
-								: "Çalışma alanına geri dön"}
+								? "Create your TikZLab account"
+								: "Back to your workspace"}
 						</CardTitle>
 						<CardDescription className="text-sm leading-6">
-							TikZ projelerini kaydetmek, derlemek ve düzenleme geçmişini
-							korumak için oturum aç.
+							Sign in to save, compile, and manage your TikZ projects.
 						</CardDescription>
 					</div>
 				</CardHeader>
@@ -132,7 +130,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 					<form action={handleSubmit} className="space-y-5">
 						{mode === "signup" ? (
 							<label className="block space-y-2">
-								<span className="text-sm font-medium">Ad Soyad</span>
+								<span className="text-sm font-medium">Full name</span>
 								<div className="relative">
 									<User2
 										className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ink-1)]"
@@ -142,14 +140,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 										name="name"
 										required
 										className="pl-11"
-										placeholder="Adınızı ve soyadınızı girin"
+										placeholder="Enter your full name"
 									/>
 								</div>
 							</label>
 						) : null}
 
 						<label className="block space-y-2">
-							<span className="text-sm font-medium">E-posta</span>
+							<span className="text-sm font-medium">Email</span>
 							<div className="relative">
 								<Mail
 									className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ink-1)]"
@@ -160,13 +158,13 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 									name="email"
 									required
 									className="pl-11"
-									placeholder="ornek@alan.com"
+									placeholder="you@example.com"
 								/>
 							</div>
 						</label>
 
 						<label className="block space-y-2">
-							<span className="text-sm font-medium">Şifre</span>
+							<span className="text-sm font-medium">Password</span>
 							<div className="relative">
 								<LockKeyhole
 									className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ink-1)]"
@@ -178,7 +176,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 									required
 									minLength={8}
 									className="pl-11"
-									placeholder="En az 8 karakter"
+									placeholder="At least 8 characters"
 								/>
 							</div>
 						</label>
@@ -191,20 +189,20 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
 						<Button type="submit" disabled={pending} className="w-full">
 							{pending
-								? "İşleniyor..."
+								? "Processing…"
 								: mode === "signup"
-									? "Hesap oluştur"
-									: "Giriş yap"}
+									? "Create account"
+									: "Sign in"}
 						</Button>
 					</form>
 
 					<div className="rounded-3xl border border-[var(--line)] bg-white/75 p-4 text-sm leading-6 text-[var(--ink-1)]">
-						{mode === "signup" ? "Zaten hesabın var mı?" : "Yeni misin?"}{" "}
+						{mode === "signup" ? "Already have an account?" : "New here?"}{" "}
 						<Link
 							href={mode === "signup" ? "/login" : "/signup"}
 							className="font-medium text-[var(--accent-strong)]"
 						>
-							{mode === "signup" ? "Giriş yap" : "Hesap oluştur"}
+							{mode === "signup" ? "Sign in" : "Create account"}
 						</Link>
 					</div>
 				</CardContent>

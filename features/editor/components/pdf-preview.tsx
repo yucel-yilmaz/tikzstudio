@@ -69,7 +69,7 @@ export function PdfPreview({
 
 				if (!response.ok) {
 					throw new Error(
-						`PDF yuklenemedi (${response.status} ${response.statusText}).`,
+						`Failed to load PDF (${response.status} ${response.statusText}).`,
 					);
 				}
 
@@ -135,9 +135,9 @@ export function PdfPreview({
 		return (
 			<div className="flex h-full min-h-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 p-4 text-center">
 				<div className="max-w-xs space-y-2">
-					<p className="text-sm font-medium">Henüz önizleme yok</p>
+					<p className="text-sm font-medium">No preview yet</p>
 					<p className="text-sm text-muted-foreground">
-						Derleme tamamlandığında PDF burada görüntülenecek.
+						PDF will appear here once compilation completes.
 					</p>
 				</div>
 			</div>
@@ -148,9 +148,9 @@ export function PdfPreview({
 		<div className="flex h-full min-w-0 flex-col gap-3 overflow-hidden">
 			<div className="flex items-center justify-between gap-3">
 				<div className="space-y-1">
-					<p className="text-sm font-medium">PDF Önizleme</p>
+					<p className="text-sm font-medium">PDF Preview</p>
 					<p className="text-xs text-muted-foreground">
-						Yakınlaştırma {Math.round(zoom * 100)}%
+						Zoom {Math.round(zoom * 100)}%
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
@@ -184,9 +184,7 @@ export function PdfPreview({
 					)}
 				>
 					<LoaderCircle className="animate-spin" size={16} />
-					<span className="text-sm text-muted-foreground">
-						PDF yükleniyor...
-					</span>
+					<span className="text-sm text-muted-foreground">Loading PDF…</span>
 				</div>
 
 				{error ? (

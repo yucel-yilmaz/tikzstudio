@@ -11,14 +11,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const project = await getPublicProject(projectId);
 
 	if (!project) {
-		return { title: "Proje bulunamadı" };
+		return { title: "Project not found" };
 	}
 
 	return {
 		title: `${project.title} — TikZ Studio`,
 		description:
-			project.description ??
-			"TikZ Studio üzerinde oluşturulmuş bir TikZ projesi.",
+			project.description ?? "A TikZ project created with TikZ Studio.",
 	};
 }
 

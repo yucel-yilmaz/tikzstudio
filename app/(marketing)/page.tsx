@@ -24,39 +24,39 @@ export default function LandingPage() {
 								TikZLab
 							</Badge>
 							<Badge variant="default" className="normal-case tracking-normal">
-								Next.js tabanlı TikZ çalışma alanı
+								Next.js-based TikZ workspace
 							</Badge>
 						</div>
 
 						<div className="space-y-4">
 							<h1 className="max-w-4xl text-5xl font-semibold leading-tight tracking-tight md:text-6xl">
-								TikZ diyagramlarını modern bir editör, güvenli derleme ve canlı
-								PDF akışıyla üret.
+								Create TikZ diagrams with a modern editor, secure compilation
+								and live PDF output.
 							</h1>
 							<p className="max-w-2xl text-base leading-7 text-(--ink-1) md:text-lg">
-								Araştırma, eğitim ve teknik dokümantasyon ekipleri için
-								tasarlanmış profesyonel bir tarayıcı editörü. Kod yaz, derle,
-								günlükleri incele ve PDF çıktısını tek yüzeyde yönet.
+								A professional browser editor for research, education and
+								technical documentation teams. Write, compile, inspect logs and
+								manage PDF output on a single surface.
 							</p>
 						</div>
 
 						<div className="flex flex-col gap-3 sm:flex-row">
 							<Button asChild size="lg">
 								<Link href="/signup">
-									Hemen başla
+									Get started
 									<ArrowRight size={16} />
 								</Link>
 							</Button>
 							<Button asChild variant="outline" size="lg">
-								<Link href="/login">Giriş yap</Link>
+								<Link href="/login">Sign in</Link>
 							</Button>
 						</div>
 
 						<div className="grid gap-3 pt-2 sm:grid-cols-3">
 							{[
-								["Şablon desteği", "Hazır başlangıçlarla daha hızlı üretim."],
-								["Sandbox derleme", "İzolasyonlu Docker yürütmesi."],
-								["PDF + günlük", "Tek bakışta çıktıyı ve hatayı izle."],
+								["Template support", "Faster output with ready-made starters."],
+								["Sandboxed compilation", "Isolated Docker execution."],
+								["PDF + log", "Monitor output and errors at a glance."],
 							].map(([title, description]) => (
 								<div
 									key={title}
@@ -77,7 +77,7 @@ export default function LandingPage() {
 								<div className="space-y-1">
 									<p className="text-sm font-medium">main.tex</p>
 									<p className="text-xs uppercase tracking-[0.16em] text-[#c9bca7]">
-										Aktif düzenleme
+										Active editing
 									</p>
 								</div>
 								<Badge
@@ -100,9 +100,9 @@ export default function LandingPage() {
 
 							<div className="grid gap-3">
 								{[
-									["Kod düzenle", "Editör panelinde TikZ kaynağını güncelle."],
-									["Derle", "İzolasyonlu işlem içinde PDF üret."],
-									["İncele", "Önizleme ve günlük ekranından sonucu doğrula."],
+									["Edit code", "Update the TikZ source in the editor panel."],
+									["Compile", "Generate PDF inside an isolated process."],
+									["Review", "Verify the result from the preview and log view."],
 								].map(([title, description]) => (
 									<div
 										key={title}
@@ -124,21 +124,21 @@ export default function LandingPage() {
 				{[
 					{
 						icon: Workflow,
-						title: "Tek yüzeyli üretim akışı",
+						title: "Single-surface workflow",
 						description:
-							"Kod, derleme ve PDF çıktısını ayrı araçlara bölmeden tek çalışma alanında yönet.",
+							"Manage code, compilation and PDF output in one workspace without splitting across separate tools.",
 					},
 					{
 						icon: ShieldCheck,
-						title: "Güvenli derleme sınırı",
+						title: "Secure compile sandbox",
 						description:
-							"LaTeX yürütmesini ağsız, izole Docker ortamında çalıştırarak risk yüzeyini daralt.",
+							"Run LaTeX execution in a network-isolated Docker environment to minimise the attack surface.",
 					},
 					{
 						icon: Layers3,
-						title: "Şablon ve parça kütüphanesi",
+						title: "Template & snippet library",
 						description:
-							"Sık kullanılan blokları ve başlangıç belgelerini birkaç tıklamayla ekle.",
+							"Insert frequently used blocks and starter documents in a few clicks.",
 					},
 				].map(({ icon: Icon, title, description }) => (
 					<Card key={title}>
@@ -148,9 +148,7 @@ export default function LandingPage() {
 							</div>
 							<div className="space-y-2">
 								<h2 className="text-2xl font-semibold">{title}</h2>
-								<p className="text-sm leading-7 text-(--ink-1)">
-									{description}
-								</p>
+								<p className="text-sm leading-7 text-(--ink-1)">{description}</p>
 							</div>
 						</CardContent>
 					</Card>
@@ -161,17 +159,17 @@ export default function LandingPage() {
 				<Card>
 					<CardContent className="space-y-5 p-6">
 						<Badge variant="outline" className="normal-case tracking-normal">
-							Kimler için?
+							Who is it for?
 						</Badge>
 						<div className="space-y-3">
 							<h2 className="text-3xl font-semibold">
-								Diyagram kalitesini araç karmaşasına kurban etmek istemeyen
-								ekipler için.
+								For teams who don&apos;t want to trade diagram quality for tool
+								complexity.
 							</h2>
 							<p className="text-sm leading-7 text-(--ink-1)">
-								Akademik figürler, teknik şemalar, algoritma akışları ve eğitim
-								içerikleri üreten ekipler için net, sade ve üretim odaklı bir
-								TikZ yüzeyi.
+								A clean, focused TikZ surface for teams producing academic
+								figures, technical schematics, algorithm flows and educational
+								content.
 							</p>
 						</div>
 					</CardContent>
@@ -184,16 +182,16 @@ export default function LandingPage() {
 						</div>
 						<div className="space-y-3">
 							<h2 className="text-2xl font-semibold">
-								Hızlı başlangıç, ciddi görünüm
+								Quick start, professional output
 							</h2>
 							<p className="text-sm leading-7 text-(--ink-1)">
-								İlk çizgiden PDF indirmeye kadar geçen süreyi kısaltırken
-								çalışma alanını profesyonel tut.
+								Cut the time from first line to downloaded PDF while keeping the
+								workspace professional.
 							</p>
 						</div>
 						<Button asChild variant="secondary">
 							<Link href="/signup">
-								Hesap oluştur
+								Create account
 								<ArrowRight size={16} />
 							</Link>
 						</Button>

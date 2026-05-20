@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<Props, State> {
 			return (
 				<div className="flex h-full min-h-50 flex-col items-center justify-center gap-4 p-8 text-center">
 					<p className="text-sm font-medium text-destructive">
-						Beklenmeyen bir hata oluştu
+						An unexpected error occurred
 					</p>
 					<p className="max-w-xs text-xs text-muted-foreground">
 						{this.state.error.message}
@@ -46,7 +46,7 @@ export class ErrorBoundary extends Component<Props, State> {
 						variant="outline"
 						onClick={() => this.setState({ error: null })}
 					>
-						Tekrar dene
+						Try again
 					</Button>
 				</div>
 			);

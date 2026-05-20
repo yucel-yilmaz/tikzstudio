@@ -143,7 +143,7 @@ type DesktopEditorLayoutProps = {
 
 function summarizeCompileLog(log: string | null) {
 	if (!log) {
-		return ["Derleme çıktısı henüz yok."];
+		return ["No compile output yet."];
 	}
 
 	const importantLines = log
@@ -370,7 +370,7 @@ export function DesktopEditorLayout({
 						size="icon"
 						onClick={onToggleProjectPanel}
 						aria-label={
-							projectPanelOpen ? "Proje panelini kapat" : "Proje panelini ac"
+							projectPanelOpen ? "Close project panel" : "Open project panel"
 						}
 					>
 						{projectPanelOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
@@ -423,9 +423,9 @@ export function DesktopEditorLayout({
 							<CardHeader className="border-b">
 								<div className="flex items-center justify-between gap-3">
 									<div>
-										<CardTitle className="text-base">Kod Editörü</CardTitle>
+										<CardTitle className="text-base">Code Editor</CardTitle>
 										<CardDescription>
-											{activeFile ? activeFile.path : "Aktif dosya secilmedi"}
+											{activeFile ? activeFile.path : "No active file selected"}
 										</CardDescription>
 									</div>
 									<div className="flex items-center gap-2">
@@ -433,7 +433,7 @@ export function DesktopEditorLayout({
 											type="button"
 											variant="ghost"
 											size="icon-sm"
-											title="Görüntüden LaTeX'e çevir"
+											title="Convert image to LaTeX"
 											onClick={openImg2latex}
 										>
 											<ScanLine />
@@ -474,9 +474,9 @@ export function DesktopEditorLayout({
 							<CardHeader className="gap-3 border-b">
 								<div className="flex items-start justify-between gap-3">
 									<div className="min-w-0">
-										<CardTitle className="text-base">Çıktı Paneli</CardTitle>
+										<CardTitle className="text-base">Output Panel</CardTitle>
 										<CardDescription>
-											Derleme durumu ve PDF önizleme
+											Compile status and PDF preview
 										</CardDescription>
 									</div>
 									<Badge
@@ -517,13 +517,13 @@ export function DesktopEditorLayout({
 										<div className="flex min-w-0 flex-col gap-2 p-3">
 											{historyQuery.isLoading ? (
 												<p className="px-2 py-4 text-center text-xs text-muted-foreground">
-													Yükleniyor…
+													Loading…
 												</p>
 											) : null}
 											{!historyQuery.isLoading &&
 											(historyQuery.data?.jobs.length ?? 0) === 0 ? (
 												<p className="px-2 py-4 text-center text-xs text-muted-foreground">
-													Henüz derleme yapılmadı.
+													No compilations yet.
 												</p>
 											) : null}
 											{historyQuery.data?.jobs.map((job) => (
@@ -594,18 +594,18 @@ export function DesktopEditorLayout({
 										<div className="flex min-w-0 flex-col gap-3 p-3">
 											<div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs">
 												<div className="flex items-center gap-1.5">
-													<span className="text-muted-foreground">Motor:</span>
+													<span className="text-muted-foreground">Engine:</span>
 													<code className="rounded bg-background px-1.5 py-0.5 font-mono font-medium">
 														{currentCompile?.engine ?? "TECTONIC"}
 													</code>
 												</div>
 												<span className="text-muted-foreground/40">•</span>
 												<div className="flex items-center gap-1.5">
-													<span className="text-muted-foreground">Son:</span>
+													<span className="text-muted-foreground">Last:</span>
 													<span className="font-medium">
 														{currentCompile?.finishedAt
 															? formatRelativeDate(currentCompile.finishedAt)
-															: "Henüz yok"}
+															: "None yet"}
 													</span>
 												</div>
 												{currentCompile?.outputUrl ? (
@@ -617,7 +617,7 @@ export function DesktopEditorLayout({
 													>
 														<a href={`${currentCompile.outputUrl}?download=1`}>
 															<Download />
-															PDF indir
+															Download PDF
 														</a>
 													</Button>
 												) : null}
@@ -627,7 +627,7 @@ export function DesktopEditorLayout({
 															href={`${currentCompile.svgOutputUrl}&download=1`}
 														>
 															<FileImage />
-															SVG indir
+															Download SVG
 														</a>
 													</Button>
 												) : null}
@@ -643,7 +643,7 @@ export function DesktopEditorLayout({
 											<div className="flex h-48 min-h-48 min-w-0 flex-col overflow-hidden rounded-xl border bg-background">
 												<div className="flex items-center gap-2 border-b px-3 py-2 text-sm font-medium">
 													<TerminalSquare className="size-4" />
-													Derleme Günlüğü
+													Compile Log
 												</div>
 												<ScrollArea className="min-h-0 flex-1">
 													<pre className="whitespace-pre-wrap wrap-break-word p-2 font-mono text-xs leading-5 text-muted-foreground">
@@ -664,9 +664,9 @@ export function DesktopEditorLayout({
 						<div className="border-b border-sidebar-border p-4 pr-12">
 							<div className="flex items-start justify-between gap-3">
 								<div>
-									<CardTitle className="text-base">Proje Paneli</CardTitle>
+									<CardTitle className="text-base">Project Panel</CardTitle>
 									<CardDescription>
-										Dosyalari, sablonlari ve proje ayarlarini yonet.
+										Manage files, templates and project settings.
 									</CardDescription>
 								</div>
 							</div>
@@ -699,7 +699,7 @@ export function DesktopEditorLayout({
 														<Input
 															autoFocus
 															value={newFilePath}
-															placeholder="ornek.tex"
+															placeholder="example.tex"
 															onChange={(e) => setNewFilePath(e.target.value)}
 															onKeyDown={(e) => {
 																if (e.key === "Enter") {
@@ -754,7 +754,7 @@ export function DesktopEditorLayout({
 															onClick={() => setIsCreating(true)}
 														>
 															<FilePlus className="size-4" />
-															Yeni dosya
+															New file
 														</Button>
 														<Button
 															type="button"
@@ -891,7 +891,7 @@ export function DesktopEditorLayout({
 																		}
 																	>
 																		<Pencil />
-																		Yeniden adlandir
+																		Rename
 																	</DropdownMenuItem>
 																	{!file.isMain ? (
 																		<DropdownMenuItem
@@ -900,7 +900,7 @@ export function DesktopEditorLayout({
 																			}}
 																		>
 																			<Star />
-																			Ana dosya yap
+																			Set as main
 																		</DropdownMenuItem>
 																	) : null}
 																	<DropdownMenuSeparator />
@@ -943,7 +943,7 @@ export function DesktopEditorLayout({
 													<Input
 														value={templateSearch}
 														onChange={(e) => setTemplateSearch(e.target.value)}
-														placeholder="Şablon ara…"
+														placeholder="Search templates…"
 														className="h-8 pl-8 text-sm"
 													/>
 												</div>
@@ -1005,7 +1005,7 @@ export function DesktopEditorLayout({
 											<DialogContent className="flex max-h-[80vh] flex-col gap-0 p-0 sm:max-w-lg">
 												<DialogHeader className="border-b px-4 py-3">
 													<DialogTitle className="text-sm font-medium">
-														Yeni Şablon
+														New Template
 													</DialogTitle>
 												</DialogHeader>
 												<form
@@ -1074,7 +1074,7 @@ export function DesktopEditorLayout({
 											<div className="grid grid-cols-1 gap-2 px-4 py-4 xl:grid-cols-2">
 												{filteredTemplates.length === 0 ? (
 													<p className="col-span-full text-center text-xs text-muted-foreground">
-														Eşleşen şablon bulunamadı.
+														No matching templates found.
 													</p>
 												) : null}
 												{filteredTemplates.map((template) => {
@@ -1165,7 +1165,7 @@ export function DesktopEditorLayout({
 											<DialogContent className="flex max-h-[80vh] flex-col gap-0 p-0 sm:max-w-lg">
 												<DialogHeader className="border-b px-4 py-3">
 													<DialogTitle className="text-sm font-medium">
-														Yeni Snippet
+														New Snippet
 													</DialogTitle>
 												</DialogHeader>
 												<form
@@ -1304,7 +1304,7 @@ export function DesktopEditorLayout({
 														htmlFor="project-panel-title"
 														className="text-sm font-medium"
 													>
-														Proje adi
+														Project name
 													</label>
 													<Input
 														id="project-panel-title"
@@ -1317,7 +1317,7 @@ export function DesktopEditorLayout({
 														htmlFor="project-panel-description"
 														className="text-sm font-medium"
 													>
-														Aciklama
+														Description
 													</label>
 													<Textarea
 														id="project-panel-description"
@@ -1330,7 +1330,7 @@ export function DesktopEditorLayout({
 													<div className="space-y-1">
 														<div className="inline-flex items-center gap-2 text-sm font-medium">
 															<Settings2 className="size-4" />
-															Herkese acik okuma modu
+															Public read access
 														</div>
 														<p className="text-xs text-muted-foreground">
 															Paylasim icin isaretle. Yetki kontrolu
@@ -1361,7 +1361,7 @@ export function DesktopEditorLayout({
 		<Dialog open={img2latexOpen} onOpenChange={setImg2latexOpen}>
 			<DialogContent className="max-w-lg">
 				<DialogHeader>
-					<DialogTitle>Görüntüden LaTeX'e Çevir</DialogTitle>
+					<DialogTitle>Image to LaTeX</DialogTitle>
 				</DialogHeader>
 
 				<div className="flex flex-col gap-4">
@@ -1382,14 +1382,14 @@ export function DesktopEditorLayout({
 							// eslint-disable-next-line @next/next/no-img-element
 							<img
 								src={img2latexPreview}
-								alt="Seçilen görüntü"
+								alt="Selected image"
 								className="max-h-48 max-w-full rounded object-contain"
 							/>
 						) : (
 							<>
 								<ScanLine className="size-8 text-muted-foreground" />
 								<p className="text-sm text-muted-foreground">
-									Görüntü sürükle ya da tıkla (PNG, JPEG, WebP — maks 4 MB)
+									Drop an image or click to select (PNG, JPEG, WebP — max 4 MB)
 								</p>
 							</>
 						)}
@@ -1412,20 +1412,20 @@ export function DesktopEditorLayout({
 							img2latexFile && img2latexMutation.mutate(img2latexFile)
 						}
 					>
-						{img2latexMutation.isPending ? "Dönüştürülüyor…" : "LaTeX'e Çevir"}
+						{img2latexMutation.isPending ? "Converting…" : "Convert to LaTeX"}
 					</Button>
 
 					{img2latexMutation.error ? (
 						<p className="text-sm text-destructive">
 							{img2latexMutation.error instanceof Error
 								? img2latexMutation.error.message
-								: "Dönüştürme başarısız."}
+								: "Conversion failed."}
 						</p>
 					) : null}
 
 					{img2latexResult ? (
 						<div className="flex flex-col gap-2">
-							<p className="text-xs font-medium text-muted-foreground">Sonuç</p>
+							<p className="text-xs font-medium text-muted-foreground">Result</p>
 							<Textarea
 								value={img2latexResult}
 								onChange={(e) => setImg2latexResult(e.target.value)}
@@ -1433,7 +1433,7 @@ export function DesktopEditorLayout({
 								rows={5}
 							/>
 							<Button type="button" onClick={insertImg2latexResult}>
-								Editöre Ekle
+								Insert into Editor
 							</Button>
 						</div>
 					) : null}

@@ -67,32 +67,32 @@ import { cn, formatRelativeDate } from "@/lib/utils";
 const terminalStatuses = new Set<string>(COMPILE_TERMINAL_STATUSES);
 
 const saveStateMeta = {
-	idle: { label: "Temiz", tone: "text-muted-foreground" },
-	dirty: { label: "Kaydedilmemis", tone: "text-foreground" },
-	saving: { label: "Kaydediliyor", tone: "text-muted-foreground" },
-	saved: { label: "Kaydedildi", tone: "text-emerald-600" },
-	error: { label: "Hata", tone: "text-destructive" },
+	idle: { label: "Clean", tone: "text-muted-foreground" },
+	dirty: { label: "Unsaved", tone: "text-foreground" },
+	saving: { label: "Saving", tone: "text-muted-foreground" },
+	saved: { label: "Saved", tone: "text-emerald-600" },
+	error: { label: "Error", tone: "text-destructive" },
 } as const;
 
 const panelMeta = {
 	files: {
-		title: "Dosyalar",
-		description: "Projedeki kaynak dosyaları seç ve aç.",
+		title: "Files",
+		description: "Select and open source files in the project.",
 		icon: FileCode2,
 	},
 	templates: {
-		title: "Şablonlar",
-		description: "Hazır başlangıç belgelerini aktif dosyaya ekle.",
+		title: "Templates",
+		description: "Insert ready-made starter documents into the active file.",
 		icon: LayoutTemplate,
 	},
 	snippets: {
-		title: "Parçalar",
-		description: "Sık kullanılan TikZ bloklarını hızlıca ekle.",
+		title: "Snippets",
+		description: "Quickly insert frequently used TikZ blocks.",
 		icon: WandSparkles,
 	},
 	settings: {
-		title: "Ayarlar",
-		description: "Proje bilgisini ve görünürlük ayarlarını güncelle.",
+		title: "Settings",
+		description: "Update project details and visibility settings.",
 		icon: Settings2,
 	},
 } as const;
@@ -100,7 +100,7 @@ const panelMeta = {
 function compileBadge(job: CompileJobDto | null) {
 	if (!job) {
 		return {
-			label: "Hazir",
+			label: "Ready",
 			className: "border-border bg-muted text-muted-foreground",
 			icon: Clock3,
 		};
@@ -109,33 +109,33 @@ function compileBadge(job: CompileJobDto | null) {
 	switch (job.status) {
 		case "SUCCESS":
 			return {
-				label: "Başarılı",
+				label: "Success",
 				className:
 					"border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
 				icon: CheckCircle2,
 			};
 		case "FAILED":
 			return {
-				label: "Başarısız",
+				label: "Failed",
 				className: "border-destructive/20 bg-destructive/10 text-destructive",
 				icon: XCircle,
 			};
 		case "TIMEOUT":
 			return {
-				label: "Zaman aşımı",
+				label: "Timeout",
 				className:
 					"border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300",
 				icon: Clock3,
 			};
 		case "RUNNING":
 			return {
-				label: "Derleniyor",
+				label: "Compiling",
 				className: "border-border bg-secondary text-secondary-foreground",
 				icon: LoaderCircle,
 			};
 		case "PENDING":
 			return {
-				label: "Beklemede",
+				label: "Pending",
 				className: "border-border bg-secondary text-secondary-foreground",
 				icon: Clock3,
 			};
@@ -253,7 +253,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 				return;
 			}
 			toast.error(
-				error instanceof Error ? error.message : "Derleme başlatılamadı.",
+				error instanceof Error ? error.message : "Failed to start compilation.",
 			);
 		},
 	});
@@ -278,11 +278,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 					current ? { files: [...current.files, file] } : { files: [file] },
 			);
 			setActiveFile(file.id);
-			toast.success(`"${file.path}" oluşturuldu`);
+			toast.success(`Created "${file.path}"`);
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : "Dosya oluşturulamadı.",
+				error instanceof Error ? error.message : "Failed to create file.",
 			);
 		},
 	});
@@ -302,10 +302,10 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 					filesQuery.data?.files.filter((file) => file.id !== fileId) ?? [];
 				setActiveFile(remaining[0]?.id ?? null);
 			}
-			toast.success("Dosya silindi");
+			toast.success("File deleted");
 		},
 		onError: (error) => {
-			toast.error(error instanceof Error ? error.message : "Dosya silinemedi.");
+			toast.error(error instanceof Error ? error.message : "Failed to delete file.");
 		},
 	});
 
@@ -324,13 +324,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 							}
 						: current,
 			);
-			toast.success(`"${file.path}" olarak yeniden adlandırıldı`);
+			toast.success(`Renamed to "${file.path}"`);
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error
-					? error.message
-					: "Dosya yeniden adlandırılamadı.",
+				error instanceof Error ? error.message : "Failed to rename file.",
 			);
 		},
 	});
@@ -351,11 +349,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 							}
 						: current,
 			);
-			toast.success(`"${file.path}" ana dosya yapıldı`);
+			toast.success(`"${file.path}" set as main file`);
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : "Ana dosya değiştirilemedi.",
+				error instanceof Error ? error.message : "Failed to change main file.",
 			);
 		},
 	});
@@ -369,11 +367,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 					current ? { files: [...current.files, file] } : { files: [file] },
 			);
 			setActiveFile(file.id);
-			toast.success(`"${file.path}" yüklendi`);
+			toast.success(`Uploaded "${file.path}"`);
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : "Dosya yüklenemedi.",
+				error instanceof Error ? error.message : "Failed to upload file.",
 			);
 		},
 	});
@@ -447,11 +445,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										Dashboard
 									</Link>
 									<ChevronRight className="size-3" />
-									<span>Editör</span>
+									<span>Editor</span>
 								</div>
 								<div className="flex items-center gap-3">
 									<CardTitle className="truncate text-xl font-semibold">
-										{projectQuery.data?.title ?? "Proje yukleniyor..."}
+										{projectQuery.data?.title ?? "Loading project…"}
 									</CardTitle>
 									<Badge variant="secondary" className="gap-1.5 shrink-0">
 										<PanelLeft className="size-3" />
@@ -479,7 +477,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									size="sm"
 									onClick={toggleProjectPanel}
 									className="hidden lg:inline-flex"
-									aria-label={projectPanelOpen ? "Paneli kapat" : "Paneli ac"}
+									aria-label={projectPanelOpen ? "Close panel" : "Open panel"}
 								>
 									{projectPanelOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
 								</Button>
@@ -491,15 +489,15 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										onClick={() => {
 											const url = `${window.location.origin}/p/${projectId}`;
 											navigator.clipboard.writeText(url);
-											toast.success("Paylaşım linki kopyalandı");
+											toast.success("Share link copied");
 										}}
 									>
 										<Share2 />
-										Paylaş
+										Share
 									</Button>
 								) : null}
 								<Button asChild variant="outline" size="sm">
-									<Link href="/dashboard">Panele dön</Link>
+									<Link href="/dashboard">Back to dashboard</Link>
 								</Button>
 								<Button
 									variant="outline"
@@ -514,7 +512,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									}
 								>
 									<Save />
-									Kaydet
+									Save
 								</Button>
 								<Button
 									size="sm"
@@ -527,7 +525,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									onClick={() => compileMutation.mutate()}
 								>
 									<Play />
-									{compileMutation.isPending ? "Başlatılıyor" : "Derle"}
+									{compileMutation.isPending ? "Starting…" : "Compile"}
 								</Button>
 							</CardAction>
 						</div>
@@ -578,9 +576,9 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 				<div className="space-y-4 lg:hidden">
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-base">Kod Editörü</CardTitle>
+							<CardTitle className="text-base">Code Editor</CardTitle>
 							<CardDescription>
-								{activeFile?.path ?? "Aktif dosya seçilmedi"}
+								{activeFile?.path ?? "No active file selected"}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="p-0">
@@ -601,10 +599,8 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-base">Proje Paneli</CardTitle>
-							<CardDescription>
-								Dosyalar, şablonlar ve parçalar.
-							</CardDescription>
+							<CardTitle className="text-base">Project Panel</CardTitle>
+							<CardDescription>Files, templates and snippets.</CardDescription>
 						</CardHeader>
 						<CardContent className="px-0">
 							<Tabs
@@ -622,25 +618,25 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											value="files"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Dosyalar
+											Files
 										</TabsTrigger>
 										<TabsTrigger
 											value="templates"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Şablonlar
+											Templates
 										</TabsTrigger>
 										<TabsTrigger
 											value="snippets"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Parçalar
+											Snippets
 										</TabsTrigger>
 										<TabsTrigger
 											value="settings"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Ayarlar
+											Settings
 										</TabsTrigger>
 									</TabsList>
 								</div>
@@ -719,20 +715,20 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										<Input
 											name="title"
 											defaultValue={projectQuery.data?.title ?? ""}
-											placeholder="Proje adi"
+											placeholder="Project name"
 										/>
 										<Textarea
 											name="description"
 											defaultValue={projectQuery.data?.description ?? ""}
-											placeholder="Aciklama"
+											placeholder="Description"
 										/>
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
 												<div className="text-sm font-medium">
-													Herkese açık okuma modu
+													Public read access
 												</div>
 												<div className="text-xs text-muted-foreground">
-													Paylaşım için işaretle
+													Mark for sharing
 												</div>
 											</div>
 											<Switch
@@ -741,7 +737,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											/>
 										</div>
 										<Button type="submit" size="sm" className="w-full">
-											Ayarları kaydet
+											Save settings
 										</Button>
 									</form>
 								</TabsContent>
@@ -751,10 +747,8 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-base">Çıktı Paneli</CardTitle>
-							<CardDescription>
-								Derleme Sonuçları ve PDF Önizleme
-							</CardDescription>
+							<CardTitle className="text-base">Output Panel</CardTitle>
+							<CardDescription>Compile results and PDF preview</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<Badge variant="outline" className={compileMeta.className}>
@@ -772,7 +766,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										<Button asChild variant="outline" size="sm">
 											<a href={`${currentCompile.outputUrl}?download=1`}>
 												<Download />
-												PDF indir
+												Download PDF
 											</a>
 										</Button>
 									) : null}
@@ -780,7 +774,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										<Button asChild variant="outline" size="sm">
 											<a href={`${currentCompile.svgOutputUrl}&download=1`}>
 												<FileImage />
-												SVG indir
+												Download SVG
 											</a>
 										</Button>
 									) : null}
@@ -794,7 +788,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 							<Separator />
 							<ScrollArea className="h-52 rounded-xl border">
 								<pre className="p-3 font-mono text-xs leading-6 text-muted-foreground">
-									{currentCompile?.log ?? "Derleme çıktısı burada görünecek."}
+									{currentCompile?.log ?? "Compile output will appear here."}
 								</pre>
 							</ScrollArea>
 						</CardContent>
