@@ -2,6 +2,7 @@ import { toErrorResponse } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import { getSessionFromHeaders } from "@/lib/session";
 import { slugifyFilename } from "@/lib/utils";
+import { sanitizeSvg } from "@/server/compiler/sanitizer";
 import {
 	readCompileOutput,
 	readCompileSvgOutput,
@@ -54,15 +55,26 @@ export async function GET(
 		}
 
 		const download = searchParams.get("download") === "1";
-		const buffer =
-			format === "svg"
-				? await readCompileSvgOutput(jobId)
-				: await readCompileOutput(jobId);
+
+		let responseBlob: Blob;
+		if (format === "svg") {
+			const rawSvg = await readCompileSvgOutput(jobId);
+			const sanitized = sanitizeSvg(rawSvg);
+			responseBlob = new Blob([Buffer.from(sanitized)], {
+				type: "image/svg+xml",
+			});
+		} else {
+			const pdfBuffer = await readCompileOutput(jobId);
+			responseBlob = new Blob([Buffer.from(pdfBuffer)], {
+				type: "application/pdf",
+			});
+		}
+
 		const extension = format === "svg" ? "svg" : "pdf";
 		const fileName = `${slugifyFilename(job.project.title) || "tikzlab-project"}.${extension}`;
 		const isPublic = job.project.isPublic;
 
-		return new Response(buffer, {
+		return new Response(responseBlob, {
 			status: 200,
 			headers: {
 				"Content-Type": format === "svg" ? "image/svg+xml" : "application/pdf",

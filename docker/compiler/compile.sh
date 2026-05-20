@@ -16,18 +16,20 @@ fi
 TECTONIC_BUNDLE="https://relay.fullyjustified.net/default_bundle_v33.tar"
 
 COMPILE_EXIT=0
+COMPILE_TIMEOUT=12  # 3 seconds buffer below Docker timeout (15s)
+
 case "$ENGINE" in
   tectonic)
-    tectonic --bundle "$TECTONIC_BUNDLE" --only-cached --keep-logs --outdir /output "$MAIN_FILE" || COMPILE_EXIT=$?
+    timeout $COMPILE_TIMEOUT tectonic --bundle "$TECTONIC_BUNDLE" --only-cached --keep-logs --outdir /output "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
   pdflatex)
-    pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
+    timeout $COMPILE_TIMEOUT pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
   xelatex)
-    xelatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
+    timeout $COMPILE_TIMEOUT xelatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
   lualatex)
-    lualatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
+    timeout $COMPILE_TIMEOUT lualatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
   *)
     echo "Unsupported engine: $ENGINE" >&2
