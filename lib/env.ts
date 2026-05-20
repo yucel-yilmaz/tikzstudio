@@ -11,6 +11,8 @@ const envSchema = z.object({
 	MAX_OUTPUT_SIZE_MB: z.coerce.number().default(10),
 	DOCKER_COMPILER_IMAGE: z.string().default("tikzlab-compiler:latest"),
 	COMPILE_STORAGE_DIR: z.string().default(".data/compile-artifacts"),
+	MATHPIX_APP_ID: z.string().optional(),
+	MATHPIX_APP_KEY: z.string().optional(),
 });
 
 export const env = envSchema.parse({
@@ -24,4 +26,6 @@ export const env = envSchema.parse({
 	MAX_OUTPUT_SIZE_MB: process.env.MAX_OUTPUT_SIZE_MB,
 	DOCKER_COMPILER_IMAGE: process.env.DOCKER_COMPILER_IMAGE,
 	COMPILE_STORAGE_DIR: process.env.COMPILE_STORAGE_DIR,
+	MATHPIX_APP_ID: process.env.MATHPIX_APP_ID,
+	MATHPIX_APP_KEY: process.env.MATHPIX_APP_KEY,
 });

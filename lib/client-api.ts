@@ -210,3 +210,12 @@ export function createSnippet(data: CreateSnippetInput) {
 export function deleteSnippet(id: string) {
 	return requestJson<void>(`/api/snippets/${id}`, { method: "DELETE" });
 }
+
+export function img2latex(image: File) {
+	const form = new FormData();
+	form.append("image", image);
+	return requestJson<{ latex: string }>("/api/img2latex", {
+		method: "POST",
+		body: form,
+	});
+}
