@@ -42,7 +42,7 @@ export const createFileSchema = z.object({
 
 export const compileProjectSchema = z.object({
 	engine: z
-		.enum(["TECTONIC", "PDFLATEX", "XELATEX", "LUALATEX"])
+		.enum(["TECTONIC", "PDFLATEX", "XELATEX", "LUALATEX", "PDFLATEX_BIBER"])
 		.default("TECTONIC"),
 	mainFileId: z.string().min(1).optional(),
 });

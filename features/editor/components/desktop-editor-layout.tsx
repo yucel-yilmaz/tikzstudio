@@ -50,18 +50,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+	ResizableHandle,
+	ResizablePanel,
+	ResizablePanelGroup,
+} from "@/components/ui/resizable";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	ResizableHandle,
-	ResizablePanel,
-	ResizablePanelGroup,
-} from "@/components/ui/resizable";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -153,18 +153,17 @@ function summarizeCompileLog(log: string | null) {
 		return ["No compile output yet."];
 	}
 
-	const importantLines = log
-		.split(/\r?\n/)
-		.map((line) => line.trim())
-		.filter((line) =>
-			/^(error|fatal|warning:|Output written|Compilation timed out|Page count)/i.test(
-				line,
-			),
-		);
+	const lines = log.split(/\r?\n/).map((l) => l.trim());
+
+	const importantLines = lines.filter((line) =>
+		/^(error|fatal|!|l\.\d|warning:|Output written|Compilation timed out|Page count)/i.test(
+			line,
+		),
+	);
 
 	return importantLines.length > 0
-		? importantLines.slice(0, 5)
-		: log.split(/\r?\n/).slice(0, 4);
+		? importantLines.slice(0, 8)
+		: lines.slice(0, 4);
 }
 
 export function DesktopEditorLayout({
@@ -213,7 +212,9 @@ export function DesktopEditorLayout({
 	const [img2latexFile, setImg2latexFile] = useState<File | null>(null);
 	const [img2latexPreview, setImg2latexPreview] = useState<string | null>(null);
 	const [img2latexResult, setImg2latexResult] = useState<string>("");
-	const [img2latexProvider, setImg2latexProvider] = useState<"docker" | "mathpix">("docker");
+	const [img2latexProvider, setImg2latexProvider] = useState<
+		"docker" | "mathpix"
+	>("docker");
 	const img2latexInputRef = useRef<HTMLInputElement>(null);
 
 	const img2latexMutation = useMutation({
@@ -1095,7 +1096,11 @@ export function DesktopEditorLayout({
 														</p>
 													) : null}
 													{filteredTemplates.map((template) => {
-														const preview = template.content
+														const mainContent =
+															template.files?.find((f) => f.isMain)?.content ??
+															template.content ??
+															"";
+														const preview = mainContent
 															.split(/\r?\n/)
 															.slice(0, 5)
 															.join("\n");
@@ -1103,7 +1108,7 @@ export function DesktopEditorLayout({
 															<div key={template.id} className="group relative">
 																<button
 																	type="button"
-																	onClick={() => handleInsert(template.content)}
+																	onClick={() => handleInsert(mainContent)}
 																	className="w-full flex flex-col gap-2 rounded-lg border border-transparent bg-background/50 p-3 text-left transition-colors hover:border-border hover:bg-muted/40"
 																>
 																	<div className="flex items-start justify-between gap-2">
@@ -1389,13 +1394,17 @@ export function DesktopEditorLayout({
 							<span className="text-sm font-medium shrink-0">Provider</span>
 							<Select
 								value={img2latexProvider}
-								onValueChange={(v) => setImg2latexProvider(v as "docker" | "mathpix")}
+								onValueChange={(v) =>
+									setImg2latexProvider(v as "docker" | "mathpix")
+								}
 							>
 								<SelectTrigger className="h-8 text-sm">
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="docker">Docker Model Runner (local)</SelectItem>
+									<SelectItem value="docker">
+										Docker Model Runner (local)
+									</SelectItem>
 									<SelectItem value="mathpix">Mathpix (ücretli)</SelectItem>
 								</SelectContent>
 							</Select>

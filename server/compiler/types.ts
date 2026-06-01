@@ -20,6 +20,7 @@ export type CompileResult = {
 	errorCode: string | null;
 	pdfOutput: Buffer | null;
 	svgOutput: Buffer | null;
+	pngOutput: Buffer | null;
 	startedAt: Date;
 	finishedAt: Date;
 };

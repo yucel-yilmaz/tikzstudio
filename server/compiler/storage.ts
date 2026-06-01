@@ -17,6 +17,10 @@ export function getArtifactSvgPath(jobId: string) {
 	return path.join(getArtifactDir(jobId), "output.svg");
 }
 
+export function getArtifactPngPath(jobId: string) {
+	return path.join(getArtifactDir(jobId), "output.png");
+}
+
 export async function saveCompileOutput(jobId: string, output: Buffer) {
 	const dir = getArtifactDir(jobId);
 	await mkdir(dir, { recursive: true });
@@ -29,12 +33,22 @@ export async function saveCompileSvgOutput(jobId: string, output: Buffer) {
 	await writeFile(getArtifactSvgPath(jobId), output);
 }
 
+export async function saveCompilePngOutput(jobId: string, output: Buffer) {
+	const dir = getArtifactDir(jobId);
+	await mkdir(dir, { recursive: true });
+	await writeFile(getArtifactPngPath(jobId), output);
+}
+
 export async function readCompileOutput(jobId: string) {
 	return readFile(getArtifactPdfPath(jobId));
 }
 
 export async function readCompileSvgOutput(jobId: string) {
 	return readFile(getArtifactSvgPath(jobId));
+}
+
+export async function readCompilePngOutput(jobId: string) {
+	return readFile(getArtifactPngPath(jobId));
 }
 
 export async function removeCompileOutput(jobId: string) {

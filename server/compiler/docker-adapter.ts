@@ -84,10 +84,17 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 				input.mainFilePath,
 			];
 
-			const { code, log, timedOut } = await this.runDocker(args);
+			// Biber pipeline runs 4 passes — allow 10× the standard timeout
+			const timeoutMs =
+				input.engine === "PDFLATEX_BIBER"
+					? env.COMPILE_TIMEOUT_SECONDS * 1000 * 10
+					: env.COMPILE_TIMEOUT_SECONDS * 1000;
+
+			const { code, log, timedOut } = await this.runDocker(args, timeoutMs);
 			const finishedAt = new Date();
 			const pdfPath = path.join(outputDir, "output.pdf");
 			const svgPath = path.join(outputDir, "output.svg");
+			const pngPath = path.join(outputDir, "output.png");
 
 			if (timedOut) {
 				return {
@@ -96,6 +103,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 					errorCode: "TIMEOUT",
 					pdfOutput: null,
 					svgOutput: null,
+					pngOutput: null,
 					startedAt,
 					finishedAt,
 				};
@@ -108,6 +116,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 					errorCode: inferCompileErrorCode(log),
 					pdfOutput: null,
 					svgOutput: null,
+					pngOutput: null,
 					startedAt,
 					finishedAt,
 				};
@@ -121,6 +130,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 					errorCode: "SECURITY_BLOCKED",
 					pdfOutput: null,
 					svgOutput: null,
+					pngOutput: null,
 					startedAt,
 					finishedAt,
 				};
@@ -136,11 +146,18 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 						errorCode: "SECURITY_BLOCKED",
 						pdfOutput: null,
 						svgOutput: null,
+						pngOutput: null,
 						startedAt,
 						finishedAt,
 					};
 				}
 				svgOutput = await readFile(svgPath);
+			}
+
+			let pngOutput: Buffer | null = null;
+			const pngInfo = await stat(pngPath).catch(() => null);
+			if (pngInfo) {
+				pngOutput = await readFile(pngPath);
 			}
 
 			return {
@@ -149,6 +166,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 				errorCode: null,
 				pdfOutput: await readFile(pdfPath),
 				svgOutput,
+				pngOutput,
 				startedAt,
 				finishedAt,
 			};
@@ -162,6 +180,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 				errorCode: inferCompileErrorCode(message),
 				pdfOutput: null,
 				svgOutput: null,
+				pngOutput: null,
 				startedAt,
 				finishedAt,
 			};
@@ -170,7 +189,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 		}
 	}
 
-	private async runDocker(args: string[]) {
+	private async runDocker(args: string[], timeoutMs = env.COMPILE_TIMEOUT_SECONDS * 1000) {
 		return new Promise<{ code: number | null; log: string; timedOut: boolean }>(
 			(resolve) => {
 				const child = spawn("docker", args, {
@@ -189,7 +208,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 						log: `${log}\nCompilation timed out.`,
 						timedOut: true,
 					});
-				}, env.COMPILE_TIMEOUT_SECONDS * 1000);
+				}, timeoutMs);
 
 				child.stdout.on("data", (chunk: Buffer) => {
 					log += chunk.toString("utf8");

@@ -36,6 +36,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -238,9 +245,16 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 		onError: () => setSaveState("error"),
 	});
 
+	const [engine, setEngine] = useState<
+		"TECTONIC" | "PDFLATEX" | "XELATEX" | "LUALATEX" | "PDFLATEX_BIBER"
+	>("TECTONIC");
+
 	const compileMutation = useMutation({
 		mutationFn: () =>
-			compileProject(projectId, { mainFileId: activeFileId ?? undefined }),
+			compileProject(projectId, {
+				engine,
+				mainFileId: activeFileId ?? undefined,
+			}),
 		onSuccess: (job) => {
 			setCompileJobId(job.id);
 			queryClient.setQueryData(["latest-compile-output", projectId], {
@@ -305,7 +319,9 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 			toast.success("File deleted");
 		},
 		onError: (error) => {
-			toast.error(error instanceof Error ? error.message : "Failed to delete file.");
+			toast.error(
+				error instanceof Error ? error.message : "Failed to delete file.",
+			);
 		},
 	});
 
@@ -514,6 +530,23 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									<Save />
 									Save
 								</Button>
+								<Select
+									value={engine}
+									onValueChange={(v) => setEngine(v as typeof engine)}
+								>
+									<SelectTrigger size="sm" className="w-36">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="TECTONIC">Tectonic</SelectItem>
+										<SelectItem value="PDFLATEX">pdfLaTeX</SelectItem>
+										<SelectItem value="XELATEX">XeLaTeX</SelectItem>
+										<SelectItem value="LUALATEX">LuaLaTeX</SelectItem>
+										<SelectItem value="PDFLATEX_BIBER">
+											pdfLaTeX + Biber
+										</SelectItem>
+									</SelectContent>
+								</Select>
 								<Button
 									size="sm"
 									className="shadow-sm"

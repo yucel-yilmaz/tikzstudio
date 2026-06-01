@@ -1,5 +1,6 @@
 import {
 	ArrowRight,
+	ImageDown,
 	Layers3,
 	ShieldCheck,
 	Sparkles,
@@ -54,9 +55,18 @@ export default function LandingPage() {
 
 						<div className="grid gap-3 pt-2 sm:grid-cols-3">
 							{[
-								["Template support", "Faster output with ready-made starters."],
-								["Sandboxed compilation", "Isolated Docker execution."],
-								["PDF + log", "Monitor output and errors at a glance."],
+								[
+									"Multi-file templates",
+									"Import ZIP bundles or build your own starter.",
+								],
+								[
+									"Sandboxed compilation",
+									"5 engines — Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, Biber.",
+								],
+								[
+									"PDF, SVG & PNG",
+									"Download in any format, directly from the browser.",
+								],
 							].map(([title, description]) => (
 								<div
 									key={title}
@@ -84,7 +94,7 @@ export default function LandingPage() {
 									variant="outline"
 									className="border-[#40352d] bg-[#231d18] text-[#f2e9db]"
 								>
-									TECTONIC
+									pdfLaTeX + Biber
 								</Badge>
 							</div>
 
@@ -102,7 +112,10 @@ export default function LandingPage() {
 								{[
 									["Edit code", "Update the TikZ source in the editor panel."],
 									["Compile", "Generate PDF inside an isolated process."],
-									["Review", "Verify the result from the preview and log view."],
+									[
+										"Review",
+										"Verify the result from the preview and log view.",
+									],
 								].map(([title, description]) => (
 									<div
 										key={title}
@@ -120,25 +133,31 @@ export default function LandingPage() {
 				</CardContent>
 			</Card>
 
-			<section className="grid gap-4 lg:grid-cols-3">
+			<section className="grid gap-4 lg:grid-cols-4">
 				{[
 					{
 						icon: Workflow,
 						title: "Single-surface workflow",
 						description:
-							"Manage code, compilation and PDF output in one workspace without splitting across separate tools.",
+							"Manage code, compilation and PDF/SVG/PNG output in one workspace without splitting across separate tools.",
 					},
 					{
 						icon: ShieldCheck,
 						title: "Secure compile sandbox",
 						description:
-							"Run LaTeX execution in a network-isolated Docker environment to minimise the attack surface.",
+							"Five engines — Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX+Biber — running in a network-isolated Docker environment.",
+					},
+					{
+						icon: ImageDown,
+						title: "Image to LaTeX",
+						description:
+							"Convert formula images to LaTeX using Docker Model Runner, pix2tex, or Mathpix — directly inside the editor.",
 					},
 					{
 						icon: Layers3,
-						title: "Template & snippet library",
+						title: "Multi-file templates",
 						description:
-							"Insert frequently used blocks and starter documents in a few clicks.",
+							"Import ZIP bundles, auto-generate previews, and save any project as a reusable template in one click.",
 					},
 				].map(({ icon: Icon, title, description }) => (
 					<Card key={title}>
@@ -148,7 +167,9 @@ export default function LandingPage() {
 							</div>
 							<div className="space-y-2">
 								<h2 className="text-2xl font-semibold">{title}</h2>
-								<p className="text-sm leading-7 text-(--ink-1)">{description}</p>
+								<p className="text-sm leading-7 text-(--ink-1)">
+									{description}
+								</p>
 							</div>
 						</CardContent>
 					</Card>

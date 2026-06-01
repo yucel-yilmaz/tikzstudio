@@ -16,7 +16,8 @@ fi
 TECTONIC_BUNDLE="https://relay.fullyjustified.net/default_bundle_v33.tar"
 
 COMPILE_EXIT=0
-COMPILE_TIMEOUT=12  # 3 seconds buffer below Docker timeout (15s)
+COMPILE_TIMEOUT=12    # 3 seconds buffer below Docker timeout (15s)
+BIBER_STEP_TIMEOUT=30 # per-step timeout for the 4-pass biber pipeline
 
 case "$ENGINE" in
   tectonic)
@@ -31,6 +32,19 @@ case "$ENGINE" in
   lualatex)
     timeout $COMPILE_TIMEOUT lualatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
     ;;
+  pdflatex_biber)
+    BASE_NAME_BIBER="$(basename "$MAIN_FILE" .tex)"
+    # Pass 1 — generate .bcf and aux files
+    timeout $BIBER_STEP_TIMEOUT pdflatex -interaction=nonstopmode -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
+    if [ $COMPILE_EXIT -eq 0 ] && [ -f "/output/${BASE_NAME_BIBER}.bcf" ]; then
+      # Biber pass — process bibliography
+      timeout $BIBER_STEP_TIMEOUT biber --input-directory=/output --output-directory=/output "$BASE_NAME_BIBER" || true
+      # Pass 2 — incorporate bibliography
+      timeout $BIBER_STEP_TIMEOUT pdflatex -interaction=nonstopmode -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
+      # Pass 3 — resolve cross-references
+      timeout $BIBER_STEP_TIMEOUT pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape -output-directory=/output "$MAIN_FILE" || COMPILE_EXIT=$?
+    fi
+    ;;
   *)
     echo "Unsupported engine: $ENGINE" >&2
     exit 2
@@ -44,6 +58,7 @@ fi
 
 if [ -f /output/output.pdf ]; then
   pdf2svg /output/output.pdf /output/output.svg || true
+  pdftoppm -r 150 -png -f 1 -l 1 -singlefile /output/output.pdf /output/output || true
 fi
 
 if [ -f "/output/${BASE_NAME}.log" ] && [ "/output/${BASE_NAME}.log" != "/output/compile.log" ]; then

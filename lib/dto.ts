@@ -4,6 +4,7 @@ import type {
 	ProjectFile,
 	Snippet,
 	Template,
+	TemplateFile,
 } from "@/generated/prisma";
 
 import type {
@@ -13,6 +14,7 @@ import type {
 	ProjectSummary,
 	SnippetDto,
 	TemplateDto,
+	TemplateFileDto,
 } from "@/lib/types";
 
 export function toProjectSummary(project: Project): ProjectSummary {
@@ -58,6 +60,7 @@ export function toCompileJobDto(job: CompileJob): CompileJobDto {
 		log: job.log,
 		outputUrl: job.outputUrl,
 		svgOutputUrl: job.svgOutputUrl,
+		pngOutputUrl: job.pngOutputUrl,
 		errorCode: job.errorCode,
 		startedAt: job.startedAt?.toISOString() ?? null,
 		finishedAt: job.finishedAt?.toISOString() ?? null,
@@ -65,15 +68,28 @@ export function toCompileJobDto(job: CompileJob): CompileJobDto {
 	};
 }
 
-export function toTemplateDto(template: Template): TemplateDto {
+export function toTemplateFileDto(file: TemplateFile): TemplateFileDto {
+	return {
+		path: file.path,
+		content: file.isBinary ? "" : file.content,
+		isBinary: file.isBinary,
+		isMain: file.isMain,
+	};
+}
+
+export function toTemplateDto(
+	template: Template & { files: TemplateFile[] },
+): TemplateDto {
 	return {
 		id: template.id,
 		title: template.title,
 		description: template.description,
 		category: template.category,
+		engine: template.engine,
 		content: template.content,
 		previewUrl: template.previewUrl,
 		ownerId: template.ownerId,
+		files: template.files.map(toTemplateFileDto),
 	};
 }
 

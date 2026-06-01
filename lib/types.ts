@@ -33,10 +33,18 @@ export type CompileJobDto = {
 	log: string | null;
 	outputUrl: string | null;
 	svgOutputUrl: string | null;
+	pngOutputUrl: string | null;
 	errorCode: string | null;
 	startedAt: string | null;
 	finishedAt: string | null;
 	createdAt: string;
+};
+
+export type TemplateFileDto = {
+	path: string;
+	content: string;
+	isBinary: boolean;
+	isMain: boolean;
 };
 
 export type TemplateDto = {
@@ -44,16 +52,20 @@ export type TemplateDto = {
 	title: string;
 	description: string | null;
 	category: string;
-	content: string;
+	engine: string;
+	content: string | null;
 	previewUrl: string | null;
 	ownerId: string | null;
+	files: TemplateFileDto[];
 };
 
 export type CreateTemplateInput = {
 	title: string;
 	category: string;
-	content: string;
+	engine?: string;
 	description?: string;
+	content?: string;
+	files?: TemplateFileDto[];
 };
 
 export type SnippetDto = {

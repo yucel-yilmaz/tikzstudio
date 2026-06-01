@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "LatexEngine" ADD VALUE 'PDFLATEX_BIBER';

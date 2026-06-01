@@ -37,6 +37,7 @@ RUN mkdir -p "$XDG_CACHE_HOME" \
 FROM debian:bookworm-slim
 
 RUN apt-get update \
+  && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends \
     ca-certificates \
     fontconfig \
@@ -46,6 +47,17 @@ RUN apt-get update \
     libicu72 \
     libssl3 \
     pdf2svg \
+    texlive-latex-base \
+    texlive-latex-recommended \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-xetex \
+    texlive-luatex \
+    texlive-bibtex-extra \
+    biber \
+    texlive-science \
+    texlive-pictures \
+    poppler-utils \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/local/cargo/bin/tectonic /usr/local/bin/tectonic

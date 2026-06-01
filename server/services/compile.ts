@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { DockerCompilerAdapter } from "@/server/compiler/docker-adapter";
 import {
 	saveCompileOutput,
+	saveCompilePngOutput,
 	saveCompileSvgOutput,
 } from "@/server/compiler/storage";
 import { requireOwnedProject } from "@/server/services/projects";
@@ -121,6 +122,10 @@ export async function runCompileJob(jobId: string) {
 		await saveCompileSvgOutput(job.id, result.svgOutput);
 	}
 
+	if (result.pngOutput) {
+		await saveCompilePngOutput(job.id, result.pngOutput);
+	}
+
 	return prisma.compileJob.update({
 		where: { id: job.id },
 		data: {
@@ -130,6 +135,9 @@ export async function runCompileJob(jobId: string) {
 			outputUrl: result.pdfOutput ? `/api/compile-jobs/${job.id}/output` : null,
 			svgOutputUrl: result.svgOutput
 				? `/api/compile-jobs/${job.id}/output?format=svg`
+				: null,
+			pngOutputUrl: result.pngOutput
+				? `/api/compile-jobs/${job.id}/output?format=png`
 				: null,
 			startedAt: result.startedAt,
 			finishedAt: result.finishedAt,
