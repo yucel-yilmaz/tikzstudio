@@ -182,10 +182,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 					) : projectsQuery.data?.projects.length ? (
 						<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 							{projectsQuery.data.projects.map((project) => (
-								<Card
-									key={project.id}
-									className="border-(--line) bg-white/78"
-								>
+								<Card key={project.id} className="border-(--line) bg-white/78">
 									<CardContent className="flex h-full flex-col gap-5 p-5">
 										<div className="flex items-start justify-between gap-4">
 											<div className="space-y-2">

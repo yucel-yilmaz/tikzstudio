@@ -9,12 +9,13 @@ const envSchema = z.object({
 	COMPILE_CPU_LIMIT: z.coerce.number().default(0.5),
 	MAX_SOURCE_SIZE_KB: z.coerce.number().default(512),
 	MAX_OUTPUT_SIZE_MB: z.coerce.number().default(10),
-	DOCKER_COMPILER_IMAGE: z.string().default("tikzlab-compiler:latest"),
+	DOCKER_COMPILER_IMAGE: z.string().default("tikzstudio-compiler:latest"),
 	COMPILE_STORAGE_DIR: z.string().default(".data/compile-artifacts"),
 	MATHPIX_APP_ID: z.string().optional(),
 	MATHPIX_APP_KEY: z.string().optional(),
 	DOCKER_MODEL_RUNNER_URL: z.string().default("http://localhost:12434"),
 	IMG2LATEX_MODEL: z.string().default("ai/qwen3-vl:latest"),
+	PIX2TEX_URL: z.string().default("http://localhost:8502"),
 });
 
 export const env = envSchema.parse({
@@ -32,4 +33,5 @@ export const env = envSchema.parse({
 	MATHPIX_APP_KEY: process.env.MATHPIX_APP_KEY,
 	DOCKER_MODEL_RUNNER_URL: process.env.DOCKER_MODEL_RUNNER_URL,
 	IMG2LATEX_MODEL: process.env.IMG2LATEX_MODEL,
+	PIX2TEX_URL: process.env.PIX2TEX_URL,
 });

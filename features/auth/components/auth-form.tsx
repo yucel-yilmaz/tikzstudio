@@ -93,7 +93,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 							<div
 								key={item}
 								className="rounded-3xl border border-(--line) bg-white/70 px-4 py-4 text-sm leading-6 text-(--ink-1)"
-						>
+							>
 								{item}
 							</div>
 						))}

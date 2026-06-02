@@ -22,7 +22,7 @@ import type {
 export class DockerCompilerAdapter implements CompilerAdapter {
 	async compile(input: CompileInput): Promise<CompileResult> {
 		const startedAt = new Date();
-		const workspace = await mkdtemp(path.join(os.tmpdir(), "tikzlab-"));
+		const workspace = await mkdtemp(path.join(os.tmpdir(), "tikzstudio-"));
 		const sourceBytes = input.files.reduce((sum, file) => {
 			return (
 				sum +
@@ -189,7 +189,10 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 		}
 	}
 
-	private async runDocker(args: string[], timeoutMs = env.COMPILE_TIMEOUT_SECONDS * 1000) {
+	private async runDocker(
+		args: string[],
+		timeoutMs = env.COMPILE_TIMEOUT_SECONDS * 1000,
+	) {
 		return new Promise<{ code: number | null; log: string; timedOut: boolean }>(
 			(resolve) => {
 				const child = spawn("docker", args, {

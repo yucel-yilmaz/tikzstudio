@@ -44,7 +44,14 @@ export async function createUserTemplate(
 	const files: TemplateFileDto[] = data.files?.length
 		? data.files
 		: data.content
-			? [{ path: "main.tex", content: data.content, isBinary: false, isMain: true }]
+			? [
+					{
+						path: "main.tex",
+						content: data.content,
+						isBinary: false,
+						isMain: true,
+					},
+				]
 			: [];
 
 	if (!files.length) {

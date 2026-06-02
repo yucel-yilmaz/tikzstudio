@@ -63,7 +63,6 @@ export function sanitizeSvg(svgContent: Buffer): Buffer {
 			"x",
 			"y",
 			"cx",
-			"cx",
 			"cy",
 			"r",
 			"rx",

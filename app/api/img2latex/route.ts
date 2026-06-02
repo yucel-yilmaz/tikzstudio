@@ -1,11 +1,16 @@
-import { AppError, toErrorResponse } from "@/lib/errors";
 import { env } from "@/lib/env";
+import { AppError, toErrorResponse } from "@/lib/errors";
 import { getSessionFromHeaders } from "@/lib/session";
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
-const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp"]);
+const ALLOWED_MIME = new Set([
+	"image/png",
+	"image/jpeg",
+	"image/jpg",
+	"image/webp",
+]);
 
-export type Img2LatexProvider = "docker" | "mathpix";
+export type Img2LatexProvider = "docker" | "pix2tex" | "mathpix";
 
 type OpenAIResponse = {
 	choices?: Array<{ message?: { content?: string } }>;
@@ -54,10 +59,39 @@ async function callDockerModel(dataUri: string): Promise<string> {
 	const data = (await res.json()) as OpenAIResponse;
 
 	if (data.error) {
-		throw new AppError("UNKNOWN_ERROR", `Model hatası: ${data.error.message}`, 502);
+		throw new AppError(
+			"UNKNOWN_ERROR",
+			`Model hatası: ${data.error.message}`,
+			502,
+		);
 	}
 
 	return data.choices?.[0]?.message?.content?.trim() ?? "";
+}
+
+async function callPix2tex(
+	imageBytes: ArrayBuffer,
+	mimeType: string,
+): Promise<string> {
+	const form = new FormData();
+	form.append("file", new Blob([imageBytes], { type: mimeType }), "image");
+
+	const res = await fetch(`${env.PIX2TEX_URL}/predict/`, {
+		method: "POST",
+		body: form,
+	});
+
+	if (!res.ok) {
+		const text = await res.text().catch(() => "");
+		throw new AppError(
+			"UNKNOWN_ERROR",
+			`pix2tex hatası (${res.status}): ${text.slice(0, 200)}`,
+			502,
+		);
+	}
+
+	const data = (await res.json()) as { prediction?: string };
+	return data.prediction?.trim() ?? "";
 }
 
 async function callMathpix(dataUri: string): Promise<string> {
@@ -114,14 +148,19 @@ export async function POST(request: Request) {
 
 		const formData = await request.formData();
 		const fileEntry = formData.get("image");
-		const provider = (formData.get("provider") as Img2LatexProvider | null) ?? "docker";
+		const provider =
+			(formData.get("provider") as Img2LatexProvider | null) ?? "docker";
 
 		if (!(fileEntry instanceof File)) {
 			throw new AppError("BAD_REQUEST", "image alanı gerekli.", 400);
 		}
 
 		if (!ALLOWED_MIME.has(fileEntry.type)) {
-			throw new AppError("BAD_REQUEST", "Desteklenen formatlar: PNG, JPEG, WebP.", 400);
+			throw new AppError(
+				"BAD_REQUEST",
+				"Desteklenen formatlar: PNG, JPEG, WebP.",
+				400,
+			);
 		}
 
 		if (fileEntry.size > MAX_IMAGE_BYTES) {
@@ -132,10 +171,15 @@ export async function POST(request: Request) {
 			);
 		}
 
-		const dataUri = `data:${fileEntry.type};base64,${Buffer.from(await fileEntry.arrayBuffer()).toString("base64")}`;
+		const imageBytes = await fileEntry.arrayBuffer();
+		const dataUri = `data:${fileEntry.type};base64,${Buffer.from(imageBytes).toString("base64")}`;
 
 		const latex =
-			provider === "mathpix" ? await callMathpix(dataUri) : await callDockerModel(dataUri);
+			provider === "mathpix"
+				? await callMathpix(dataUri)
+				: provider === "pix2tex"
+					? await callPix2tex(imageBytes, fileEntry.type)
+					: await callDockerModel(dataUri);
 
 		if (!latex) {
 			throw new AppError(

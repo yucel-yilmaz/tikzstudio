@@ -50,28 +50,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { TikzCodeEditor } from "@/features/editor/components/code-editor";
 import { DesktopEditorLayout } from "@/features/editor/components/desktop-editor-layout";
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
+import { useAutoSave } from "@/features/editor/hooks/use-auto-save";
+import { useCompile } from "@/features/editor/hooks/use-compile";
+import { useProjectFiles } from "@/features/editor/hooks/use-project-files";
 import { useEditorStore } from "@/features/editor/store/use-editor-store";
 import {
-	ClientApiError,
-	compileProject,
-	createFile,
-	deleteFile,
-	getCompileJob,
-	getLatestCompileOutput,
 	getProject,
 	getProjectFiles,
 	getSnippets,
 	getTemplates,
-	updateFile,
 	updateProject,
-	uploadFile,
 } from "@/lib/client-api";
 import { diagnosticsForFile, parseCompileLog } from "@/lib/compile-log";
-import { COMPILE_TERMINAL_STATUSES } from "@/lib/defaults";
-import type { CompileJobDto, ProjectFileDto } from "@/lib/types";
+import type { CompileJobDto } from "@/lib/types";
 import { cn, formatRelativeDate } from "@/lib/utils";
-
-const terminalStatuses = new Set<string>(COMPILE_TERMINAL_STATUSES);
 
 const saveStateMeta = {
 	idle: { label: "Clean", tone: "text-muted-foreground" },
@@ -157,7 +149,6 @@ function compileBadge(job: CompileJobDto | null) {
 
 export function EditorScreen({ projectId }: { projectId: string }) {
 	const queryClient = useQueryClient();
-	const [compileJobId, setCompileJobId] = useState<string | null>(null);
 
 	const {
 		activeFileId,
@@ -174,8 +165,6 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 		updateBuffer,
 		insertIntoActive,
 		setPreviewZoom,
-		setSaveState,
-		markSaved,
 	} = useEditorStore();
 
 	const projectQuery = useQuery({
@@ -198,80 +187,6 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 		queryFn: () => getSnippets(),
 	});
 
-	const compileQuery = useQuery({
-		queryKey: ["compile-job", compileJobId],
-		queryFn: () => {
-			if (!compileJobId) {
-				throw new Error("Compile job id is required.");
-			}
-
-			return getCompileJob(compileJobId);
-		},
-		enabled: Boolean(compileJobId),
-		refetchInterval: (query) => {
-			const job = query.state.data;
-			if (!job || !compileJobId) {
-				return 1000;
-			}
-
-			return terminalStatuses.has(job.status) ? false : 1000;
-		},
-	});
-
-	const latestCompileQuery = useQuery({
-		queryKey: ["latest-compile-output", projectId],
-		queryFn: () => getLatestCompileOutput(projectId),
-		enabled: !compileJobId,
-	});
-
-	const saveMutation = useMutation({
-		mutationFn: ({ fileId, content }: { fileId: string; content: string }) =>
-			updateFile(projectId, fileId, { content }),
-		onMutate: () => setSaveState("saving"),
-		onSuccess: (file) => {
-			queryClient.setQueryData<{ files: ProjectFileDto[] }>(
-				["project-files", projectId],
-				(current) =>
-					current
-						? {
-								files: current.files.map((candidate) =>
-									candidate.id === file.id ? file : candidate,
-								),
-							}
-						: current,
-			);
-			markSaved(file.id, file.content);
-		},
-		onError: () => setSaveState("error"),
-	});
-
-	const [engine, setEngine] = useState<
-		"TECTONIC" | "PDFLATEX" | "XELATEX" | "LUALATEX" | "PDFLATEX_BIBER"
-	>("TECTONIC");
-
-	const compileMutation = useMutation({
-		mutationFn: () =>
-			compileProject(projectId, {
-				engine,
-				mainFileId: activeFileId ?? undefined,
-			}),
-		onSuccess: (job) => {
-			setCompileJobId(job.id);
-			queryClient.setQueryData(["latest-compile-output", projectId], {
-				compileJob: job,
-			});
-		},
-		onError: (error) => {
-			if (error instanceof ClientApiError && error.code === "RATE_LIMITED") {
-				toast.error(error.message);
-				return;
-			}
-			toast.error(
-				error instanceof Error ? error.message : "Failed to start compilation.",
-			);
-		},
-	});
-
 	const settingsMutation = useMutation({
 		mutationFn: (payload: {
 			title: string;
@@ -283,114 +198,17 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 		},
 	});
 
-	const createFileMutation = useMutation({
-		mutationFn: (path: string) => createFile(projectId, { path, content: "" }),
-		onSuccess: (file) => {
-			queryClient.setQueryData<{ files: ProjectFileDto[] }>(
-				["project-files", projectId],
-				(current) =>
-					current ? { files: [...current.files, file] } : { files: [file] },
-			);
-			setActiveFile(file.id);
-			toast.success(`Created "${file.path}"`);
-		},
-		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to create file.",
-			);
-		},
-	});
+	const [engine, setEngine] = useState<
+		"TECTONIC" | "PDFLATEX" | "XELATEX" | "LUALATEX" | "PDFLATEX_BIBER"
+	>("TECTONIC");
 
-	const deleteFileMutation = useMutation({
-		mutationFn: (fileId: string) => deleteFile(projectId, fileId),
-		onSuccess: (_, fileId) => {
-			queryClient.setQueryData<{ files: ProjectFileDto[] }>(
-				["project-files", projectId],
-				(current) =>
-					current
-						? { files: current.files.filter((file) => file.id !== fileId) }
-						: current,
-			);
-			if (activeFileId === fileId) {
-				const remaining =
-					filesQuery.data?.files.filter((file) => file.id !== fileId) ?? [];
-				setActiveFile(remaining[0]?.id ?? null);
-			}
-			toast.success("File deleted");
-		},
-		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to delete file.",
-			);
-		},
-	});
+	const { compile, isCompiling, currentCompile } = useCompile(
+		projectId,
+		activeFileId,
+		engine,
+	);
 
-	const renameFileMutation = useMutation({
-		mutationFn: ({ fileId, path }: { fileId: string; path: string }) =>
-			updateFile(projectId, fileId, { path }),
-		onSuccess: (file) => {
-			queryClient.setQueryData<{ files: ProjectFileDto[] }>(
-				["project-files", projectId],
-				(current) =>
-					current
-						? {
-								files: current.files.map((candidate) =>
-									candidate.id === file.id ? file : candidate,
-								),
-							}
-						: current,
-			);
-			toast.success(`Renamed to "${file.path}"`);
-		},
-		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to rename file.",
-			);
-		},
-	});
-
-	const setMainFileMutation = useMutation({
-		mutationFn: (fileId: string) =>
-			updateFile(projectId, fileId, { isMain: true }),
-		onSuccess: (file) => {
-			queryClient.setQueryData<{ files: ProjectFileDto[] }>(
-				["project-files", projectId],
-				(current) =>
-					current
-						? {
-								files: current.files.map((candidate) => ({
-									...candidate,
-									isMain: candidate.id === file.id,
-								})),
-							}
-						: current,
-			);
-			toast.success(`"${file.path}" set as main file`);
-		},
-		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to change main file.",
-			);
-		},
-	});
-
-	const uploadFileMutation = useMutation({
-		mutationFn: (file: File) => uploadFile(projectId, file),
-		onSuccess: (file) => {
-			queryClient.setQueryData<{ files: ProjectFileDto[] }>(
-				["project-files", projectId],
-				(current) =>
-					current ? { files: [...current.files, file] } : { files: [file] },
-			);
-			setActiveFile(file.id);
-			toast.success(`Uploaded "${file.path}"`);
-		},
-		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to upload file.",
-			);
-		},
-	});
+	const fileOps = useProjectFiles(projectId);
 
 	useEffect(() => {
 		if (filesQuery.data?.files) {
@@ -409,28 +227,13 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 	const activeValue = activeFile
 		? (buffers[activeFile.id] ?? activeFile.content)
 		: "";
-	const isDirty = Boolean(activeFile && activeValue !== activeFile.content);
 
-	useEffect(() => {
-		if (!activeFile || !isDirty) {
-			return;
-		}
+	const { isSaving, saveNow } = useAutoSave({
+		projectId,
+		activeFile,
+		activeValue,
+	});
 
-		const timeout = window.setTimeout(() => {
-			saveMutation.mutate({
-				fileId: activeFile.id,
-				content: activeValue,
-			});
-		}, 900);
-
-		return () => window.clearTimeout(timeout);
-	}, [activeFile, activeValue, isDirty, saveMutation]);
-
-	const currentCompile =
-		compileQuery.data ??
-		compileMutation.data ??
-		latestCompileQuery.data?.compileJob ??
-		null;
 	const saveMeta = saveStateMeta[saveState];
 	const compileMeta = compileBadge(currentCompile);
 	const CompileIcon = compileMeta.icon;
@@ -467,7 +270,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									<CardTitle className="truncate text-xl font-semibold">
 										{projectQuery.data?.title ?? "Loading project…"}
 									</CardTitle>
-									<Badge variant="secondary" className="gap-1.5 shrink-0">
+									<Badge variant="secondary" className="shrink-0 gap-1.5">
 										<PanelLeft className="size-3" />
 										{activeFile?.path ?? "main.tex"}
 									</Badge>
@@ -518,13 +321,9 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 								<Button
 									variant="outline"
 									size="sm"
-									disabled={!activeFile || saveMutation.isPending}
+									disabled={!activeFile || isSaving}
 									onClick={() =>
-										activeFile &&
-										saveMutation.mutate({
-											fileId: activeFile.id,
-											content: activeValue,
-										})
+										activeFile && saveNow(activeFile.id, activeValue)
 									}
 								>
 									<Save />
@@ -550,15 +349,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 								<Button
 									size="sm"
 									className="shadow-sm"
-									disabled={
-										compileMutation.isPending ||
-										saveMutation.isPending ||
-										!activeFile
-									}
-									onClick={() => compileMutation.mutate()}
+									disabled={isCompiling || isSaving || !activeFile}
+									onClick={compile}
 								>
 									<Play />
-									{compileMutation.isPending ? "Starting…" : "Compile"}
+									{isCompiling ? "Starting…" : "Compile"}
 								</Button>
 							</CardAction>
 						</div>
@@ -581,7 +376,6 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 					saveMeta={saveMeta}
 					sidebarTab={sidebarTab}
 					snippets={snippetsQuery.data?.snippets ?? []}
-					templates={templatesQuery.data?.templates ?? []}
 					onSetActiveFile={setActiveFile}
 					onSetProjectPanelOpen={setProjectPanelOpen}
 					onSetSidebarTab={setSidebarTab}
@@ -591,21 +385,14 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 					onSubmitSettings={async (payload) => {
 						await settingsMutation.mutateAsync(payload);
 					}}
-					onCreateFile={async (path) => {
-						await createFileMutation.mutateAsync(path);
-					}}
-					onDeleteFile={async (fileId) => {
-						await deleteFileMutation.mutateAsync(fileId);
-					}}
-					onRenameFile={async (fileId, path) => {
-						await renameFileMutation.mutateAsync({ fileId, path });
-					}}
-					onSetMainFile={async (fileId) => {
-						await setMainFileMutation.mutateAsync(fileId);
-					}}
-					onUploadFile={(file) => uploadFileMutation.mutate(file)}
+					onCreateFile={fileOps.createFile}
+					onDeleteFile={fileOps.deleteFile}
+					onRenameFile={fileOps.renameFile}
+					onSetMainFile={fileOps.setMainFile}
+					onUploadFile={fileOps.uploadFile}
 				/>
 
+				{/* Mobile layout */}
 				<div className="space-y-4 lg:hidden">
 					<Card>
 						<CardHeader>
@@ -701,7 +488,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											<button
 												type="button"
 												key={template.id}
-												onClick={() => insertIntoActive(template.content)}
+												onClick={() => insertIntoActive(template.content ?? "")}
 												className="w-full rounded-lg border border-transparent bg-muted/30 px-3 py-3 text-left"
 											>
 												<div className="text-sm font-medium">

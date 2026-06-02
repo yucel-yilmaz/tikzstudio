@@ -211,7 +211,10 @@ export function deleteSnippet(id: string) {
 	return requestJson<void>(`/api/snippets/${id}`, { method: "DELETE" });
 }
 
-export function img2latex(image: File, provider?: "docker" | "mathpix") {
+export function img2latex(
+	image: File,
+	provider?: "docker" | "pix2tex" | "mathpix",
+) {
 	const form = new FormData();
 	form.append("image", image);
 	if (provider) form.append("provider", provider);

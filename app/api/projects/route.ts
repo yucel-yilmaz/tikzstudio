@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 			ownerId: session.user.id,
 			title: body.title,
 			description: body.description,
-			templateContent: template?.content,
+			templateContent: template?.content ?? undefined,
 		});
 
 		return Response.json(toProjectDetail(project), { status: 201 });

@@ -284,9 +284,7 @@ export async function uploadBinaryFileForUser(
 	}
 
 	const asText = isTextFile(filePath);
-	const textContent = asText
-		? new TextDecoder("utf-8").decode(buffer)
-		: "";
+	const textContent = asText ? new TextDecoder("utf-8").decode(buffer) : "";
 
 	return prisma.projectFile.create({
 		data: {

@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-	diagnosticsForFile,
-	parseCompileLog,
-} from "@/lib/compile-log";
+import { diagnosticsForFile, parseCompileLog } from "@/lib/compile-log";
 
 describe("parseCompileLog", () => {
 	it("returns empty array for null/empty input", () => {
