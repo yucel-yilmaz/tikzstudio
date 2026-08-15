@@ -1,4 +1,4 @@
-# TikZ Studio
+# TikZ Studio — Browser-based TikZ/LaTeX Diagram Editor
 
 A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file LaTeX documents. Built on Next.js 16 with React 19, it pairs a CodeMirror editor with sandboxed Docker compilation and live PDF preview — so you can edit, compile, and download high-quality figures from any browser.
 
