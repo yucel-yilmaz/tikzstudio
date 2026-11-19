@@ -63,7 +63,7 @@ export const templatesAndSnippets: HelpArticle = {
 			ordered: true,
 			items: [
 				"**Kod editörü** başlığının yanındaki tarama simgesine tıklayın.",
-				"Bir sağlayıcı seçin: **Docker Model Runner**, **pix2tex** veya **Mathpix**.",
+				"Sunucuda birden fazla sağlayıcı varsa birini seçin (**Docker Model Runner**, **pix2tex** veya **Mathpix**).",
 				"PNG, JPEG veya WebP görseli bırakın ya da seçin, **LaTeX'e dönüştür**'e basın.",
 				"Sonucu kontrol edip düzeltin, ardından **Editöre ekle** ile imlecin olduğu yere ekleyin.",
 			],
@@ -71,7 +71,7 @@ export const templatesAndSnippets: HelpArticle = {
 		{
 			type: "callout",
 			tone: "info",
-			text: "Bu özellik sunucuda bir sağlayıcının kurulmuş olmasını gerektirir. Hangi sağlayıcıların çalıştığı sunucu yöneticisinin ayarlarına bağlıdır; bir sağlayıcı hata verirse diğerini deneyin. Sonuç her zaman kontrol edilmelidir: el yazısı ve karmaşık tablolar yanlış okunabilir.",
+			text: "Bu özellik sunucuda bir sağlayıcının kurulmuş olmasını gerektirir; kurulu değilse tarama simgesi görünmez. Hangi sağlayıcıların çalıştığı sunucu yöneticisinin ayarlarına bağlıdır; bir sağlayıcı hata verirse diğerini deneyin. Sonuç her zaman kontrol edilmelidir: el yazısı ve karmaşık tablolar yanlış okunabilir.",
 		},
 		{ type: "h2", id: "sablon-olarak-kaydet", text: "Şablon olarak kaydet" },
 		{

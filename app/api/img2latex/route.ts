@@ -1,6 +1,12 @@
 import { env } from "@/lib/env";
 import { AppError, toErrorResponse } from "@/lib/errors";
 import { getSessionFromHeaders } from "@/lib/session";
+import {
+	type Img2LatexProvider,
+	isImg2LatexProvider,
+	isImg2LatexProviderConfigured,
+	listImg2LatexProviders,
+} from "@/server/services/img2latex-providers";
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 const ALLOWED_MIME = new Set([
@@ -9,8 +15,6 @@ const ALLOWED_MIME = new Set([
 	"image/jpg",
 	"image/webp",
 ]);
-
-export type Img2LatexProvider = "docker" | "pix2tex" | "mathpix";
 
 type OpenAIResponse = {
 	choices?: Array<{ message?: { content?: string } }>;
@@ -23,10 +27,23 @@ type MathpixResponse = {
 	error_info?: { code: string; message: string };
 };
 
+/** fetch() that turns network failures into a readable 503. */
+async function reach(label: string, url: string, init: RequestInit) {
+	try {
+		return await fetch(url, init);
+	} catch {
+		throw new AppError(
+			"UNKNOWN_ERROR",
+			`${label} hizmetine şu anda ulaşılamıyor. Biraz sonra yeniden deneyin.`,
+			503,
+		);
+	}
+}
+
 async function callDockerModel(dataUri: string): Promise<string> {
 	const url = `${env.DOCKER_MODEL_RUNNER_URL}/engines/llama.cpp/v1/chat/completions`;
 
-	const res = await fetch(url, {
+	const res = await reach("Docker Model Runner", url, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -76,7 +93,7 @@ async function callPix2tex(
 	const form = new FormData();
 	form.append("file", new Blob([imageBytes], { type: mimeType }), "image");
 
-	const res = await fetch(`${env.PIX2TEX_URL}/predict/`, {
+	const res = await reach("pix2tex", `${env.PIX2TEX_URL}/predict/`, {
 		method: "POST",
 		body: form,
 	});
@@ -103,12 +120,12 @@ async function callMathpix(dataUri: string): Promise<string> {
 		);
 	}
 
-	const res = await fetch("https://api.mathpix.com/v3/text", {
+	const res = await reach("Mathpix", "https://api.mathpix.com/v3/text", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			app_id: env.MATHPIX_APP_ID,
-			app_key: env.MATHPIX_APP_KEY,
+			app_id: env.MATHPIX_APP_ID ?? "",
+			app_key: env.MATHPIX_APP_KEY ?? "",
 		},
 		body: JSON.stringify({
 			src: dataUri,
@@ -139,6 +156,17 @@ async function callMathpix(dataUri: string): Promise<string> {
 	return data.latex_simplified?.trim() ?? "";
 }
 
+export async function GET(request: Request) {
+	const session = await getSessionFromHeaders(request.headers);
+	if (!session) {
+		return Response.json(
+			{ error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." } },
+			{ status: 401 },
+		);
+	}
+	return Response.json({ providers: listImg2LatexProviders() });
+}
+
 export async function POST(request: Request) {
 	try {
 		const session = await getSessionFromHeaders(request.headers);
@@ -153,8 +181,19 @@ export async function POST(request: Request) {
 
 		const formData = await request.formData();
 		const fileEntry = formData.get("image");
-		const provider =
-			(formData.get("provider") as Img2LatexProvider | null) ?? "docker";
+		const providerEntry =
+			formData.get("provider") ?? listImg2LatexProviders()[0]?.id;
+		if (
+			!isImg2LatexProvider(providerEntry) ||
+			!isImg2LatexProviderConfigured(providerEntry)
+		) {
+			throw new AppError(
+				"VALIDATION_ERROR",
+				"Görselden LaTeX'e dönüştürme bu sunucuda yapılandırılmamış.",
+				503,
+			);
+		}
+		const provider: Img2LatexProvider = providerEntry;
 
 		if (!(fileEntry instanceof File)) {
 			throw new AppError("BAD_REQUEST", "image alanı gerekli.", 400);

@@ -241,10 +241,15 @@ export function deleteSnippet(id: string) {
 	return requestJson<void>(`/api/snippets/${id}`, { method: "DELETE" });
 }
 
-export function img2latex(
-	image: File,
-	provider?: "docker" | "pix2tex" | "mathpix",
-) {
+export type Img2LatexProviderId = "docker" | "pix2tex" | "mathpix";
+
+export function getImg2LatexProviders() {
+	return requestJson<{
+		providers: Array<{ id: Img2LatexProviderId; label: string }>;
+	}>("/api/img2latex");
+}
+
+export function img2latex(image: File, provider?: Img2LatexProviderId) {
 	const form = new FormData();
 	form.append("image", image);
 	if (provider) form.append("provider", provider);
