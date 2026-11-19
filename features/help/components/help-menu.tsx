@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { startTour } from "@/features/help/tour/tour-state";
 import { TOUR_TARGETS, type TourPage } from "@/features/help/tour/tour-steps";
+import { useT } from "@/lib/i18n/client";
 
 /**
- * "Yardım" entry point for the dashboard and editor headers: links into the
+ * "Help" entry point for the dashboard and editor headers: links into the
  * help center and restarts the onboarding tour on the current page.
  */
 export function HelpMenu({
@@ -26,6 +27,7 @@ export function HelpMenu({
 	page: TourPage;
 	size?: "default" | "sm";
 }) {
+	const t = useT();
 	// In the editor, open help in a new tab so the work stays on screen.
 	const linkProps =
 		page === "editor" ? { target: "_blank", rel: "noreferrer" } : {};
@@ -38,35 +40,35 @@ export function HelpMenu({
 					variant="outline"
 					size={size}
 					data-tour={TOUR_TARGETS.helpMenu}
-					aria-label="Yardım"
+					aria-label={t("common.help")}
 				>
 					<CircleHelp />
-					<span>Yardım</span>
+					<span>{t("common.help")}</span>
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-60">
-				<DropdownMenuLabel>Yardım</DropdownMenuLabel>
+				<DropdownMenuLabel>{t("common.help")}</DropdownMenuLabel>
 				<DropdownMenuItem asChild>
 					<Link href="/yardim" {...linkProps}>
 						<BookOpen />
-						Yardım merkezi
+						{t("common.helpCenter")}
 					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuItem onSelect={() => startTour(page)}>
 					<Compass />
-					Öğreticiyi başlat
+					{t("tour.start")}
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
 					<Link href="/yardim/sorun-giderme" {...linkProps}>
 						<Wrench />
-						Sorun giderme
+						{t("common.troubleshooting")}
 					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuItem asChild>
 					<Link href="/yardim/turkce-belgeler" {...linkProps}>
 						<Languages />
-						Türkçe belgeler
+						{t("help.turkishDocuments")}
 					</Link>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

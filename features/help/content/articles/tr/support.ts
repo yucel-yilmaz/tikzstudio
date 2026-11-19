@@ -229,6 +229,12 @@ export const faq: HelpArticle = {
 					],
 				},
 				{
+					question: "Arayüz dilini nasıl değiştiririm?",
+					answer: [
+						"Ana sayfadaki, giriş sayfalarındaki, paneldeki, editör araç çubuğundaki veya **Hesabım** sayfasındaki **TR / EN** düğmesini kullanın. Seçiminiz bu tarayıcıda ve giriş yaptıysanız hesabınızda saklanır; size gönderilen e-postalar da aynı dilde olur.",
+					],
+				},
+				{
 					question: "Şifremi unuttum, ne yapmalıyım?",
 					answer: [
 						"Giriş sayfasındaki **Şifremi unuttum** bağlantısına tıklayın ve e-posta adresinizi girin. Gelen bağlantı 1 saat geçerlidir ve bir kez kullanılabilir. Şifreniz değişince diğer cihazlardaki oturumlarınız kapatılır.",

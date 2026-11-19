@@ -4,8 +4,10 @@ import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/client";
 
 export function CodeBlock({ code, title }: { code: string; title?: string }) {
+	const t = useT();
 	const [copied, setCopied] = useState(false);
 
 	useEffect(() => {
@@ -35,10 +37,10 @@ export function CodeBlock({ code, title }: { code: string; title?: string }) {
 					size="xs"
 					onClick={copy}
 					className="text-[#d7c9b5] hover:bg-[#2a231d] hover:text-[#f7f2e8]"
-					aria-label={copied ? "Kopyalandı" : "Kodu kopyala"}
+					aria-label={copied ? t("help.copied") : t("help.copyCode")}
 				>
 					{copied ? <Check /> : <Copy />}
-					{copied ? "Kopyalandı" : "Kopyala"}
+					{copied ? t("help.copied") : t("help.copy")}
 				</Button>
 			</figcaption>
 			<pre className="overflow-x-auto p-4 font-mono text-[13px] leading-6 text-[#f8edd6]">

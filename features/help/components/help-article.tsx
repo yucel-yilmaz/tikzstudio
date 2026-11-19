@@ -7,15 +7,25 @@ import { HelpIcon, HelpIconBadge } from "@/features/help/components/help-icon";
 import {
 	getAdjacentArticles,
 	getArticleSection,
+	getHelpSections,
 	type HelpArticle,
-	helpSections,
+	type HelpSection,
 } from "@/features/help/content";
+import { getI18n } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
 
-function ArticleNav({ currentSlug }: { currentSlug: string }) {
+function ArticleNav({
+	currentSlug,
+	sections,
+	label,
+}: {
+	currentSlug: string;
+	sections: HelpSection[];
+	label: string;
+}) {
 	return (
-		<nav aria-label="Yardım konuları" className="space-y-5">
-			{helpSections.map((section) => (
+		<nav aria-label={label} className="space-y-5">
+			{sections.map((section) => (
 				<div key={section.id} className="space-y-1.5">
 					<p className="px-3 text-xs font-medium uppercase tracking-[0.14em] text-(--ink-1)">
 						{section.title}
@@ -48,9 +58,11 @@ function ArticleNav({ currentSlug }: { currentSlug: string }) {
 	);
 }
 
-export function HelpArticleView({ article }: { article: HelpArticle }) {
-	const section = getArticleSection(article.slug);
-	const { previous, next } = getAdjacentArticles(article.slug);
+export async function HelpArticleView({ article }: { article: HelpArticle }) {
+	const { t, locale } = await getI18n();
+	const sections = getHelpSections(locale);
+	const section = getArticleSection(locale, article.slug);
+	const { previous, next } = getAdjacentArticles(locale, article.slug);
 	const headings = article.blocks.flatMap((block) =>
 		block.type === "h2" ? [{ id: block.id, text: block.text }] : [],
 	);
@@ -59,7 +71,11 @@ export function HelpArticleView({ article }: { article: HelpArticle }) {
 		<div className="grid gap-5 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)_14rem]">
 			<aside className="hidden lg:block">
 				<div className="sticky top-5 rounded-3xl border border-(--line) bg-white/55 p-3">
-					<ArticleNav currentSlug={article.slug} />
+					<ArticleNav
+						currentSlug={article.slug}
+						sections={sections}
+						label={t("help.topics")}
+					/>
 				</div>
 			</aside>
 
@@ -68,11 +84,11 @@ export function HelpArticleView({ article }: { article: HelpArticle }) {
 					<CardContent className="space-y-6 p-5 sm:p-8 lg:p-10">
 						<div className="space-y-4">
 							<nav
-								aria-label="Konum"
+								aria-label={t("help.breadcrumb")}
 								className="flex flex-wrap items-center gap-1.5 text-xs text-(--ink-1)"
 							>
 								<Link href="/yardim" className="hover:text-(--ink-0)">
-									Yardım merkezi
+									{t("common.helpCenter")}
 								</Link>
 								{section ? (
 									<>
@@ -108,7 +124,7 @@ export function HelpArticleView({ article }: { article: HelpArticle }) {
 						>
 							<span className="inline-flex items-center gap-1.5 text-xs text-(--ink-1)">
 								<ArrowLeft className="size-3.5" aria-hidden />
-								Önceki
+								{t("help.previous")}
 							</span>
 							<p className="mt-1 font-medium">{previous.title}</p>
 						</Link>
@@ -121,7 +137,7 @@ export function HelpArticleView({ article }: { article: HelpArticle }) {
 							className="group rounded-3xl border border-(--line) bg-white/70 p-4 text-right transition hover:bg-white"
 						>
 							<span className="inline-flex items-center gap-1.5 text-xs text-(--ink-1)">
-								Sonraki
+								{t("help.next")}
 								<ArrowRight className="size-3.5" aria-hidden />
 							</span>
 							<p className="mt-1 font-medium">{next.title}</p>
@@ -131,10 +147,14 @@ export function HelpArticleView({ article }: { article: HelpArticle }) {
 
 				<details className="mt-5 rounded-3xl border border-(--line) bg-white/55 p-3 lg:hidden">
 					<summary className="cursor-pointer px-3 py-2 text-sm font-medium">
-						Tüm yardım konuları
+						{t("help.allTopics")}
 					</summary>
 					<div className="pt-3">
-						<ArticleNav currentSlug={article.slug} />
+						<ArticleNav
+							currentSlug={article.slug}
+							sections={sections}
+							label={t("help.topics")}
+						/>
 					</div>
 				</details>
 			</article>
@@ -142,11 +162,11 @@ export function HelpArticleView({ article }: { article: HelpArticle }) {
 			{headings.length > 1 ? (
 				<aside className="hidden xl:block">
 					<nav
-						aria-label="Bu sayfada"
+						aria-label={t("help.onThisPage")}
 						className="sticky top-5 space-y-2 rounded-3xl border border-(--line) bg-white/55 p-4"
 					>
 						<p className="text-xs font-medium uppercase tracking-[0.14em] text-(--ink-1)">
-							Bu sayfada
+							{t("help.onThisPage")}
 						</p>
 						<ul className="space-y-1.5 text-sm">
 							{headings.map((heading) => (
