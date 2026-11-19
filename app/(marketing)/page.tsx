@@ -1,5 +1,6 @@
 import {
 	ArrowRight,
+	BookOpen,
 	ImageDown,
 	Layers3,
 	ShieldCheck,
@@ -50,6 +51,12 @@ export default function LandingPage() {
 							</Button>
 							<Button asChild variant="outline" size="lg">
 								<Link href="/login">Giriş yap</Link>
+							</Button>
+							<Button asChild variant="ghost" size="lg">
+								<Link href="/yardim">
+									<BookOpen size={16} />
+									Yardım
+								</Link>
 							</Button>
 						</div>
 
@@ -220,6 +227,27 @@ export default function LandingPage() {
 					</CardContent>
 				</Card>
 			</section>
+
+			<footer className="flex flex-col gap-2 border-t border-(--line) px-1 pt-4 pb-2 text-sm text-(--ink-1) sm:flex-row sm:items-center sm:justify-between">
+				<p>TikZ Studio</p>
+				<nav
+					aria-label="Alt bağlantılar"
+					className="flex flex-wrap gap-x-4 gap-y-1"
+				>
+					<Link href="/yardim" className="hover:text-(--ink-0)">
+						Yardım merkezi
+					</Link>
+					<Link href="/yardim/baslarken" className="hover:text-(--ink-0)">
+						Başlarken
+					</Link>
+					<Link href="/yardim/sss" className="hover:text-(--ink-0)">
+						Sıkça sorulan sorular
+					</Link>
+					<Link href="/login" className="hover:text-(--ink-0)">
+						Giriş yap
+					</Link>
+				</nav>
+			</footer>
 		</main>
 	);
 }
