@@ -62,3 +62,14 @@ export async function readUserTemplatePreview(templateId: string) {
 export async function removeUserTemplatePreview(templateId: string) {
 	await rm(previewPath(templateId), { force: true });
 }
+
+/** Deletes the preview images of every template owned by a user. */
+export async function removeUserTemplatePreviews(ownerId: string) {
+	const templates = await prisma.template.findMany({
+		where: { ownerId },
+		select: { id: true },
+	});
+	await Promise.all(
+		templates.map((template) => removeUserTemplatePreview(template.id)),
+	);
+}
