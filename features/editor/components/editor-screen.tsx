@@ -585,30 +585,30 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 								<div className="mb-2 px-4">
 									<TabsList
 										variant="line"
-										className="grid h-auto w-full grid-cols-4 gap-1 rounded-xl bg-muted/40 p-1"
+										className="grid h-auto w-full grid-cols-4 gap-1 rounded-xl bg-muted/40 p-1 group-data-horizontal/tabs:h-auto"
 										data-tour="sidebar-nav"
 									>
 										<TabsTrigger
 											value="files"
-											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
+											className="h-auto min-h-9 min-w-0 rounded-lg px-1 py-1.5 text-xs leading-tight whitespace-normal data-active:bg-background data-active:shadow-sm sm:text-sm"
 										>
 											{t("editor.panelFiles")}
 										</TabsTrigger>
 										<TabsTrigger
 											value="templates"
-											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
+											className="h-auto min-h-9 min-w-0 rounded-lg px-1 py-1.5 text-xs leading-tight whitespace-normal data-active:bg-background data-active:shadow-sm sm:text-sm"
 										>
 											{t("editor.panelTemplates")}
 										</TabsTrigger>
 										<TabsTrigger
 											value="snippets"
-											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
+											className="h-auto min-h-9 min-w-0 rounded-lg px-1 py-1.5 text-xs leading-tight whitespace-normal data-active:bg-background data-active:shadow-sm sm:text-sm"
 										>
 											{t("editor.panelSnippets")}
 										</TabsTrigger>
 										<TabsTrigger
 											value="settings"
-											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
+											className="h-auto min-h-9 min-w-0 rounded-lg px-1 py-1.5 text-xs leading-tight whitespace-normal data-active:bg-background data-active:shadow-sm sm:text-sm"
 										>
 											{t("editor.panelSettings")}
 										</TabsTrigger>

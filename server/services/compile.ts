@@ -184,6 +184,23 @@ export async function listCompileHistoryForProject(
 	});
 }
 
+/**
+ * Latest successful output of a public project, for its share page. Visitors
+ * may already download that output (see the compile-jobs output route); this
+ * lets the share page find it.
+ */
+export async function getLatestPublicCompileOutput(projectId: string) {
+	return prisma.compileJob.findFirst({
+		where: {
+			projectId,
+			status: CompileStatus.SUCCESS,
+			outputUrl: { not: null },
+			project: { isPublic: true, deletedAt: null },
+		},
+		orderBy: { finishedAt: "desc" },
+	});
+}
+
 export async function getLatestCompileOutputForProject(
 	ownerId: string,
 	projectId: string,
