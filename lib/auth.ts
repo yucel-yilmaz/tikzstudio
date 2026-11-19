@@ -4,11 +4,13 @@ import { createAuthMiddleware, isAPIError } from "better-auth/api";
 
 import { getSocialProviderConfig } from "@/lib/auth-providers";
 import {
+	emailLocale,
 	passwordChangedEmail,
 	resetPasswordEmail,
 	verificationEmail,
 } from "@/lib/emails";
 import { env } from "@/lib/env";
+import { localeFromHeaders } from "@/lib/i18n/config";
 import { requiresEmailVerification, sendMail } from "@/lib/mailer";
 import { prisma } from "@/lib/prisma";
 import { removeUserTemplatePreviews } from "@/server/services/template-previews";
@@ -29,11 +31,19 @@ export const auth = betterAuth({
 		minPasswordLength: 8,
 		resetPasswordTokenExpiresIn: 60 * 60,
 		revokeSessionsOnPasswordReset: true,
-		sendResetPassword: async ({ user, url }) => {
-			await sendMail(resetPasswordEmail(user, url));
+		sendResetPassword: async ({ user, url }, request) => {
+			await sendMail(
+				resetPasswordEmail(user, url, emailLocale(user, request?.headers)),
+			);
 		},
-		onPasswordReset: async ({ user }) => {
-			await sendMail(passwordChangedEmail(user));
+		onPasswordReset: async ({ user }, request) => {
+			await sendMail(
+				passwordChangedEmail(
+					user,
+					undefined,
+					emailLocale(user, request?.headers),
+				),
+			);
 		},
 	},
 	emailVerification: {
@@ -41,8 +51,10 @@ export const auth = betterAuth({
 		sendOnSignIn: requireEmailVerification,
 		autoSignInAfterVerification: true,
 		expiresIn: 60 * 60 * 24,
-		sendVerificationEmail: async ({ user, url }) => {
-			await sendMail(verificationEmail(user, url));
+		sendVerificationEmail: async ({ user, url }, request) => {
+			await sendMail(
+				verificationEmail(user, url, emailLocale(user, request?.headers)),
+			);
 		},
 	},
 	socialProviders: getSocialProviderConfig(),
@@ -55,16 +67,23 @@ export const auth = betterAuth({
 			const returned = ctx.context.returned;
 			if (!returned || isAPIError(returned) || returned instanceof Error)
 				return;
-			const user = (returned as { user?: { email: string; name?: string } })
-				.user;
+			const user = (
+				returned as {
+					user?: { email: string; name?: string; locale?: string };
+				}
+			).user;
 			if (!user?.email) return;
 			await sendMail(
-				passwordChangedEmail(user, {
-					otherSessionsRevoked: Boolean(
-						(ctx.body as { revokeOtherSessions?: boolean } | undefined)
-							?.revokeOtherSessions,
-					),
-				}),
+				passwordChangedEmail(
+					user,
+					{
+						otherSessionsRevoked: Boolean(
+							(ctx.body as { revokeOtherSessions?: boolean } | undefined)
+								?.revokeOtherSessions,
+						),
+					},
+					emailLocale(user, ctx.headers),
+				),
 			).catch((error) => {
 				console.error("[auth] password change notice failed:", error);
 			});
@@ -89,6 +108,17 @@ export const auth = betterAuth({
 	},
 	user: {
 		modelName: "User",
+		// UI language, so emails (and compile messages) use the user's language
+		// even when they come from another device. Set at sign-up from the
+		// locale cookie / Accept-Language and updated by POST /api/locale.
+		additionalFields: {
+			locale: {
+				type: "string",
+				required: false,
+				defaultValue: "tr",
+				input: false,
+			},
+		},
 		// "Hesabımı sil" on the account page. Password accounts must confirm
 		// their password; OAuth accounts need a recent sign-in (fresh session).
 		// Projects, files, compile jobs, templates and snippets are removed by
@@ -98,6 +128,20 @@ export const auth = betterAuth({
 			enabled: true,
 			beforeDelete: async (user) => {
 				await removeUserTemplatePreviews(user.id);
+			},
+		},
+	},
+	databaseHooks: {
+		user: {
+			create: {
+				before: async (user, context) => ({
+					data: {
+						...user,
+						locale: localeFromHeaders(
+							context?.headers ?? context?.request?.headers,
+						),
+					},
+				}),
 			},
 		},
 	},
