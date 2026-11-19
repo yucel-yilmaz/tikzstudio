@@ -44,7 +44,7 @@ import type { SaveAsTemplatePayload } from "@/features/editor/components/panels/
 import { SnippetsPanel } from "@/features/editor/components/panels/snippets-panel";
 import { TemplatesPanel } from "@/features/editor/components/panels/templates-panel";
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
-import { getCompileHistory } from "@/lib/client-api";
+import { getCompileHistory, getImg2LatexProviders } from "@/lib/client-api";
 import type { CompileDiagnostic } from "@/lib/compile-log";
 import type {
 	CompileJobDto,
@@ -162,6 +162,14 @@ export function DesktopEditorLayout({
 	const editorRef = useRef<TikzCodeEditorHandle>(null);
 
 	const [img2latexOpen, setImg2latexOpen] = useState(false);
+	// The image → LaTeX button is shown only when the server has a provider.
+	const img2latexProvidersQuery = useQuery({
+		queryKey: ["img2latex-providers"],
+		queryFn: getImg2LatexProviders,
+		staleTime: 5 * 60 * 1000,
+	});
+	const img2latexAvailable =
+		(img2latexProvidersQuery.data?.providers.length ?? 0) > 0;
 	const [outputTab, setOutputTab] = useState<"preview" | "history">("preview");
 
 	const historyQuery = useQuery({
@@ -264,16 +272,18 @@ export function DesktopEditorLayout({
 											</CardDescription>
 										</div>
 										<div className="flex items-center gap-2">
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon-sm"
-												title="Görselden LaTeX'e dönüştür"
-												aria-label="Görselden LaTeX'e dönüştür"
-												onClick={() => setImg2latexOpen(true)}
-											>
-												<ScanLine />
-											</Button>
+											{img2latexAvailable ? (
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon-sm"
+													title="Görselden LaTeX'e dönüştür"
+													aria-label="Görselden LaTeX'e dönüştür"
+													onClick={() => setImg2latexOpen(true)}
+												>
+													<ScanLine />
+												</Button>
+											) : null}
 											<Badge variant="outline" className={saveMeta.tone}>
 												{saveMeta.label}
 											</Badge>

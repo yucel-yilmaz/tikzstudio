@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ScanLine } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -19,10 +19,12 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { img2latex } from "@/lib/client-api";
+import {
+	getImg2LatexProviders,
+	type Img2LatexProviderId,
+	img2latex,
+} from "@/lib/client-api";
 import { cn } from "@/lib/utils";
-
-type Img2LatexProvider = "docker" | "pix2tex" | "mathpix";
 
 type Img2LatexDialogProps = {
 	open: boolean;
@@ -38,7 +40,16 @@ export function Img2LatexDialog({
 	const [file, setFile] = useState<File | null>(null);
 	const [preview, setPreview] = useState<string | null>(null);
 	const [result, setResult] = useState<string>("");
-	const [provider, setProvider] = useState<Img2LatexProvider>("docker");
+	const [provider, setProvider] = useState<Img2LatexProviderId | null>(null);
+	const providersQuery = useQuery({
+		queryKey: ["img2latex-providers"],
+		queryFn: getImg2LatexProviders,
+		enabled: open,
+		staleTime: 5 * 60 * 1000,
+	});
+	const providers = providersQuery.data?.providers ?? [];
+	const activeProvider =
+		providers.find((p) => p.id === provider)?.id ?? providers[0]?.id;
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
@@ -50,7 +61,7 @@ export function Img2LatexDialog({
 	}, [open]);
 
 	const mutation = useMutation({
-		mutationFn: (f: File) => img2latex(f, provider),
+		mutationFn: (f: File) => img2latex(f, activeProvider),
 		onSuccess: (data) => setResult(data.latex),
 	});
 
@@ -73,24 +84,26 @@ export function Img2LatexDialog({
 				</DialogHeader>
 
 				<div className="flex flex-col gap-4">
-					<div className="flex items-center gap-3">
-						<span className="shrink-0 text-sm font-medium">Sağlayıcı</span>
-						<Select
-							value={provider}
-							onValueChange={(v) => setProvider(v as Img2LatexProvider)}
-						>
-							<SelectTrigger className="h-8 text-sm">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="docker">
-									Docker Model Runner (yerel)
-								</SelectItem>
-								<SelectItem value="pix2tex">pix2tex (yerel)</SelectItem>
-								<SelectItem value="mathpix">Mathpix (ücretli)</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
+					{providers.length > 1 ? (
+						<div className="flex items-center gap-3">
+							<span className="shrink-0 text-sm font-medium">Sağlayıcı</span>
+							<Select
+								value={activeProvider}
+								onValueChange={(v) => setProvider(v as Img2LatexProviderId)}
+							>
+								<SelectTrigger className="h-8 text-sm">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{providers.map((p) => (
+										<SelectItem key={p.id} value={p.id}>
+											{p.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+					) : null}
 
 					<label
 						className={cn(
@@ -134,7 +147,7 @@ export function Img2LatexDialog({
 
 					<Button
 						type="button"
-						disabled={!file || mutation.isPending}
+						disabled={!file || !activeProvider || mutation.isPending}
 						onClick={() => file && mutation.mutate(file)}
 					>
 						{mutation.isPending ? "Dönüştürülüyor…" : "LaTeX'e dönüştür"}
