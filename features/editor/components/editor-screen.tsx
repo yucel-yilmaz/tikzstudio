@@ -24,6 +24,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,44 +74,50 @@ import {
 	updateProject,
 } from "@/lib/client-api";
 import { diagnosticsForFile, parseCompileLog } from "@/lib/compile-log";
+import { useI18n } from "@/lib/i18n/client";
+import type { Translator } from "@/lib/i18n/translate";
 import type { CompileJobDto } from "@/lib/types";
-import { cn, formatRelativeDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
-const saveStateMeta = {
-	idle: { label: "Kaydedildi", tone: "text-muted-foreground" },
-	dirty: { label: "Kaydedilmemiş değişiklik", tone: "text-foreground" },
-	saving: { label: "Kaydediliyor…", tone: "text-muted-foreground" },
-	saved: { label: "Kaydedildi", tone: "text-emerald-600" },
-	error: { label: "Kaydedilemedi", tone: "text-destructive" },
-} as const;
+function saveStateMeta(t: Translator) {
+	return {
+		idle: { label: t("editor.saveIdle"), tone: "text-muted-foreground" },
+		dirty: { label: t("editor.saveDirty"), tone: "text-foreground" },
+		saving: { label: t("editor.saveSaving"), tone: "text-muted-foreground" },
+		saved: { label: t("editor.saveSaved"), tone: "text-emerald-600" },
+		error: { label: t("editor.saveError"), tone: "text-destructive" },
+	} as const;
+}
 
-const panelMeta = {
-	files: {
-		title: "Dosyalar",
-		description: "Projedeki kaynak dosyaları seçin ve açın.",
-		icon: FileCode2,
-	},
-	templates: {
-		title: "Şablonlar",
-		description: "Hazır başlangıç belgelerini etkin dosyaya ekleyin.",
-		icon: LayoutTemplate,
-	},
-	snippets: {
-		title: "Kod parçacıkları",
-		description: "Sık kullanılan TikZ bloklarını hızlıca ekleyin.",
-		icon: WandSparkles,
-	},
-	settings: {
-		title: "Ayarlar",
-		description: "Proje bilgilerini ve görünürlük ayarlarını güncelleyin.",
-		icon: Settings2,
-	},
-} as const;
+function panelMeta(t: Translator) {
+	return {
+		files: {
+			title: t("editor.panelFiles"),
+			description: t("editor.panelFilesDescription"),
+			icon: FileCode2,
+		},
+		templates: {
+			title: t("editor.panelTemplates"),
+			description: t("editor.panelTemplatesDescription"),
+			icon: LayoutTemplate,
+		},
+		snippets: {
+			title: t("editor.panelSnippets"),
+			description: t("editor.panelSnippetsDescription"),
+			icon: WandSparkles,
+		},
+		settings: {
+			title: t("editor.panelSettings"),
+			description: t("editor.panelSettingsDescription"),
+			icon: Settings2,
+		},
+	} as const;
+}
 
-function compileBadge(job: CompileJobDto | null) {
+function compileBadge(job: CompileJobDto | null, t: Translator) {
 	if (!job) {
 		return {
-			label: "Hazır",
+			label: t("compileStatus.ready"),
 			className: "border-border bg-muted text-muted-foreground",
 			icon: Clock3,
 		};
@@ -119,33 +126,33 @@ function compileBadge(job: CompileJobDto | null) {
 	switch (job.status) {
 		case "SUCCESS":
 			return {
-				label: "Başarılı",
+				label: t("compileStatus.success"),
 				className:
 					"border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
 				icon: CheckCircle2,
 			};
 		case "FAILED":
 			return {
-				label: "Başarısız",
+				label: t("compileStatus.failed"),
 				className: "border-destructive/20 bg-destructive/10 text-destructive",
 				icon: XCircle,
 			};
 		case "TIMEOUT":
 			return {
-				label: "Zaman aşımı",
+				label: t("compileStatus.timeout"),
 				className:
 					"border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300",
 				icon: Clock3,
 			};
 		case "RUNNING":
 			return {
-				label: "Derleniyor…",
+				label: t("compileStatus.running"),
 				className: "border-border bg-secondary text-secondary-foreground",
 				icon: LoaderCircle,
 			};
 		case "PENDING":
 			return {
-				label: "Sırada",
+				label: t("compileStatus.pending"),
 				className: "border-border bg-secondary text-secondary-foreground",
 				icon: Clock3,
 			};
@@ -178,6 +185,7 @@ function toEngine(value: string | undefined): Engine | undefined {
 }
 
 export function EditorScreen({ projectId }: { projectId: string }) {
+	const { t, formatDateTime } = useI18n();
 	const queryClient = useQueryClient();
 
 	const {
@@ -241,7 +249,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 				queryClient.setQueryData(["project", projectId], project);
 			})
 			.catch(() => {
-				toast.error("Motor seçimi kaydedilemedi.");
+				toast.error(t("editor.engineSaveFailed"));
 			});
 	}
 
@@ -279,7 +287,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 	// save it right away instead of risking it being lost.
 	function handleSetActiveFile(fileId: string) {
 		void flushUnsavedFiles().catch(() => {
-			toast.error("Değişiklikler kaydedilemedi. Lütfen tekrar deneyin.");
+			toast.error(t("editor.saveChangesFailed"));
 		});
 		setActiveFile(fileId);
 	}
@@ -309,7 +317,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 			toast.error(
 				error instanceof Error
 					? error.message
-					: "Değişiklikler kaydedilemedi; derleme başlatılmadı.",
+					: t("editor.saveBeforeCompileFailed"),
 			);
 		} finally {
 			setPreparingCompile(false);
@@ -325,12 +333,12 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 				engine,
 			});
 			await queryClient.invalidateQueries({ queryKey: ["templates"] });
-			toast.success(`"${template.title}" şablon olarak kaydedildi`, {
-				description: "Yeni proje oluştururken şablon listesinde görünür.",
+			toast.success(t("editor.templateSaved", { title: template.title }), {
+				description: t("editor.templateSavedDescription"),
 			});
 		} catch (error) {
 			toast.error(
-				error instanceof Error ? error.message : "Şablon kaydedilemedi.",
+				error instanceof Error ? error.message : t("editor.templateSaveFailed"),
 			);
 		}
 	}
@@ -359,10 +367,10 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 		activeValue,
 	});
 
-	const saveMeta = saveStateMeta[saveState];
-	const compileMeta = compileBadge(currentCompile);
+	const saveMeta = saveStateMeta(t)[saveState];
+	const compileMeta = compileBadge(currentCompile, t);
 	const CompileIcon = compileMeta.icon;
-	const activePanelMeta = panelMeta[sidebarTab];
+	const activePanelMeta = panelMeta(t)[sidebarTab];
 
 	const allDiagnostics = useMemo(
 		() => parseCompileLog(currentCompile?.log ?? null),
@@ -386,14 +394,14 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										href="/dashboard"
 										className="transition-colors hover:text-foreground"
 									>
-										Panel
+										{t("common.dashboard")}
 									</Link>
 									<ChevronRight className="size-3" />
-									<span>Editör</span>
+									<span>{t("editor.breadcrumbEditor")}</span>
 								</div>
 								<div className="flex items-center gap-3">
 									<CardTitle className="truncate text-xl font-semibold">
-										{projectQuery.data?.title ?? "Proje yükleniyor…"}
+										{projectQuery.data?.title ?? t("editor.projectLoading")}
 									</CardTitle>
 									<Badge variant="secondary" className="shrink-0 gap-1.5">
 										<PanelLeft className="size-3" />
@@ -401,7 +409,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									</Badge>
 									{activeFile ? (
 										<span className="hidden text-xs text-muted-foreground xl:inline">
-											{formatRelativeDate(activeFile.updatedAt)}
+											{formatDateTime(activeFile.updatedAt)}
 										</span>
 									) : null}
 								</div>
@@ -421,7 +429,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									size="sm"
 									onClick={toggleProjectPanel}
 									className="hidden lg:inline-flex"
-									aria-label={projectPanelOpen ? "Paneli kapat" : "Paneli aç"}
+									aria-label={
+										projectPanelOpen
+											? t("editor.closePanel")
+											: t("editor.openPanel")
+									}
 								>
 									{projectPanelOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
 								</Button>
@@ -433,16 +445,17 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										onClick={() => {
 											const url = `${window.location.origin}/p/${projectId}`;
 											navigator.clipboard.writeText(url);
-											toast.success("Paylaşım bağlantısı kopyalandı");
+											toast.success(t("editor.shareLinkCopied"));
 										}}
 									>
 										<Share2 />
-										Paylaş
+										{t("editor.share")}
 									</Button>
 								) : null}
 								<HelpMenu page="editor" size="sm" />
+								<LocaleSwitcher />
 								<Button asChild variant="outline" size="sm">
-									<Link href="/dashboard">Panele dön</Link>
+									<Link href="/dashboard">{t("common.backToDashboard")}</Link>
 								</Button>
 								<Button
 									variant="outline"
@@ -453,7 +466,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									}
 								>
 									<Save />
-									Kaydet
+									{t("common.save")}
 								</Button>
 								<Select
 									value={engine}
@@ -484,7 +497,9 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									data-tour="compile-button"
 								>
 									<Play />
-									{isCompiling || preparingCompile ? "Başlatılıyor…" : "Derle"}
+									{isCompiling || preparingCompile
+										? t("editor.starting")
+										: t("editor.compile")}
 								</Button>
 							</CardAction>
 						</div>
@@ -528,9 +543,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 				<div className="space-y-4 lg:hidden">
 					<Card data-tour="editor-pane">
 						<CardHeader>
-							<CardTitle className="text-base">Kod editörü</CardTitle>
+							<CardTitle className="text-base">
+								{t("editor.codeEditor")}
+							</CardTitle>
 							<CardDescription>
-								{activeFile?.path ?? "Etkin dosya seçilmedi"}
+								{activeFile?.path ?? t("editor.noActiveFile")}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="p-0">
@@ -551,9 +568,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-base">Proje paneli</CardTitle>
+							<CardTitle className="text-base">
+								{t("editor.projectPanel")}
+							</CardTitle>
 							<CardDescription>
-								Dosyalar, şablonlar ve kod parçacıkları.
+								{t("editor.projectPanelMobileDescription")}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="px-0">
@@ -573,25 +592,25 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											value="files"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Dosyalar
+											{t("editor.panelFiles")}
 										</TabsTrigger>
 										<TabsTrigger
 											value="templates"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Şablonlar
+											{t("editor.panelTemplates")}
 										</TabsTrigger>
 										<TabsTrigger
 											value="snippets"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Kod parçacıkları
+											{t("editor.panelSnippets")}
 										</TabsTrigger>
 										<TabsTrigger
 											value="settings"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Ayarlar
+											{t("editor.panelSettings")}
 										</TabsTrigger>
 									</TabsList>
 								</div>
@@ -611,7 +630,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											>
 												<div className="text-sm font-medium">{file.path}</div>
 												<div className="mt-1 text-xs text-muted-foreground">
-													{formatRelativeDate(file.updatedAt)}
+													{formatDateTime(file.updatedAt)}
 												</div>
 											</button>
 										))}
@@ -670,20 +689,20 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										<Input
 											name="title"
 											defaultValue={projectQuery.data?.title ?? ""}
-											placeholder="Proje adı"
+											placeholder={t("editor.projectName")}
 										/>
 										<Textarea
 											name="description"
 											defaultValue={projectQuery.data?.description ?? ""}
-											placeholder="Açıklama"
+											placeholder={t("common.description")}
 										/>
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
 												<div className="text-sm font-medium">
-													Herkese açık (salt okunur)
+													{t("editor.publicReadOnly")}
 												</div>
 												<div className="text-xs text-muted-foreground">
-													Paylaşım için işaretleyin
+													{t("editor.publicHintShort")}
 												</div>
 											</div>
 											<Switch
@@ -692,7 +711,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											/>
 										</div>
 										<Button type="submit" size="sm" className="w-full">
-											Ayarları kaydet
+											{t("editor.saveSettings")}
 										</Button>
 									</form>
 									{projectQuery.data ? (
@@ -715,9 +734,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 
 					<Card data-tour="output-panel">
 						<CardHeader>
-							<CardTitle className="text-base">Çıktı paneli</CardTitle>
+							<CardTitle className="text-base">
+								{t("editor.outputPanel")}
+							</CardTitle>
 							<CardDescription>
-								Derleme sonuçları ve PDF önizleme
+								{t("editor.outputPanelMobileDescription")}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
@@ -738,7 +759,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										<Button asChild variant="outline" size="sm">
 											<a href={`${currentCompile.outputUrl}?download=1`}>
 												<Download />
-												PDF indir
+												{t("editor.downloadPdf")}
 											</a>
 										</Button>
 									) : null}
@@ -746,7 +767,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										<Button asChild variant="outline" size="sm">
 											<a href={`${currentCompile.svgOutputUrl}&download=1`}>
 												<FileImage />
-												SVG indir
+												{t("editor.downloadSvg")}
 											</a>
 										</Button>
 									) : null}
@@ -754,7 +775,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										<Button asChild variant="outline" size="sm">
 											<a href={`${currentCompile.pngOutputUrl}&download=1`}>
 												<FileImage />
-												PNG indir
+												{t("editor.downloadPng")}
 											</a>
 										</Button>
 									) : null}
@@ -768,7 +789,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 							<Separator />
 							<ScrollArea className="h-52 rounded-xl border">
 								<pre className="p-3 font-mono text-xs leading-6 text-muted-foreground">
-									{currentCompile?.log ?? "Derleme çıktısı burada görünecek."}
+									{currentCompile?.log ?? t("editor.logPlaceholder")}
 								</pre>
 							</ScrollArea>
 						</CardContent>

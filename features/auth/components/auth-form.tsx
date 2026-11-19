@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { getAuthClient } from "@/lib/auth-client";
 import { authErrorMessage, postAuth } from "@/lib/auth-errors";
 import type { SocialProviderId } from "@/lib/auth-providers";
+import { useI18n } from "@/lib/i18n/client";
 
 const SOCIAL_LABELS: Record<SocialProviderId, string> = {
 	github: "GitHub",
@@ -38,6 +40,7 @@ export function AuthForm({
 	mode: AuthMode;
 	socialProviders?: SocialProviderId[];
 }) {
+	const { t, rich } = useI18n();
 	const router = useRouter();
 	const [navigating, startTransition] = useTransition();
 	const [submitting, setSubmitting] = useState(false);
@@ -50,7 +53,7 @@ export function AuthForm({
 
 	async function resendVerification(email: string) {
 		setResendState("sending");
-		const result = await postAuth("/send-verification-email", {
+		const result = await postAuth(t, "/send-verification-email", {
 			email,
 			callbackURL: "/email-verified",
 		});
@@ -67,7 +70,9 @@ export function AuthForm({
 			.catch(() => null);
 		if (!result || result.error) {
 			setSubmitting(false);
-			setError(authErrorMessage(result?.error?.code, "Giriş başarısız oldu."));
+			setError(
+				authErrorMessage(t, result?.error?.code, t("authErrors.signInFailed")),
+			);
 		}
 	}
 
@@ -97,11 +102,12 @@ export function AuthForm({
 					};
 
 		const result = await postAuth<{ token: string | null }>(
+			t,
 			endpointByMode[mode],
 			mode === "signup"
 				? { ...payload, callbackURL: "/email-verified" }
 				: payload,
-			"Giriş başarısız oldu.",
+			t("authErrors.signInFailed"),
 		);
 
 		if (!result.ok) {
@@ -130,27 +136,27 @@ export function AuthForm({
 				<div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-[rgba(200,85,61,0.15)] blur-3xl" />
 				<CardContent className="relative flex h-full flex-col justify-between gap-8 p-8 lg:p-10">
 					<div className="space-y-5">
-						<Badge variant="outline" className="normal-case tracking-normal">
-							TikZ Studio
-						</Badge>
+						<div className="flex flex-wrap items-center justify-between gap-2">
+							<Badge variant="outline" className="normal-case tracking-normal">
+								TikZ Studio
+							</Badge>
+							<LocaleSwitcher />
+						</div>
 						<div className="space-y-3">
 							<h1 className="max-w-lg text-4xl font-semibold tracking-tight lg:text-5xl">
-								Şekilleriniz ve belgeleriniz için tarayıcıda çalışan TikZ
-								editörü.
+								{t("auth.heroTitle")}
 							</h1>
 							<p className="max-w-xl text-base leading-7 text-(--ink-1)">
-								Kod editörü, güvenli derleme, PDF önizleme ve derleme günlüğü
-								aynı ekranda. Ödevden makaleye, sınav kâğıdından sunuma kadar
-								kurulum gerektirmeyen hızlı bir çalışma ortamı.
+								{t("auth.heroBody")}
 							</p>
 						</div>
 					</div>
 
 					<div className="grid gap-3">
 						{[
-							"Projelerinizi kaydedin, tüm değişiklikleri tek yerden yönetin.",
-							"Güvenli ortamda derleyin, çıktıyı ve hataları anında görün.",
-							"Şablonlar ve kod parçacıklarıyla yeni belgelere hızla başlayın.",
+							t("auth.benefitProjects"),
+							t("auth.benefitCompile"),
+							t("auth.benefitTemplates"),
 						].map((item) => (
 							<div
 								key={item}
@@ -167,24 +173,21 @@ export function AuthForm({
 				<CardHeader className="space-y-4 pb-3">
 					<div className="flex items-center justify-between gap-3">
 						<Badge variant="default" className="normal-case tracking-normal">
-							{mode === "signup" ? "Hesap oluştur" : "Giriş yap"}
+							{mode === "signup" ? t("common.signUp") : t("common.signIn")}
 						</Badge>
 						<Button asChild variant="ghost" size="sm">
 							<Link href="/" className="gap-2">
 								<ArrowLeft size={15} />
-								Ana sayfa
+								{t("common.home")}
 							</Link>
 						</Button>
 					</div>
 					<div className="space-y-2">
 						<CardTitle className="text-3xl">
-							{mode === "signup"
-								? "TikZ Studio hesabınızı oluşturun"
-								: "Çalışma alanınıza dönün"}
+							{mode === "signup" ? t("auth.signupTitle") : t("auth.loginTitle")}
 						</CardTitle>
 						<CardDescription className="text-sm leading-6">
-							TikZ projelerinizi kaydetmek, derlemek ve yönetmek için giriş
-							yapın.
+							{t("auth.cardDescription")}
 						</CardDescription>
 					</div>
 				</CardHeader>
@@ -194,13 +197,13 @@ export function AuthForm({
 						<div className="space-y-4 rounded-2xl border border-(--line) bg-white/75 p-5 text-sm leading-6">
 							<div className="flex items-center gap-2 font-medium">
 								<MailCheck className="size-5 text-(--accent-strong)" />
-								Gelen kutunuzu kontrol edin
+								{t("auth.checkInboxTitle")}
 							</div>
 							<p className="text-(--ink-1)">
-								<strong>{checkEmailFor}</strong> adresine bir doğrulama
-								bağlantısı gönderdik. Hesabınızı etkinleştirmek için bağlantıya
-								tıklayın. E-posta birkaç dakika içinde gelmezse istenmeyen
-								(spam) klasörüne bakın.
+								{rich("auth.checkInboxBody", {
+									email: checkEmailFor,
+									b: (chunks) => <strong>{chunks}</strong>,
+								})}
 							</p>
 							<Button
 								type="button"
@@ -210,8 +213,8 @@ export function AuthForm({
 								onClick={() => resendVerification(checkEmailFor)}
 							>
 								{resendState === "sent"
-									? "Yeniden gönderildi"
-									: "Bağlantıyı yeniden gönder"}
+									? t("auth.resent")
+									: t("auth.resendLink")}
 							</Button>
 						</div>
 					) : null}
@@ -227,7 +230,9 @@ export function AuthForm({
 					>
 						{mode === "signup" ? (
 							<label className="block space-y-2">
-								<span className="text-sm font-medium">Ad soyad</span>
+								<span className="text-sm font-medium">
+									{t("auth.fullName")}
+								</span>
 								<div className="relative">
 									<User2
 										className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--ink-1)"
@@ -237,14 +242,14 @@ export function AuthForm({
 										name="name"
 										required
 										className="pl-11"
-										placeholder="Adınızı ve soyadınızı girin"
+										placeholder={t("auth.fullNamePlaceholder")}
 									/>
 								</div>
 							</label>
 						) : null}
 
 						<label className="block space-y-2">
-							<span className="text-sm font-medium">E-posta</span>
+							<span className="text-sm font-medium">{t("common.email")}</span>
 							<div className="relative">
 								<Mail
 									className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--ink-1)"
@@ -255,20 +260,20 @@ export function AuthForm({
 									name="email"
 									required
 									className="pl-11"
-									placeholder="ornek@eposta.com"
+									placeholder={t("common.emailPlaceholder")}
 								/>
 							</div>
 						</label>
 
 						<label className="block space-y-2">
 							<span className="flex items-center justify-between text-sm font-medium">
-								Şifre
+								{t("auth.password")}
 								{mode === "login" ? (
 									<Link
 										href="/forgot-password"
 										className="text-xs font-normal text-(--accent-strong) hover:underline"
 									>
-										Şifremi unuttum
+										{t("auth.forgotPassword")}
 									</Link>
 								) : null}
 							</span>
@@ -283,7 +288,7 @@ export function AuthForm({
 									required
 									minLength={8}
 									className="pl-11"
-									placeholder="En az 8 karakter"
+									placeholder={t("common.passwordPlaceholder")}
 								/>
 							</div>
 						</label>
@@ -301,8 +306,8 @@ export function AuthForm({
 										onClick={() => resendVerification(unverifiedEmail)}
 									>
 										{resendState === "sent"
-											? "Doğrulama bağlantısı yeniden gönderildi."
-											: "Doğrulama bağlantısını yeniden gönder"}
+											? t("auth.verificationResent")
+											: t("auth.resendVerification")}
 									</button>
 								) : null}
 							</div>
@@ -310,10 +315,10 @@ export function AuthForm({
 
 						<Button type="submit" disabled={pending} className="w-full">
 							{pending
-								? "İşleniyor…"
+								? t("common.processing")
 								: mode === "signup"
-									? "Hesap oluştur"
-									: "Giriş yap"}
+									? t("common.signUp")
+									: t("common.signIn")}
 						</Button>
 					</form>
 
@@ -321,7 +326,7 @@ export function AuthForm({
 						<div className="space-y-3">
 							<div className="flex items-center gap-3 text-xs text-(--ink-1)">
 								<span className="h-px flex-1 bg-(--line)" />
-								veya
+								{t("auth.or")}
 								<span className="h-px flex-1 bg-(--line)" />
 							</div>
 							<div className="grid gap-2 sm:grid-cols-2">
@@ -333,7 +338,9 @@ export function AuthForm({
 										disabled={pending}
 										onClick={() => handleSocial(provider)}
 									>
-										{SOCIAL_LABELS[provider]} ile devam et
+										{t("auth.continueWith", {
+											provider: SOCIAL_LABELS[provider],
+										})}
 									</Button>
 								))}
 							</div>
@@ -341,12 +348,12 @@ export function AuthForm({
 					) : null}
 
 					<div className="rounded-3xl border border-(--line) bg-white/75 p-4 text-sm leading-6 text-(--ink-1)">
-						{mode === "signup" ? "Zaten hesabınız var mı?" : "Yeni misiniz?"}{" "}
+						{mode === "signup" ? t("auth.haveAccount") : t("auth.newHere")}{" "}
 						<Link
 							href={mode === "signup" ? "/login" : "/signup"}
 							className="font-medium text-(--accent-strong)"
 						>
-							{mode === "signup" ? "Giriş yap" : "Hesap oluştur"}
+							{mode === "signup" ? t("common.signIn") : t("common.signUp")}
 						</Link>
 					</div>
 				</CardContent>

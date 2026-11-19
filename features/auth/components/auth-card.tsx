@@ -1,7 +1,10 @@
+"use client";
+
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +14,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { useT } from "@/lib/i18n/client";
 
 /** Centered single-card layout for the smaller auth pages. */
 export function AuthCard({
@@ -19,7 +23,7 @@ export function AuthCard({
 	description,
 	children,
 	backHref = "/login",
-	backLabel = "Girişe dön",
+	backLabel,
 }: {
 	badge: string;
 	title: string;
@@ -28,9 +32,14 @@ export function AuthCard({
 	backHref?: string;
 	backLabel?: string;
 }) {
+	const t = useT();
+
 	return (
 		<main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(200,85,61,0.14),transparent_24%),linear-gradient(180deg,rgba(255,250,242,0.92),rgba(244,239,231,0.96))] px-4 py-8">
-			<div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md items-center">
+			<div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col justify-center gap-3">
+				<div className="flex justify-end">
+					<LocaleSwitcher />
+				</div>
 				<Card className="w-full border-white/60 bg-[color-mix(in_srgb,var(--surface-1)_90%,white_10%)]">
 					<CardHeader className="space-y-4 pb-3">
 						<div className="flex items-center justify-between gap-3">
@@ -40,7 +49,7 @@ export function AuthCard({
 							<Button asChild variant="ghost" size="sm">
 								<Link href={backHref} className="gap-2">
 									<ArrowLeft size={15} />
-									{backLabel}
+									{backLabel ?? t("auth.backToLogin")}
 								</Link>
 							</Button>
 						</div>

@@ -3,6 +3,7 @@
 import { Component, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/client";
 
 type Props = {
 	children: ReactNode;
@@ -12,6 +13,28 @@ type Props = {
 type State = {
 	error: Error | null;
 };
+
+function ErrorFallback({
+	error,
+	onReset,
+}: {
+	error: Error;
+	onReset: () => void;
+}) {
+	const t = useT();
+
+	return (
+		<div className="flex h-full min-h-50 flex-col items-center justify-center gap-4 p-8 text-center">
+			<p className="text-sm font-medium text-destructive">
+				{t("common.unexpectedError")}
+			</p>
+			<p className="max-w-xs text-xs text-muted-foreground">{error.message}</p>
+			<Button size="sm" variant="outline" onClick={onReset}>
+				{t("common.tryAgain")}
+			</Button>
+		</div>
+	);
+}
 
 export class ErrorBoundary extends Component<Props, State> {
 	constructor(props: Props) {
@@ -34,21 +57,10 @@ export class ErrorBoundary extends Component<Props, State> {
 			}
 
 			return (
-				<div className="flex h-full min-h-50 flex-col items-center justify-center gap-4 p-8 text-center">
-					<p className="text-sm font-medium text-destructive">
-						Beklenmeyen bir hata oluştu
-					</p>
-					<p className="max-w-xs text-xs text-muted-foreground">
-						{this.state.error.message}
-					</p>
-					<Button
-						size="sm"
-						variant="outline"
-						onClick={() => this.setState({ error: null })}
-					>
-						Tekrar dene
-					</Button>
-				</div>
+				<ErrorFallback
+					error={this.state.error}
+					onReset={() => this.setState({ error: null })}
+				/>
 			);
 		}
 

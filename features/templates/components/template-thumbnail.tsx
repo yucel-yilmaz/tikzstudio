@@ -3,6 +3,7 @@
 import { FileCode2 } from "lucide-react";
 import { useState } from "react";
 
+import { useT } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 type TemplateThumbnailProps = {
@@ -20,6 +21,7 @@ export function TemplateThumbnail({
 	title,
 	className,
 }: TemplateThumbnailProps) {
+	const t = useT();
 	const [failed, setFailed] = useState(false);
 	const showImage = Boolean(src) && !failed;
 
@@ -34,7 +36,7 @@ export function TemplateThumbnail({
 				// biome-ignore lint/performance/noImgElement: small static/user previews; next/image adds no value here
 				<img
 					src={src ?? undefined}
-					alt={`${title} önizlemesi`}
+					alt={t("common.previewAlt", { title })}
 					loading="lazy"
 					decoding="async"
 					onError={() => setFailed(true)}
@@ -43,7 +45,7 @@ export function TemplateThumbnail({
 			) : (
 				<div className="flex h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground">
 					<FileCode2 className="size-6" />
-					<span className="text-[11px]">Önizleme yok</span>
+					<span className="text-[11px]">{t("common.noPreview")}</span>
 				</div>
 			)}
 		</div>

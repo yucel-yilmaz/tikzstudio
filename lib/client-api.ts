@@ -1,5 +1,6 @@
 "use client";
 
+import { getClientTranslator } from "@/lib/i18n/client";
 import type {
 	CompileJobDto,
 	CreateFileInput,
@@ -51,7 +52,9 @@ async function requestJson<T>(
 			.json()
 			.catch(() => null)) as ApiErrorShape | null;
 		throw new ClientApiError(
-			payload?.error?.message ?? "İstek başarısız oldu.",
+			payload?.error?.message ??
+				getClientTranslator()?.("common.requestFailed") ??
+				"Request failed.",
 			payload?.error?.code ?? "UNKNOWN_ERROR",
 			response.status,
 		);

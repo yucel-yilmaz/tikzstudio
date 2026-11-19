@@ -4,6 +4,7 @@ import {
 	ArrowLeft,
 	BadgeCheck,
 	KeyRound,
+	Languages,
 	LogOut,
 	MailWarning,
 	ShieldCheck,
@@ -12,6 +13,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Notice } from "@/features/auth/components/auth-card";
 import { postAuth } from "@/lib/auth-errors";
+import { useT } from "@/lib/i18n/client";
 
 type AccountScreenProps = {
 	name: string;
@@ -38,26 +41,44 @@ export function AccountScreen({
 	emailVerified,
 	hasPassword,
 }: AccountScreenProps) {
+	const t = useT();
+
 	return (
 		<div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-5 px-4 py-6 sm:px-6">
 			<div className="flex items-center justify-between gap-3">
 				<div>
 					<Badge variant="outline" className="normal-case tracking-normal">
-						Hesabım
+						{t("account.badge")}
 					</Badge>
 					<h1 className="mt-2 text-3xl font-semibold tracking-tight">
-						Hesap ve güvenlik
+						{t("account.title")}
 					</h1>
 				</div>
 				<Button asChild variant="outline" size="sm">
 					<Link href="/dashboard" className="gap-2">
 						<ArrowLeft size={15} />
-						Panele dön
+						{t("common.backToDashboard")}
 					</Link>
 				</Button>
 			</div>
 
 			<ProfileCard name={name} email={email} emailVerified={emailVerified} />
+			<Card>
+				<CardHeader>
+					<div className="flex flex-wrap items-start justify-between gap-3">
+						<div className="space-y-1.5">
+							<CardTitle className="flex items-center gap-2 text-lg">
+								<Languages className="size-5" />
+								{t("account.languageTitle")}
+							</CardTitle>
+							<CardDescription>
+								{t("account.languageDescription")}
+							</CardDescription>
+						</div>
+						<LocaleSwitcher />
+					</div>
+				</CardHeader>
+			</Card>
 			{hasPassword ? (
 				<ChangePasswordCard />
 			) : (
@@ -65,12 +86,9 @@ export function AccountScreen({
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2 text-lg">
 							<KeyRound className="size-5" />
-							Şifre
+							{t("account.passwordTitle")}
 						</CardTitle>
-						<CardDescription>
-							Bu hesap GitHub veya Google ile oluşturuldu; şifre yerine o
-							hesapla giriş yaparsınız.
-						</CardDescription>
+						<CardDescription>{t("account.socialOnly")}</CardDescription>
 					</CardHeader>
 				</Card>
 			)}
@@ -89,6 +107,7 @@ function ProfileCard({
 	email: string;
 	emailVerified: boolean;
 }) {
+	const t = useT();
 	const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
 	const [error, setError] = useState<string | null>(null);
 
@@ -101,26 +120,23 @@ function ProfileCard({
 					{emailVerified ? (
 						<span className="inline-flex items-center gap-1 text-xs text-[rgb(21,94,47)]">
 							<BadgeCheck className="size-4" />
-							Doğrulandı
+							{t("account.verified")}
 						</span>
 					) : (
 						<span className="inline-flex items-center gap-1 text-xs text-(--danger)">
 							<MailWarning className="size-4" />
-							Doğrulanmadı
+							{t("account.notVerified")}
 						</span>
 					)}
 				</CardDescription>
 			</CardHeader>
 			{emailVerified ? null : (
 				<CardContent className="space-y-3">
-					<p className="text-sm text-(--ink-1)">
-						E-posta adresinizi doğrulamak, şifrenizi unuttuğunuzda hesabınıza
-						yeniden ulaşabilmeniz için önemlidir.
-					</p>
+					<p className="text-sm text-(--ink-1)">{t("account.verifyHint")}</p>
 					{error ? <Notice tone="error">{error}</Notice> : null}
 					{state === "sent" ? (
 						<Notice tone="success">
-							Doğrulama bağlantısı {email} adresine gönderildi.
+							{t("account.verificationSent", { email })}
 						</Notice>
 					) : (
 						<Button
@@ -130,7 +146,7 @@ function ProfileCard({
 							onClick={async () => {
 								setError(null);
 								setState("sending");
-								const result = await postAuth("/send-verification-email", {
+								const result = await postAuth(t, "/send-verification-email", {
 									email,
 									callbackURL: "/email-verified",
 								});
@@ -138,7 +154,7 @@ function ProfileCard({
 								if (!result.ok) setError(result.message);
 							}}
 						>
-							Doğrulama bağlantısı gönder
+							{t("account.sendVerification")}
 						</Button>
 					)}
 				</CardContent>
@@ -148,6 +164,7 @@ function ProfileCard({
 }
 
 function ChangePasswordCard() {
+	const t = useT();
 	const [current, setCurrent] = useState("");
 	const [next, setNext] = useState("");
 	const [confirm, setConfirm] = useState("");
@@ -162,10 +179,10 @@ function ChangePasswordCard() {
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2 text-lg">
 					<KeyRound className="size-5" />
-					Şifre değiştir
+					{t("account.changePasswordTitle")}
 				</CardTitle>
 				<CardDescription>
-					Şifreniz değiştiğinde diğer cihazlardaki oturumlarınız kapatılır.
+					{t("account.changePasswordDescription")}
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -175,11 +192,14 @@ function ChangePasswordCard() {
 						event.preventDefault();
 						setMessage(null);
 						if (next !== confirm) {
-							setMessage({ tone: "error", text: "Yeni şifreler eşleşmiyor." });
+							setMessage({
+								tone: "error",
+								text: t("account.newPasswordsDoNotMatch"),
+							});
 							return;
 						}
 						setSaving(true);
-						const result = await postAuth("/change-password", {
+						const result = await postAuth(t, "/change-password", {
 							currentPassword: current,
 							newPassword: next,
 							revokeOtherSessions: true,
@@ -191,7 +211,7 @@ function ChangePasswordCard() {
 							setConfirm("");
 							setMessage({
 								tone: "success",
-								text: "Şifreniz güncellendi; diğer oturumlarınız kapatıldı.",
+								text: t("account.passwordUpdated"),
 							});
 						} else {
 							setMessage({ tone: "error", text: result.message });
@@ -199,7 +219,9 @@ function ChangePasswordCard() {
 					}}
 				>
 					<label className="block space-y-2">
-						<span className="text-sm font-medium">Mevcut şifre</span>
+						<span className="text-sm font-medium">
+							{t("account.currentPassword")}
+						</span>
 						<Input
 							type="password"
 							required
@@ -210,7 +232,9 @@ function ChangePasswordCard() {
 					</label>
 					<div className="grid gap-4 sm:grid-cols-2">
 						<label className="block space-y-2">
-							<span className="text-sm font-medium">Yeni şifre</span>
+							<span className="text-sm font-medium">
+								{t("auth.newPassword")}
+							</span>
 							<Input
 								type="password"
 								required
@@ -218,11 +242,13 @@ function ChangePasswordCard() {
 								autoComplete="new-password"
 								value={next}
 								onChange={(event) => setNext(event.target.value)}
-								placeholder="En az 8 karakter"
+								placeholder={t("common.passwordPlaceholder")}
 							/>
 						</label>
 						<label className="block space-y-2">
-							<span className="text-sm font-medium">Yeni şifre (tekrar)</span>
+							<span className="text-sm font-medium">
+								{t("auth.newPasswordRepeat")}
+							</span>
 							<Input
 								type="password"
 								required
@@ -235,7 +261,7 @@ function ChangePasswordCard() {
 					</div>
 					{message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 					<Button type="submit" disabled={saving}>
-						{saving ? "Kaydediliyor…" : "Şifreyi güncelle"}
+						{saving ? t("common.saving") : t("auth.updatePassword")}
 					</Button>
 				</form>
 			</CardContent>
@@ -244,6 +270,7 @@ function ChangePasswordCard() {
 }
 
 function SessionsCard() {
+	const t = useT();
 	const [state, setState] = useState<"idle" | "working" | "done">("idle");
 	const [error, setError] = useState<string | null>(null);
 
@@ -252,19 +279,14 @@ function SessionsCard() {
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2 text-lg">
 					<ShieldCheck className="size-5" />
-					Oturumlar
+					{t("account.sessionsTitle")}
 				</CardTitle>
-				<CardDescription>
-					Ortak bir bilgisayarda (ör. okul laboratuvarı) çıkış yapmayı
-					unuttuysanız diğer tüm oturumlarınızı buradan kapatabilirsiniz.
-				</CardDescription>
+				<CardDescription>{t("account.sessionsDescription")}</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-3">
 				{error ? <Notice tone="error">{error}</Notice> : null}
 				{state === "done" ? (
-					<Notice tone="success">
-						Bu cihaz dışındaki tüm oturumlarınız kapatıldı.
-					</Notice>
+					<Notice tone="success">{t("account.sessionsRevoked")}</Notice>
 				) : (
 					<Button
 						variant="outline"
@@ -272,13 +294,13 @@ function SessionsCard() {
 						onClick={async () => {
 							setError(null);
 							setState("working");
-							const result = await postAuth("/revoke-other-sessions", {});
+							const result = await postAuth(t, "/revoke-other-sessions", {});
 							setState(result.ok ? "done" : "idle");
 							if (!result.ok) setError(result.message);
 						}}
 					>
 						<LogOut />
-						Diğer oturumlarımı kapat
+						{t("account.revokeSessions")}
 					</Button>
 				)}
 			</CardContent>
@@ -293,6 +315,7 @@ function DeleteAccountCard({
 	email: string;
 	hasPassword: boolean;
 }) {
+	const t = useT();
 	const [open, setOpen] = useState(false);
 	const [password, setPassword] = useState("");
 	const [confirmEmail, setConfirmEmail] = useState("");
@@ -307,13 +330,9 @@ function DeleteAccountCard({
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2 text-lg text-(--danger)">
 					<Trash2 className="size-5" />
-					Hesabımı sil
+					{t("account.deleteTitle")}
 				</CardTitle>
-				<CardDescription>
-					Hesabınız ve bütün projeleriniz, dosyalarınız, derleme çıktılarınız ve
-					kişisel şablonlarınız kalıcı olarak silinir. Bu işlem geri alınamaz;
-					önce saklamak istediğiniz projeleri .zip olarak indirin.
-				</CardDescription>
+				<CardDescription>{t("account.deleteDescription")}</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{open ? (
@@ -325,6 +344,7 @@ function DeleteAccountCard({
 							setError(null);
 							setDeleting(true);
 							const result = await postAuth(
+								t,
 								"/delete-user",
 								hasPassword ? { password } : {},
 							);
@@ -338,7 +358,7 @@ function DeleteAccountCard({
 					>
 						<label className="block space-y-2">
 							<span className="text-sm font-medium">
-								Onaylamak için e-posta adresinizi yazın
+								{t("account.confirmEmail")}
 							</span>
 							<Input
 								value={confirmEmail}
@@ -349,7 +369,9 @@ function DeleteAccountCard({
 						</label>
 						{hasPassword ? (
 							<label className="block space-y-2">
-								<span className="text-sm font-medium">Şifreniz</span>
+								<span className="text-sm font-medium">
+									{t("account.yourPassword")}
+								</span>
 								<Input
 									type="password"
 									value={password}
@@ -359,9 +381,7 @@ function DeleteAccountCard({
 							</label>
 						) : (
 							<p className="text-xs text-(--ink-1)">
-								GitHub/Google ile giriş yaptığınız için şifre istenmez; son
-								girişiniz bir günden eskiyse önce çıkış yapıp yeniden giriş
-								yapmanız gerekir.
+								{t("account.socialDeleteHint")}
 							</p>
 						)}
 						{error ? <Notice tone="error">{error}</Notice> : null}
@@ -371,7 +391,9 @@ function DeleteAccountCard({
 								variant="destructive"
 								disabled={!confirmed || deleting}
 							>
-								{deleting ? "Siliniyor…" : "Hesabımı kalıcı olarak sil"}
+								{deleting
+									? t("common.deleting")
+									: t("account.deletePermanently")}
 							</Button>
 							<Button
 								type="button"
@@ -384,14 +406,14 @@ function DeleteAccountCard({
 									setError(null);
 								}}
 							>
-								Vazgeç
+								{t("common.dismiss")}
 							</Button>
 						</div>
 					</form>
 				) : (
 					<Button variant="outline" onClick={() => setOpen(true)}>
 						<Trash2 />
-						Hesabımı silmek istiyorum
+						{t("account.startDelete")}
 					</Button>
 				)}
 			</CardContent>

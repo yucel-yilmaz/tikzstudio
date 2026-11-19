@@ -24,6 +24,7 @@ import {
 	type Img2LatexProviderId,
 	img2latex,
 } from "@/lib/client-api";
+import { useT } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 type Img2LatexDialogProps = {
@@ -37,6 +38,7 @@ export function Img2LatexDialog({
 	onOpenChange,
 	onInsert,
 }: Img2LatexDialogProps) {
+	const t = useT();
 	const [file, setFile] = useState<File | null>(null);
 	const [preview, setPreview] = useState<string | null>(null);
 	const [result, setResult] = useState<string>("");
@@ -80,13 +82,15 @@ export function Img2LatexDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-w-lg">
 				<DialogHeader>
-					<DialogTitle>Görselden LaTeX'e</DialogTitle>
+					<DialogTitle>{t("img2latex.title")}</DialogTitle>
 				</DialogHeader>
 
 				<div className="flex flex-col gap-4">
 					{providers.length > 1 ? (
 						<div className="flex items-center gap-3">
-							<span className="shrink-0 text-sm font-medium">Sağlayıcı</span>
+							<span className="shrink-0 text-sm font-medium">
+								{t("img2latex.provider")}
+							</span>
 							<Select
 								value={activeProvider}
 								onValueChange={(v) => setProvider(v as Img2LatexProviderId)}
@@ -121,15 +125,14 @@ export function Img2LatexDialog({
 							// biome-ignore lint/performance/noImgElement: blob URL from createObjectURL, Next.js Image does not support blob: protocol
 							<img
 								src={preview}
-								alt="Önizleme"
+								alt={t("img2latex.previewAlt")}
 								className="max-h-48 max-w-full rounded object-contain"
 							/>
 						) : (
 							<>
 								<ScanLine className="size-8 text-muted-foreground" />
 								<p className="text-sm text-muted-foreground">
-									Görseli buraya bırakın ya da seçmek için tıklayın (PNG, JPEG,
-									WebP — en fazla 4 MB)
+									{t("img2latex.dropHint")}
 								</p>
 							</>
 						)}
@@ -150,20 +153,24 @@ export function Img2LatexDialog({
 						disabled={!file || !activeProvider || mutation.isPending}
 						onClick={() => file && mutation.mutate(file)}
 					>
-						{mutation.isPending ? "Dönüştürülüyor…" : "LaTeX'e dönüştür"}
+						{mutation.isPending
+							? t("img2latex.converting")
+							: t("img2latex.convert")}
 					</Button>
 
 					{mutation.error ? (
 						<p className="text-sm text-destructive">
 							{mutation.error instanceof Error
 								? mutation.error.message
-								: "Dönüştürme başarısız oldu."}
+								: t("img2latex.failed")}
 						</p>
 					) : null}
 
 					{result ? (
 						<div className="flex flex-col gap-2">
-							<p className="text-xs font-medium text-muted-foreground">Sonuç</p>
+							<p className="text-xs font-medium text-muted-foreground">
+								{t("img2latex.result")}
+							</p>
 							<Textarea
 								value={result}
 								onChange={(e) => setResult(e.target.value)}
@@ -171,7 +178,7 @@ export function Img2LatexDialog({
 								rows={5}
 							/>
 							<Button type="button" onClick={handleInsert}>
-								Editöre ekle
+								{t("img2latex.insert")}
 							</Button>
 						</div>
 					) : null}

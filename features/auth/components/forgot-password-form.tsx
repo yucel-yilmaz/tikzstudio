@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Notice } from "@/features/auth/components/auth-card";
 import { postAuth } from "@/lib/auth-errors";
+import { useI18n } from "@/lib/i18n/client";
 
 export function ForgotPasswordForm() {
+	const { t, rich } = useI18n();
 	const [email, setEmail] = useState("");
 	const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
 	const [error, setError] = useState<string | null>(null);
@@ -17,9 +19,10 @@ export function ForgotPasswordForm() {
 		// cannot be used to discover registered emails.
 		return (
 			<Notice tone="success">
-				<strong>{email}</strong> adresiyle kayıtlı bir hesap varsa, şifre
-				sıfırlama bağlantısı gönderildi. Bağlantı 1 saat geçerlidir. Birkaç
-				dakika içinde gelmezse istenmeyen (spam) klasörüne bakın.
+				{rich("auth.forgotSent", {
+					email,
+					b: (chunks) => <strong>{chunks}</strong>,
+				})}
 			</Notice>
 		);
 	}
@@ -31,7 +34,7 @@ export function ForgotPasswordForm() {
 				event.preventDefault();
 				setError(null);
 				setState("sending");
-				const result = await postAuth("/request-password-reset", {
+				const result = await postAuth(t, "/request-password-reset", {
 					email,
 					redirectTo: "/reset-password",
 				});
@@ -44,7 +47,7 @@ export function ForgotPasswordForm() {
 			}}
 		>
 			<label className="block space-y-2">
-				<span className="text-sm font-medium">E-posta</span>
+				<span className="text-sm font-medium">{t("common.email")}</span>
 				<Input
 					type="email"
 					name="email"
@@ -52,12 +55,12 @@ export function ForgotPasswordForm() {
 					autoComplete="email"
 					value={email}
 					onChange={(event) => setEmail(event.target.value)}
-					placeholder="ornek@eposta.com"
+					placeholder={t("common.emailPlaceholder")}
 				/>
 			</label>
 			{error ? <Notice tone="error">{error}</Notice> : null}
 			<Button type="submit" className="w-full" disabled={state === "sending"}>
-				{state === "sending" ? "Gönderiliyor…" : "Sıfırlama bağlantısı gönder"}
+				{state === "sending" ? t("common.sending") : t("auth.sendResetLink")}
 			</Button>
 		</form>
 	);

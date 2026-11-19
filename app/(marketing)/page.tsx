@@ -9,11 +9,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getI18n } from "@/lib/i18n/server";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+	const { t } = await getI18n();
+
 	return (
 		<main className="mx-auto flex min-h-screen w-full max-w-375 flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8">
 			<Card className="relative overflow-hidden border-white/60 bg-[linear-gradient(145deg,rgba(255,250,242,0.97),rgba(242,236,223,0.95))]">
@@ -26,36 +30,34 @@ export default function LandingPage() {
 								TikZ Studio
 							</Badge>
 							<Badge variant="default" className="normal-case tracking-normal">
-								TikZ ve LaTeX için tarayıcı tabanlı çalışma alanı
+								{t("landing.tagline")}
 							</Badge>
+							<LocaleSwitcher className="ml-auto" />
 						</div>
 
 						<div className="space-y-4">
 							<h1 className="max-w-4xl text-5xl font-semibold leading-tight tracking-tight md:text-6xl">
-								Şekillerinizi, grafiklerinizi ve belgelerinizi TikZ ile
-								tarayıcıda hazırlayın.
+								{t("landing.heroTitle")}
 							</h1>
 							<p className="max-w-2xl text-base leading-7 text-(--ink-1) md:text-lg">
-								Kurulum gerektirmeyen bir LaTeX editörü: kodunuzu yazın, tek
-								tıkla derleyin, sonucu anında PDF olarak görün. Ödev, ders notu,
-								sınav, makale, tez ve sunum için tüm işinizi tek ekranda yapın.
+								{t("landing.heroBody")}
 							</p>
 						</div>
 
 						<div className="flex flex-col gap-3 sm:flex-row">
 							<Button asChild size="lg">
 								<Link href="/signup">
-									Hemen başla
+									{t("landing.getStarted")}
 									<ArrowRight size={16} />
 								</Link>
 							</Button>
 							<Button asChild variant="outline" size="lg">
-								<Link href="/login">Giriş yap</Link>
+								<Link href="/login">{t("common.signIn")}</Link>
 							</Button>
 							<Button asChild variant="ghost" size="lg">
 								<Link href="/yardim">
 									<BookOpen size={16} />
-									Yardım
+									{t("common.help")}
 								</Link>
 							</Button>
 						</div>
@@ -63,16 +65,16 @@ export default function LandingPage() {
 						<div className="grid gap-3 pt-2 sm:grid-cols-3">
 							{[
 								[
-									"Hazır şablonlar",
-									"Lise matematiğinden makale şekillerine 30'u aşkın hazır şablonla başlayın.",
+									t("landing.highlightTemplatesTitle"),
+									t("landing.highlightTemplatesBody"),
 								],
 								[
-									"Güvenli derleme",
-									"5 motor: Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, Biber.",
+									t("landing.highlightCompileTitle"),
+									t("landing.highlightCompileBody"),
 								],
 								[
-									"PDF, SVG & PNG",
-									"İstediğiniz biçimde, doğrudan tarayıcıdan indirin.",
+									t("landing.highlightFormatsTitle"),
+									t("landing.highlightFormatsBody"),
 								],
 							].map(([title, description]) => (
 								<div
@@ -94,7 +96,7 @@ export default function LandingPage() {
 								<div className="space-y-1">
 									<p className="text-sm font-medium">main.tex</p>
 									<p className="text-xs uppercase tracking-[0.16em] text-[#c9bca7]">
-										Düzenleniyor
+										{t("landing.demoEditing")}
 									</p>
 								</div>
 								<Badge
@@ -117,11 +119,17 @@ export default function LandingPage() {
 
 							<div className="grid gap-3">
 								{[
-									["Kodu düzenle", "TikZ kodunu editör panelinde güncelleyin."],
-									["Derle", "PDF, yalıtılmış bir ortamda oluşturulur."],
 									[
-										"Kontrol et",
-										"Sonucu önizlemeden ve derleme günlüğünden doğrulayın.",
+										t("landing.demoStepEditTitle"),
+										t("landing.demoStepEditBody"),
+									],
+									[
+										t("landing.demoStepCompileTitle"),
+										t("landing.demoStepCompileBody"),
+									],
+									[
+										t("landing.demoStepCheckTitle"),
+										t("landing.demoStepCheckBody"),
 									],
 								].map(([title, description]) => (
 									<div
@@ -144,27 +152,23 @@ export default function LandingPage() {
 				{[
 					{
 						icon: Workflow,
-						title: "Tek ekranda çalışma",
-						description:
-							"Kod, derleme ve PDF/SVG/PNG çıktısı aynı çalışma alanında; ayrı programlar arasında gidip gelmenize gerek yok.",
+						title: t("landing.featureWorkspaceTitle"),
+						description: t("landing.featureWorkspaceBody"),
 					},
 					{
 						icon: ShieldCheck,
-						title: "Güvenli derleme ortamı",
-						description:
-							"Beş motor (Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX+Biber), ağdan yalıtılmış bir Docker ortamında çalışır.",
+						title: t("landing.featureSandboxTitle"),
+						description: t("landing.featureSandboxBody"),
 					},
 					{
 						icon: ImageDown,
-						title: "Görselden LaTeX'e",
-						description:
-							"Formül fotoğraflarını Docker Model Runner, pix2tex veya Mathpix ile doğrudan editörün içinde LaTeX koduna dönüştürün.",
+						title: t("landing.featureImg2LatexTitle"),
+						description: t("landing.featureImg2LatexBody"),
 					},
 					{
 						icon: Layers3,
-						title: "Her seviyeye şablon",
-						description:
-							"Lise geometrisi ve fonksiyon grafiklerinden 3B yüzeylere, değişmeli diyagramlara, otomatlara, makale grafiklerine ve Beamer sunumlarına; kendi projenizi de şablon olarak kaydedin.",
+						title: t("landing.featureTemplatesTitle"),
+						description: t("landing.featureTemplatesBody"),
 					},
 				].map(({ icon: Icon, title, description }) => (
 					<Card key={title}>
@@ -187,18 +191,14 @@ export default function LandingPage() {
 				<Card>
 					<CardContent className="space-y-5 p-6">
 						<Badge variant="outline" className="normal-case tracking-normal">
-							Kimler için?
+							{t("landing.audienceBadge")}
 						</Badge>
 						<div className="space-y-3">
 							<h2 className="text-3xl font-semibold">
-								Karmaşık kurulumlarla uğraşmadan kaliteli şekiller ve belgeler
-								hazırlamak isteyen herkes için.
+								{t("landing.audienceTitle")}
 							</h2>
 							<p className="text-sm leading-7 text-(--ink-1)">
-								Ödev ve proje hazırlayan lise ve üniversite öğrencileri, çalışma
-								kâğıdı ve sınav hazırlayan öğretmenler, makale, tez ve sunumları
-								için yayın kalitesinde şekil üreten akademisyenler — hepsi için
-								sade ve odaklı bir TikZ ortamı.
+								{t("landing.audienceBody")}
 							</p>
 						</div>
 					</CardContent>
@@ -211,16 +211,15 @@ export default function LandingPage() {
 						</div>
 						<div className="space-y-3">
 							<h2 className="text-2xl font-semibold">
-								Hızlı başlangıç, baskıya hazır çıktı
+								{t("landing.quickStartTitle")}
 							</h2>
 							<p className="text-sm leading-7 text-(--ink-1)">
-								İlk satırdan indirilen PDF'e kadar geçen süreyi kısaltın;
-								şekilleriniz her zaman temiz ve tutarlı görünsün.
+								{t("landing.quickStartBody")}
 							</p>
 						</div>
 						<Button asChild variant="secondary">
 							<Link href="/signup">
-								Hesap oluştur
+								{t("common.signUp")}
 								<ArrowRight size={16} />
 							</Link>
 						</Button>
@@ -231,20 +230,20 @@ export default function LandingPage() {
 			<footer className="flex flex-col gap-2 border-t border-(--line) px-1 pt-4 pb-2 text-sm text-(--ink-1) sm:flex-row sm:items-center sm:justify-between">
 				<p>TikZ Studio</p>
 				<nav
-					aria-label="Alt bağlantılar"
+					aria-label={t("common.footerLinks")}
 					className="flex flex-wrap gap-x-4 gap-y-1"
 				>
 					<Link href="/yardim" className="hover:text-(--ink-0)">
-						Yardım merkezi
+						{t("common.helpCenter")}
 					</Link>
 					<Link href="/yardim/baslarken" className="hover:text-(--ink-0)">
-						Başlarken
+						{t("common.gettingStarted")}
 					</Link>
 					<Link href="/yardim/sss" className="hover:text-(--ink-0)">
-						Sıkça sorulan sorular
+						{t("common.faq")}
 					</Link>
 					<Link href="/login" className="hover:text-(--ink-0)">
-						Giriş yap
+						{t("common.signIn")}
 					</Link>
 				</nav>
 			</footer>

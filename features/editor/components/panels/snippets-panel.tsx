@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { createSnippet, deleteSnippet } from "@/lib/client-api";
+import { useT } from "@/lib/i18n/client";
 import type { CreateSnippetInput, SnippetDto } from "@/lib/types";
 
 type SnippetsPanelProps = {
@@ -24,6 +25,7 @@ type SnippetsPanelProps = {
 };
 
 export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
+	const t = useT();
 	const queryClient = useQueryClient();
 	const [isCreating, setIsCreating] = useState(false);
 	const [form, setForm] = useState<CreateSnippetInput>({
@@ -53,7 +55,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 		<>
 			<div className="flex items-center justify-between px-4 pb-2 pt-3">
 				<span className="text-xs text-muted-foreground">
-					{snippets.length} kod parçacığı
+					{t("snippets.count", { count: snippets.length })}
 				</span>
 				<Button
 					size="sm"
@@ -62,7 +64,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 					onClick={() => setIsCreating((v) => !v)}
 				>
 					<Plus className="size-3" />
-					Yeni
+					{t("common.new")}
 				</Button>
 			</div>
 
@@ -77,7 +79,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 				<DialogContent className="flex max-h-[80vh] flex-col gap-0 p-0 sm:max-w-lg">
 					<DialogHeader className="border-b px-4 py-3">
 						<DialogTitle className="text-sm font-medium">
-							Yeni kod parçacığı
+							{t("snippets.newSnippet")}
 						</DialogTitle>
 					</DialogHeader>
 					<form
@@ -89,7 +91,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 					>
 						<div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
 							<Input
-								placeholder="Başlık"
+								placeholder={t("common.title")}
 								value={form.title}
 								onChange={(e) =>
 									setForm((f) => ({ ...f, title: e.target.value }))
@@ -99,7 +101,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 							/>
 							<div className="flex gap-2">
 								<Input
-									placeholder="Tetikleyici (ör. \daire)"
+									placeholder={t("snippets.triggerPlaceholder")}
 									value={form.trigger}
 									onChange={(e) =>
 										setForm((f) => ({ ...f, trigger: e.target.value }))
@@ -107,7 +109,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 									required
 								/>
 								<Input
-									placeholder="Kategori"
+									placeholder={t("common.category")}
 									value={form.category}
 									onChange={(e) =>
 										setForm((f) => ({ ...f, category: e.target.value }))
@@ -115,7 +117,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 								/>
 							</div>
 							<Textarea
-								placeholder="İçerik"
+								placeholder={t("common.content")}
 								className="min-h-40 flex-1 font-mono text-xs"
 								value={form.content}
 								onChange={(e) =>
@@ -130,10 +132,10 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 								variant="ghost"
 								onClick={() => setIsCreating(false)}
 							>
-								İptal
+								{t("common.cancel")}
 							</Button>
 							<Button type="submit" disabled={createMutation.isPending}>
-								Kaydet
+								{t("common.save")}
 							</Button>
 						</div>
 					</form>
@@ -166,7 +168,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 									type="button"
 									className="absolute right-2 top-2 hidden rounded p-0.5 text-muted-foreground hover:text-destructive group-hover:flex"
 									onClick={() => deleteMutation.mutate(snippet.id)}
-									aria-label="Sil"
+									aria-label={t("common.delete")}
 								>
 									<Trash2 className="size-3" />
 								</button>
