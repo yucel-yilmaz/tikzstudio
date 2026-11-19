@@ -1,5 +1,6 @@
 import { toProjectFileDto } from "@/lib/dto";
 import { AppError, toErrorResponse } from "@/lib/errors";
+import { isSafeProjectPath, UNSAFE_PATH_MESSAGE } from "@/lib/file-path";
 import { getSessionFromHeaders } from "@/lib/session";
 import { uploadBinaryFileForUser } from "@/server/services/projects";
 
@@ -32,8 +33,8 @@ export async function POST(
 			(formData.get("path") as string | null) ?? fileEntry.name
 		).trim();
 
-		if (!filePath)
-			throw new AppError("BAD_REQUEST", "Geçersiz dosya yolu", 400);
+		if (!isSafeProjectPath(filePath))
+			throw new AppError("VALIDATION_ERROR", UNSAFE_PATH_MESSAGE, 400);
 
 		const buffer = new Uint8Array(
 			(await fileEntry.arrayBuffer()) as ArrayBuffer,

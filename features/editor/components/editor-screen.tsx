@@ -580,7 +580,9 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 								/>
 								{compileMeta.label}
 							</Badge>
-							{currentCompile?.outputUrl || currentCompile?.svgOutputUrl ? (
+							{currentCompile?.outputUrl ||
+							currentCompile?.svgOutputUrl ||
+							currentCompile?.pngOutputUrl ? (
 								<div className="grid grid-cols-2 gap-2">
 									{currentCompile.outputUrl ? (
 										<Button asChild variant="outline" size="sm">
@@ -595,6 +597,14 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											<a href={`${currentCompile.svgOutputUrl}&download=1`}>
 												<FileImage />
 												Download SVG
+											</a>
+										</Button>
+									) : null}
+									{currentCompile.pngOutputUrl ? (
+										<Button asChild variant="outline" size="sm">
+											<a href={`${currentCompile.pngOutputUrl}&download=1`}>
+												<FileImage />
+												Download PNG
 											</a>
 										</Button>
 									) : null}

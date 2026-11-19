@@ -318,7 +318,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 										</p>
 									</div>
 
-									<div className="grid gap-3 md:grid-cols-2">
+									<div className="grid max-h-[45vh] gap-3 overflow-y-auto pr-1 md:grid-cols-2">
 										<button
 											type="button"
 											onClick={() => setTemplateId(undefined)}
@@ -330,7 +330,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 											</p>
 										</button>
 
-										{groupedTemplates.slice(0, 8).map((template) => (
+										{groupedTemplates.map((template) => (
 											<button
 												key={template.id}
 												type="button"

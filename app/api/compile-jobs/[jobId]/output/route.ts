@@ -5,8 +5,17 @@ import { slugifyFilename } from "@/lib/utils";
 import { sanitizeSvg } from "@/server/compiler/sanitizer";
 import {
 	readCompileOutput,
+	readCompilePngOutput,
 	readCompileSvgOutput,
 } from "@/server/compiler/storage";
+
+type OutputFormat = "pdf" | "svg" | "png";
+
+const CONTENT_TYPES: Record<OutputFormat, string> = {
+	pdf: "application/pdf",
+	svg: "image/svg+xml",
+	png: "image/png",
+};
 
 export async function GET(
 	request: Request,
@@ -21,7 +30,12 @@ export async function GET(
 				id: jobId,
 				project: {
 					deletedAt: null,
-					...(session ? { ownerId: session.user.id } : { isPublic: true }),
+					// Owners see their own outputs; anyone (signed in or not) may see
+					// outputs of public projects.
+					OR: [
+						{ isPublic: true },
+						...(session ? [{ ownerId: session.user.id }] : []),
+					],
 				},
 			},
 			include: { project: true },
@@ -44,8 +58,14 @@ export async function GET(
 		}
 
 		const searchParams = new URL(request.url).searchParams;
-		const format = searchParams.get("format") === "svg" ? "svg" : "pdf";
-		const outputUrl = format === "svg" ? job.svgOutputUrl : job.outputUrl;
+		const requested = searchParams.get("format");
+		const format: OutputFormat =
+			requested === "svg" || requested === "png" ? requested : "pdf";
+		const outputUrl = {
+			pdf: job.outputUrl,
+			svg: job.svgOutputUrl,
+			png: job.pngOutputUrl,
+		}[format];
 
 		if (!outputUrl) {
 			return Response.json(
@@ -56,28 +76,22 @@ export async function GET(
 
 		const download = searchParams.get("download") === "1";
 
-		let responseBlob: Blob;
+		let body: Buffer;
 		if (format === "svg") {
-			const rawSvg = await readCompileSvgOutput(jobId);
-			const sanitized = sanitizeSvg(rawSvg);
-			responseBlob = new Blob([Buffer.from(sanitized)], {
-				type: "image/svg+xml",
-			});
+			body = Buffer.from(sanitizeSvg(await readCompileSvgOutput(jobId)));
+		} else if (format === "png") {
+			body = await readCompilePngOutput(jobId);
 		} else {
-			const pdfBuffer = await readCompileOutput(jobId);
-			responseBlob = new Blob([Buffer.from(pdfBuffer)], {
-				type: "application/pdf",
-			});
+			body = await readCompileOutput(jobId);
 		}
 
-		const extension = format === "svg" ? "svg" : "pdf";
-		const fileName = `${slugifyFilename(job.project.title) || "tikzlab-project"}.${extension}`;
+		const fileName = `${slugifyFilename(job.project.title) || "tikzstudio-project"}.${format}`;
 		const isPublic = job.project.isPublic;
 
-		return new Response(responseBlob, {
+		return new Response(new Uint8Array(body), {
 			status: 200,
 			headers: {
-				"Content-Type": format === "svg" ? "image/svg+xml" : "application/pdf",
+				"Content-Type": CONTENT_TYPES[format],
 				"Content-Disposition": `${download ? "attachment" : "inline"}; filename="${fileName}"`,
 				"Cache-Control": isPublic
 					? "public, max-age=60"

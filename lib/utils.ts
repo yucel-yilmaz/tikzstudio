@@ -13,8 +13,26 @@ export function formatRelativeDate(value: string | Date) {
 	}).format(date);
 }
 
+const TRANSLITERATIONS: Record<string, string> = {
+	ç: "c",
+	ğ: "g",
+	ı: "i",
+	İ: "i",
+	ö: "o",
+	ş: "s",
+	ü: "u",
+	Ç: "c",
+	Ğ: "g",
+	Ö: "o",
+	Ş: "s",
+	Ü: "u",
+};
+
 export function slugifyFilename(value: string) {
 	return value
+		.replace(/[çğıİöşüÇĞÖŞÜ]/g, (char) => TRANSLITERATIONS[char] ?? char)
+		.normalize("NFKD")
+		.replace(/[\u0300-\u036f]/g, "")
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, "-")
 		.replace(/^-+|-+$/g, "");

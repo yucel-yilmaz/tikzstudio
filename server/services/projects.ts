@@ -1,7 +1,10 @@
 import type { Prisma } from "@/generated/prisma";
-import { DEFAULT_MAIN_FILE_PATH, DEFAULT_PROJECT_SOURCE } from "@/lib/defaults";
 import { AppError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
+import {
+	buildProjectSeedFiles,
+	type ProjectSeedFile,
+} from "@/server/services/project-seed";
 
 const projectBaseInclude = {
 	files: {
@@ -35,20 +38,23 @@ export async function createProjectForUser(input: {
 	ownerId: string;
 	title: string;
 	description?: string;
-	templateContent?: string;
+	files?: ProjectSeedFile[];
 }) {
+	const files = input.files ?? buildProjectSeedFiles();
 	return prisma.project.create({
 		data: {
 			ownerId: input.ownerId,
 			title: input.title,
 			description: input.description || null,
 			files: {
-				create: {
-					path: DEFAULT_MAIN_FILE_PATH,
-					content: input.templateContent ?? DEFAULT_PROJECT_SOURCE,
-					language: "latex",
-					isMain: true,
-				},
+				create: files.map((file) => ({
+					path: file.path,
+					content: file.content,
+					isBinary: file.isBinary,
+					binaryContent: file.binaryContent,
+					language: file.isBinary ? "binary" : "latex",
+					isMain: file.isMain,
+				})),
 			},
 		},
 		include: projectBaseInclude,

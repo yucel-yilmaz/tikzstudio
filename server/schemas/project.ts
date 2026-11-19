@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+import {
+	isSafeProjectPath,
+	MAX_PROJECT_PATH_LENGTH,
+	UNSAFE_PATH_MESSAGE,
+} from "@/lib/file-path";
+
+export const projectPathSchema = z
+	.string()
+	.trim()
+	.min(1)
+	.max(MAX_PROJECT_PATH_LENGTH)
+	.refine(isSafeProjectPath, { message: UNSAFE_PATH_MESSAGE });
+
 export const createProjectSchema = z.object({
 	title: z.string().trim().min(1).max(120),
 	description: z.string().trim().max(500).optional().or(z.literal("")),
@@ -14,29 +27,12 @@ export const updateProjectSchema = z.object({
 
 export const updateFileSchema = z.object({
 	content: z.string().optional(),
-	path: z
-		.string()
-		.trim()
-		.min(1)
-		.max(200)
-		.regex(/^[\w\-./]+$/, {
-			message:
-				"Path may contain letters, numbers, dot, dash, slash, underscore.",
-		})
-		.optional(),
+	path: projectPathSchema.optional(),
 	isMain: z.boolean().optional(),
 });
 
 export const createFileSchema = z.object({
-	path: z
-		.string()
-		.trim()
-		.min(1)
-		.max(200)
-		.regex(/^[\w\-./]+$/, {
-			message:
-				"Path may contain letters, numbers, dot, dash, slash, underscore.",
-		}),
+	path: projectPathSchema,
 	content: z.string().default(""),
 });
 

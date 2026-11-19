@@ -396,6 +396,19 @@ export function DesktopEditorLayout({
 																	</a>
 																</Button>
 															) : null}
+															{job.pngOutputUrl ? (
+																<Button
+																	asChild
+																	variant="outline"
+																	size="xs"
+																	className="h-6 text-[10px]"
+																>
+																	<a href={`${job.pngOutputUrl}&download=1`}>
+																		<FileImage className="size-3" />
+																		PNG
+																	</a>
+																</Button>
+															) : null}
 														</div>
 													</div>
 												))}
@@ -446,6 +459,16 @@ export function DesktopEditorLayout({
 															>
 																<FileImage />
 																Download SVG
+															</a>
+														</Button>
+													) : null}
+													{currentCompile?.pngOutputUrl ? (
+														<Button asChild variant="outline" size="xs">
+															<a
+																href={`${currentCompile.pngOutputUrl}&download=1`}
+															>
+																<FileImage />
+																Download PNG
 															</a>
 														</Button>
 													) : null}

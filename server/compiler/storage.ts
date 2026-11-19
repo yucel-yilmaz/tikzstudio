@@ -1,8 +1,10 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import { env } from "@/lib/env";
+
 export function getArtifactRoot() {
-	return path.join(process.cwd(), ".data", "compile-artifacts");
+	return path.resolve(process.cwd(), env.COMPILE_STORAGE_DIR);
 }
 
 export function getArtifactDir(jobId: string) {
