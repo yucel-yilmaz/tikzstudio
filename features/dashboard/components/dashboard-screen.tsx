@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { HelpMenu } from "@/features/help/components/help-menu";
+import { ImportProjectButton } from "@/features/projects/components/import-project-button";
 import { TemplateThumbnail } from "@/features/templates/components/template-thumbnail";
 import {
 	createProject,
@@ -171,6 +172,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 							<Plus size={16} />
 							Yeni proje
 						</Button>
+						<ImportProjectButton />
 						<HelpMenu page="dashboard" />
 						<Button asChild variant="outline">
 							<Link href="/account">

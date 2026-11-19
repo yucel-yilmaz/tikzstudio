@@ -62,6 +62,7 @@ import {
 	useEditorStore,
 } from "@/features/editor/store/use-editor-store";
 import { HelpMenu } from "@/features/help/components/help-menu";
+import { ExportProjectButton } from "@/features/projects/components/export-project-button";
 import {
 	getProject,
 	getProjectFiles,
@@ -694,6 +695,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											Ayarları kaydet
 										</Button>
 									</form>
+									{projectQuery.data ? (
+										<div className="mt-4">
+											<ExportProjectButton projectId={projectQuery.data.id} />
+										</div>
+									) : null}
 									<div className="mt-4">
 										<SaveAsTemplateForm
 											key={`template-mobile-${projectQuery.data?.id ?? "none"}`}

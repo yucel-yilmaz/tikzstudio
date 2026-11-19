@@ -192,7 +192,9 @@ export const faq: HelpArticle = {
 					question:
 						"Overleaf veya bilgisayarımdaki bir projeyi taşıyabilir miyim?",
 					answer: [
-						"Evet, ama dosya dosya. ZIP olarak içe aktarma henüz yok. Yeni bir proje oluşturun, `.tex` dosyalarının içeriğini kopyalayıp yapıştırın; görselleri ve `.sty` dosyalarını **Dosyalar** panelindeki yükle düğmesiyle ekleyin.",
+						"Evet. Overleaf'te **Menü → Kaynak dosyalarını indir** ile projeyi `.zip` olarak indirin (bilgisayarınızdaki bir klasörü de `.zip` yapabilirsiniz), sonra panelde **İçe aktar (.zip)** düğmesine tıklayın. Bütün dosyalar (görseller, `.bib` ve `.sty` dahil) yeni bir projeye aktarılır ve `\\documentclass` içeren dosya ana dosya olarak seçilir.",
+						"Sınırlar: ZIP en fazla 20 MB, en fazla 300 dosya, dosya başına 5 MB. `.aux`, `.log` gibi derleme artıkları ve gizli dosyalar atlanır. Adında boşluk olan dosyalar tireyle yeniden adlandırılır; bu durumda içe aktarma sonrası uyarıda belirtilir ve belgedeki yolları güncellemeniz gerekir.",
+						"Ters yönde: proje ayarları panelindeki **.zip olarak indir** ile bütün dosyaları indirip Overleaf'e veya kendi LaTeX kurulumunuza aktarabilirsiniz.",
 					],
 				},
 				{

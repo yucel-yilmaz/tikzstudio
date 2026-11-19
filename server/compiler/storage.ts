@@ -4,7 +4,10 @@ import path from "node:path";
 import { env } from "@/lib/env";
 
 export function getArtifactRoot() {
-	return path.resolve(process.cwd(), env.COMPILE_STORAGE_DIR);
+	// A relative COMPILE_STORAGE_DIR resolves against the working directory.
+	// (No explicit process.cwd(): it makes Next's file tracer include the
+	// whole project in the server bundle.)
+	return path.resolve(env.COMPILE_STORAGE_DIR);
 }
 
 export function getArtifactDir(jobId: string) {
