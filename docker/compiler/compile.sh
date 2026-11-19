@@ -4,13 +4,21 @@ set -u
 ENGINE="${1:-tectonic}"
 MAIN_FILE="${2:-main.tex}"
 
-# Reuse the cache warmed at image build time, but move it into a writable runtime cache
-# so Tectonic and Fontconfig can both work without noisy cache warnings.
+# The root filesystem is read-only; only /tmp (a small tmpfs) is writable.
+#
+# Tectonic reads its package cache (warmed at image build time, ~60 MB) in
+# place via TECTONIC_CACHE_DIR. It must NOT be copied into /tmp: that would
+# fill most of the tmpfs on every compile, for every engine.
+export TECTONIC_CACHE_DIR=/opt/tectonic-cache/tectonic
+# Fontconfig and other XDG caches get a writable location.
 export XDG_CACHE_HOME=/tmp/xdg-cache
-mkdir -p "$XDG_CACHE_HOME"
-
-if [ -d /opt/tectonic-cache ]; then
-  cp -R /opt/tectonic-cache/. "$XDG_CACHE_HOME/"
+# TeX Live's variable tree (luaotfload font database, generated fonts) must
+# be writable; seed it with the font database built at image build time.
+export TEXMFVAR=/tmp/texmf-var
+export TEXMFCACHE=/tmp/texmf-var
+mkdir -p "$XDG_CACHE_HOME" "$TEXMFVAR"
+if [ -d /opt/texmf-var ]; then
+  cp -R /opt/texmf-var/. "$TEXMFVAR/"
 fi
 
 TECTONIC_BUNDLE="https://relay.fullyjustified.net/default_bundle_v33.tar"

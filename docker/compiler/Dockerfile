@@ -78,6 +78,12 @@ RUN apt-get update \
     poppler-utils \
   && rm -rf /var/lib/apt/lists/*
 
+# Prebuild luaotfload's font database so LuaLaTeX does not rebuild it (or fail
+# for lack of a writable cache) on every compile; compile.sh copies this
+# small tree (~40 KB) into the writable TEXMFVAR.
+RUN TEXMFVAR=/opt/texmf-var TEXMFCACHE=/opt/texmf-var luaotfload-tool --update \
+ && chmod -R a+rX /opt/texmf-var
+
 COPY --from=builder /usr/local/cargo/bin/tectonic /usr/local/bin/tectonic
 COPY --from=builder /opt/tectonic-cache /opt/tectonic-cache
 COPY docker/compiler/compile.sh /usr/local/bin/compile.sh
