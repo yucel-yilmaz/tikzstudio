@@ -154,8 +154,8 @@ export const editor: HelpArticle = {
 		},
 		{
 			type: "callout",
-			tone: "warning",
-			text: "Otomatik kaydetme açık olan dosya için çalışır. Birden fazla dosyada değişiklik yaptıysanız dosya değiştirmeden önce rozetin **Kaydedildi** olduğundan emin olun.",
+			tone: "tip",
+			text: "Başka bir dosyaya geçtiğinizde, **Derle**'ye bastığınızda ve şablon olarak kaydettiğinizde kaydedilmemiş değişiklikler otomatik olarak kaydedilir. Kaydedilmemiş değişiklik varken sekmeyi kapatmaya çalışırsanız tarayıcı sizi uyarır.",
 		},
 		{ type: "h2", id: "proje-paneli", text: "Proje paneli" },
 		{
@@ -260,9 +260,9 @@ export const projectsAndFiles: HelpArticle = {
 		},
 		{
 			type: "callout",
-			tone: "warning",
-			title: "Derle, açık dosyayı derler",
-			text: "**Derle** düğmesi editörde o an açık olan dosyayı derler. `sekiller/ucgen.tex` gibi `\\documentclass` içermeyen bir parça dosyası açıkken derlerseniz hata alırsınız. Derlemeden önce `main.tex` dosyasına geçin.",
+			tone: "info",
+			title: "Derle, ana dosyayı derler",
+			text: "**Derle** düğmesi hangi dosya açık olursa olsun projenin ana dosyasını (genellikle `main.tex`) derler. `sekiller/ucgen.tex` gibi bir parça dosyasını düzenlerken de doğrudan derleyebilirsiniz. Ana dosyayı dosya ağacındaki **Ana dosya yap** ile değiştirebilirsiniz.",
 		},
 		{ type: "h2", id: "yeni-proje", text: "Yeni proje ve şablonlar" },
 		{

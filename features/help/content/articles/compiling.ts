@@ -28,8 +28,8 @@ export const compilingAndEngines: HelpArticle = {
 		{
 			type: "list",
 			items: [
-				"Derlenen dosya, editörde **o an açık olan** dosyadır. Çok dosyalı projelerde derlemeden önce ana dosyaya geçin.",
-				"Kayıt sürerken **Derle** kısa bir süre devre dışı kalır; her zaman kaydedilmiş son hali derlenir.",
+				"Derlenen dosya her zaman projenin **ana dosyasıdır** (dosya ağacında işaretli olan). `sekiller/ucgen.tex` gibi bir parça dosyasını düzenlerken de doğrudan **Derle**'ye basabilirsiniz.",
+				"**Derle**, kaydedilmemiş değişiklikleri (tüm açık dosyalarda) önce kaydeder; yani her zaman ekranda gördüğünüz hali derlenir.",
 			],
 		},
 		{ type: "h2", id: "motorlar", text: "Hangi motoru seçmeliyim?" },
