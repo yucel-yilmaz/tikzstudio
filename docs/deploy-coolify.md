@@ -45,7 +45,7 @@ Uygulama her derleme için sunucunun Docker'ı üzerinden kısa ömürlü, **ağ
 ## 4. Alan adı
 
 - `app` servisinin **Domains** alanına alan adınızı port ile birlikte yazın: `https://tikz.okulunuz.com:3000`. Port, konteynerin iç portudur; Coolify dışarıya 443 üzerinden HTTPS sunar ve sertifikayı kendisi alır.
-- Alan adı girmezseniz Coolify kendi joker alan adından bir adres üretir (`SERVICE_URL_APP_3000`).
+- Alan adı girmezseniz Coolify kendi joker alan adından bir adres üretir. Giriş sistemi bu adresin portsuz halini (`SERVICE_URL_APP`) kullanır; `SERVICE_URL_APP_3000` iç portu (`:3000`) içerdiği için bu amaçla kullanılmaz.
 - Giriş sistemi bu adresi `BETTER_AUTH_URL` olarak kullanır. **Alan adını değiştirdiğinizde yeniden dağıtın**, aksi halde giriş "geçersiz origin" hatası verir.
 
 ## 5. Ortam değişkenleri

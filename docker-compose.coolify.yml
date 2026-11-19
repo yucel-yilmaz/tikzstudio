@@ -18,8 +18,11 @@ services:
       compiler-image:
         condition: service_started
     environment:
+      # Declares the public URL routed to port 3000. Its value includes the
+      # internal port (https://example.com:3000), so the auth base URL uses
+      # SERVICE_URL_APP, the same URL without the port.
       SERVICE_URL_APP_3000: /
-      BETTER_AUTH_URL: ${SERVICE_URL_APP_3000}
+      BETTER_AUTH_URL: ${SERVICE_URL_APP}
       BETTER_AUTH_SECRET: ${SERVICE_BASE64_64_AUTHSECRET}
       DATABASE_URL: postgresql://postgres:${SERVICE_PASSWORD_POSTGRES}@db:5432/tikzlab
       DOCKER_COMPILER_IMAGE: ${COMPILER_IMAGE:-ghcr.io/yucel-yilmaz/tikzstudio-compiler:latest}
