@@ -77,6 +77,20 @@ export function createProject(input: CreateProjectInput) {
 	});
 }
 
+export function importProject(file: File, title?: string) {
+	const form = new FormData();
+	form.append("file", file);
+	if (title) form.append("title", title);
+	return requestJson<{ project: ProjectDetail; warnings: string[] }>(
+		"/api/projects/import",
+		{ method: "POST", body: form },
+	);
+}
+
+export function projectExportUrl(projectId: string) {
+	return `/api/projects/${projectId}/export`;
+}
+
 export function getProject(projectId: string) {
 	return requestJson<ProjectDetail>(`/api/projects/${projectId}`);
 }

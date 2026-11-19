@@ -11,6 +11,7 @@ import {
 	SaveAsTemplateForm,
 	type SaveAsTemplatePayload,
 } from "@/features/editor/components/panels/save-as-template-form";
+import { ExportProjectButton } from "@/features/projects/components/export-project-button";
 import type { ProjectDetail } from "@/lib/types";
 
 type ProjectSettingsPanelProps = {
@@ -83,6 +84,11 @@ export function ProjectSettingsPanel({
 					Ayarları kaydet
 				</Button>
 			</form>
+			{project ? (
+				<div className="mt-4">
+					<ExportProjectButton projectId={project.id} />
+				</div>
+			) : null}
 			<div className="mt-4">
 				<SaveAsTemplateForm
 					key={`template-${project?.id ?? "none"}`}

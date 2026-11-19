@@ -23,6 +23,7 @@
   - **Lise matematiği:** üçgen, çember, tkz-euclide, doğru/parabol/parçalı fonksiyon grafikleri, birim çember, sayı doğrusu, Venn, olasılık ağacı, katı cisimler, iki eğri arası alan, A–E şıklı sınav kâğıdı
   - **Üniversite ve akademik:** hata çubuklu veri grafiği ve uyum doğrusu, gruplandırılmış çubuk grafik, normal dağılım, 3B yüzey, vektörler/izdüşüm, değişmeli diyagramlar (tikz-cd), sonlu durum otomatı, kontrol sistemi blok diyagramı, Beamer sunumu, çok dosyalı makale iskeleti
 - 🖼️ **Şablon önizlemeleri** — her şablon yeni proje penceresinde (kategori filtresiyle) ve şablon panelinde küçük resimle görünür; kişisel şablonlar önizlemeyi projenin son başarılı derlemesinden alır
+- 📦 **ZIP içe/dışa aktarma** — Overleaf (veya başka bir) projesini `.zip` olarak içe aktarın: tek üst klasör kaldırılır, derleme artıkları atlanır, ana dosya bulunur; her projeyi `.zip` olarak indirin. Sınırlar: arşiv 20 MB, 300 dosya, dosya başına 5 MB
 - 💾 **Şablon olarak kaydet** — herhangi bir projeyi (tüm dosyalarıyla) proje ayarları panelinden kişisel şablona dönüştürün
 - 🛡️ **Hesap güvenliği** — e-postayla şifre sıfırlama (1 saat geçerli, tek kullanımlık bağlantı; diğer oturumlar kapatılır, bildirim gönderilir), e-posta doğrulama (SMTP yapılandırılınca otomatik zorunlu), Hesabım sayfası (şifre değiştirme, diğer oturumları kapatma) ve giriş/kayıt/e-posta uç noktalarında IP başına istek sınırı. SMTP `SMTP_*`/`MAIL_FROM` ile ayarlanır; ayarlanmazsa e-postalar sunucu günlüğüne yazılır
 - 🔐 **Kimlik doğrulama** — [better-auth](https://www.better-auth.com/) ile e-posta + şifre; GitHub ve Google OAuth, istemci kimliği/sırrı tanımlandığında otomatik etkinleşir
@@ -305,7 +306,7 @@ npm run db:migrate
 - [x] Tek komutla yerel kurulum için docker-compose.yml
 - [x] Çok dosyalı şablon sistemi
 - [x] Şablon kütüphanesi: lise matematiği ve üniversite/akademik paketleri (Türkçe)
-- [ ] Şablon ZIP içe/dışa aktarma ve otomatik şablon önizlemesi
+- [x] Proje ZIP içe/dışa aktarma (Overleaf uyumlu) ve şablon önizlemeleri
 - [x] Projeyi şablon olarak kaydet (proje ayarları paneli; kaydedilmemiş değişiklikler önce kaydedilir)
 - [x] Türkçe arayüz
 - [ ] Çok dilli arayüz (i18n altyapısı)

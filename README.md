@@ -23,6 +23,7 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file
   - **High-school math:** triangles, circles, tkz-euclide, line/parabola/piecewise graphs, unit circle, number line, Venn, probability tree, solids, area between curves, A–E exam sheet
   - **University & academic:** data plot with error bars and fit, grouped bar chart, normal distribution, 3D surface, vectors/projection, commutative diagrams (tikz-cd), finite automaton, control-system block diagram, Beamer slides, multi-file article skeleton
 - 🖼️ **Template previews** — every template shows a thumbnail in the new-project dialog (with a category filter) and the templates panel; personal templates get one from the project's latest successful compile
+- 📦 **ZIP import/export** — import an Overleaf (or any) project as a `.zip`: a single top folder is unwrapped, build artifacts are skipped, the main file is detected; export any project as a `.zip`. Limits: 20 MB archive, 300 files, 5 MB per file
 - 💾 **Save as template** — turn any project (all files) into a personal template from the project settings panel
 - 🔐 **Authentication** via [better-auth](https://www.better-auth.com/) — email + password; GitHub and Google OAuth are enabled automatically when their client id/secret are set
 - 🛡️ **Account security** — password reset by email (1-hour single-use links, other sessions revoked, change notice), email verification (required automatically once SMTP is configured), an account page (change password, sign out other sessions) and per-IP rate limits on sign-in/sign-up/email endpoints. Configure SMTP via `SMTP_*`/`MAIL_FROM`; without it emails are logged to the server console
@@ -317,7 +318,7 @@ npm run db:migrate
 - [x] docker-compose.yml for one-command local setup
 - [x] Multi-file template system
 - [x] Template library: high-school math and university/academic packs (Turkish)
-- [ ] Template ZIP import/export and auto-generated template previews
+- [x] Project ZIP import/export (Overleaf-compatible) and template previews
 - [x] Save project as template (project settings panel; unsaved edits are saved first)
 - [x] Turkish UI
 - [ ] Multi-language UI (i18n framework)

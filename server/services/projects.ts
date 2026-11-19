@@ -1,6 +1,7 @@
 import type { LatexEngine, Prisma } from "@/generated/prisma";
 import { AppError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
+import { isTextFile } from "@/lib/project-files";
 import {
 	buildProjectSeedFiles,
 	type ProjectSeedFile,
@@ -257,25 +258,6 @@ export async function createProjectFileForUser(
 			isMain: false,
 		},
 	});
-}
-
-// LaTeX text file extensions that should be treated as text, not binary
-const TEXT_EXTENSIONS = new Set([
-	".cls",
-	".sty",
-	".tex",
-	".clo",
-	".cfg",
-	".ldf",
-	".def",
-	".fd",
-	".txt",
-	".log",
-]);
-
-function isTextFile(filePath: string): boolean {
-	const ext = filePath.slice(filePath.lastIndexOf(".")).toLowerCase();
-	return TEXT_EXTENSIONS.has(ext);
 }
 
 export async function uploadBinaryFileForUser(
