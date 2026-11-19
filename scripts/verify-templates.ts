@@ -1,98 +1,39 @@
 /**
- * Compiles every official template (basic, math and academic) with the sandbox image, using the
- * same `docker run` hardening flags as the app, and reports pass/fail per
- * engine. Run after editing prisma/math-templates.ts or the compiler image:
+ * Compiles every official template (basic, math and academic) with the
+ * sandbox image, using the same `docker run` hardening flags as the app,
+ * and reports pass/fail per engine. Run after editing templates or the
+ * compiler image:
  *
  *   npm run templates:verify                  # tectonic + pdflatex
  *   npm run templates:verify -- tectonic      # one engine
- *   npm run templates:verify -- tectonic,pdflatex ./out   # keep PNG previews
+ *   npm run templates:verify -- tectonic,pdflatex ./out   # keep full-size PNGs
  */
-import { spawnSync } from "node:child_process";
-import {
-	copyFileSync,
-	existsSync,
-	mkdirSync,
-	mkdtempSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
-import os from "node:os";
+import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 
 import { slugifyFilename } from "../lib/utils";
 import { officialTemplates, templateFiles } from "../prisma/official-templates";
+import { compileInSandbox } from "./lib/sandbox";
 
 const engines = (process.argv[2] ?? "tectonic,pdflatex").split(",");
 const previewDir = process.argv[3];
-const image = process.env.DOCKER_COMPILER_IMAGE ?? "tikzlab-compiler:latest";
 if (previewDir) mkdirSync(previewDir, { recursive: true });
 
 let failures = 0;
 for (const template of officialTemplates) {
-	const files = templateFiles(template);
-	const mainFile = files.find((file) => file.isMain) ?? files[0];
-
 	for (const engine of engines) {
-		const workspace = mkdtempSync(path.join(os.tmpdir(), "tpl-verify-"));
-		const output = path.join(workspace, "output");
-		mkdirSync(output);
-		for (const file of files) {
-			const target = path.join(workspace, file.path);
-			mkdirSync(path.dirname(target), { recursive: true });
-			writeFileSync(target, file.content);
-		}
-
-		const started = Date.now();
-		const result = spawnSync(
-			"docker",
-			[
-				"run",
-				"--rm",
-				"--network",
-				"none",
-				"--memory",
-				"256m",
-				"--cpus",
-				"0.5",
-				"--pids-limit",
-				"64",
-				"--read-only",
-				"--tmpfs",
-				"/tmp:rw,noexec,nosuid,size=64m",
-				"--security-opt",
-				"no-new-privileges",
-				"--cap-drop",
-				"ALL",
-				"-v",
-				`${workspace}:/workspace`,
-				"-v",
-				`${output}:/output`,
-				image,
-				engine,
-				mainFile.path,
-			],
-			{ encoding: "utf8", timeout: 60_000 },
-		);
-
-		const ok =
-			result.status === 0 && existsSync(path.join(output, "output.pdf"));
-		const seconds = ((Date.now() - started) / 1000).toFixed(1);
-		const firstError = `${result.stdout}${result.stderr}`
-			.split("\n")
-			.find((line) => /^!|^error:/.test(line));
+		const result = compileInSandbox(templateFiles(template), engine);
 		console.log(
-			`${ok ? "OK  " : "FAIL"} ${engine.padEnd(9)} ${seconds.padStart(5)}s  ${template.title}${ok ? "" : `\n       ${firstError ?? "no output"}`}`,
+			`${result.ok ? "OK  " : "FAIL"} ${engine.padEnd(9)} ${result.seconds.toFixed(1).padStart(5)}s  ${template.title}${result.ok ? "" : `\n       ${result.firstError ?? "no output"}`}`,
 		);
 
-		if (!ok) failures += 1;
-		if (ok && previewDir && existsSync(path.join(output, "output.png"))) {
+		if (!result.ok) failures += 1;
+		const png = path.join(result.outputDir, "output.png");
+		if (result.ok && previewDir && existsSync(png)) {
 			const slug = slugifyFilename(template.title);
-			copyFileSync(
-				path.join(output, "output.png"),
-				path.join(previewDir, `${slug}.${engine}.png`),
-			);
+			copyFileSync(png, path.join(previewDir, `${slug}.${engine}.png`));
 		}
-		rmSync(workspace, { recursive: true, force: true });
+		result.cleanup();
 	}
 }
 

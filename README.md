@@ -22,6 +22,7 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file
   - **Basics:** shapes, nodes, flowcharts, trees, graphs
   - **High-school math:** triangles, circles, tkz-euclide, line/parabola/piecewise graphs, unit circle, number line, Venn, probability tree, solids, area between curves, A–E exam sheet
   - **University & academic:** data plot with error bars and fit, grouped bar chart, normal distribution, 3D surface, vectors/projection, commutative diagrams (tikz-cd), finite automaton, control-system block diagram, Beamer slides, multi-file article skeleton
+- 🖼️ **Template previews** — every template shows a thumbnail in the new-project dialog (with a category filter) and the templates panel; personal templates get one from the project's latest successful compile
 - 💾 **Save as template** — turn any project (all files) into a personal template from the project settings panel
 - 🔐 **Authentication** via [better-auth](https://www.better-auth.com/) — email + password; GitHub and Google OAuth are enabled automatically when their client id/secret are set
 - 🚦 **Rate limiting** — 5 compiles per minute per user (database-backed, no extra dependencies)
@@ -192,6 +193,7 @@ Open [http://localhost:3000](http://localhost:3000) and sign up.
 | `npm run db:seed`         | Seed the database with templates and snippets      |
 | `npm run compiler:build`  | Build the Docker compiler image                    |
 | `npm run templates:verify` | Compile every official template in the sandbox (Tectonic + pdfLaTeX) |
+| `npm run templates:previews` | Render 480×360 preview images of the official templates into `public/template-previews/` |
 | `npm run warmup:sync` | Write official templates to `docker/compiler/warmup-templates/` so the compiler image caches their packages (rebuild the image afterwards) |
 
 ---

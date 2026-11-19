@@ -1,5 +1,9 @@
 export const DEFAULT_MAIN_FILE_PATH = "main.tex";
 
+/** Preview of DEFAULT_PROJECT_SOURCE (written by `npm run templates:previews`). */
+export const DEFAULT_TEMPLATE_PREVIEW_URL =
+	"/template-previews/varsayilan-tikz.png";
+
 export const DEFAULT_PROJECT_SOURCE = String.raw`\documentclass[tikz,border=10pt]{standalone}
 \usepackage{tikz}
 

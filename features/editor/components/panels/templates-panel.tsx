@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { TemplateThumbnail } from "@/features/templates/components/template-thumbnail";
 import { createTemplate, deleteTemplate, getTemplates } from "@/lib/client-api";
 import type { CreateTemplateInput } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -232,9 +233,17 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 											{template.category}
 										</Badge>
 									</div>
-									<pre className="overflow-hidden rounded-md bg-muted/60 px-2 py-1.5 font-mono text-[10px] leading-4 text-muted-foreground group-hover:text-foreground">
-										{preview}
-									</pre>
+									{template.previewUrl ? (
+										<TemplateThumbnail
+											src={template.previewUrl}
+											title={template.title}
+											className="rounded-md"
+										/>
+									) : (
+										<pre className="overflow-hidden rounded-md bg-muted/60 px-2 py-1.5 font-mono text-[10px] leading-4 text-muted-foreground group-hover:text-foreground">
+											{preview}
+										</pre>
+									)}
 								</button>
 								{template.ownerId !== null && (
 									<button

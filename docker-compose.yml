@@ -41,6 +41,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${COMPILE_WORK_DIR:-/tmp/tikzstudio-work}:${COMPILE_WORK_DIR:-/tmp/tikzstudio-work}
       - artifacts:/app/.data/compile-artifacts
+      - template-previews:/app/.data/template-previews
 
   # Build-only service for the LaTeX sandbox image used by the app.
   # `docker compose build compiler` tags it as tikzlab-compiler:latest.
@@ -54,3 +55,4 @@ services:
 volumes:
   pgdata:
   artifacts:
+  template-previews:

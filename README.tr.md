@@ -22,6 +22,7 @@
   - **Temel:** şekiller, düğümler, akış şemaları, ağaçlar, çizgeler
   - **Lise matematiği:** üçgen, çember, tkz-euclide, doğru/parabol/parçalı fonksiyon grafikleri, birim çember, sayı doğrusu, Venn, olasılık ağacı, katı cisimler, iki eğri arası alan, A–E şıklı sınav kâğıdı
   - **Üniversite ve akademik:** hata çubuklu veri grafiği ve uyum doğrusu, gruplandırılmış çubuk grafik, normal dağılım, 3B yüzey, vektörler/izdüşüm, değişmeli diyagramlar (tikz-cd), sonlu durum otomatı, kontrol sistemi blok diyagramı, Beamer sunumu, çok dosyalı makale iskeleti
+- 🖼️ **Şablon önizlemeleri** — her şablon yeni proje penceresinde (kategori filtresiyle) ve şablon panelinde küçük resimle görünür; kişisel şablonlar önizlemeyi projenin son başarılı derlemesinden alır
 - 💾 **Şablon olarak kaydet** — herhangi bir projeyi (tüm dosyalarıyla) proje ayarları panelinden kişisel şablona dönüştürün
 - 🔐 **Kimlik doğrulama** — [better-auth](https://www.better-auth.com/) ile e-posta + şifre; GitHub ve Google OAuth, istemci kimliği/sırrı tanımlandığında otomatik etkinleşir
 - 🚦 **Hız sınırlaması** — kullanıcı başına dakikada 5 derleme (veritabanı destekli, ek bağımlılık yok)
@@ -190,6 +191,7 @@ npm run dev
 | `npm run db:seed` | Veritabanını şablon ve snippet'lerle doldur |
 | `npm run compiler:build` | Docker derleyici imajını oluştur |
 | `npm run templates:verify` | Tüm resmi şablonları sandbox'ta derle (Tectonic + pdfLaTeX) |
+| `npm run templates:previews` | Resmi şablonların 480×360 önizleme görsellerini `public/template-previews/` altına üret |
 | `npm run warmup:sync` | Resmi şablonları `docker/compiler/warmup-templates/` altına yazar; derleyici imajı paketlerini önbelleğe alır (sonra imajı yeniden inşa edin) |
 
 ---

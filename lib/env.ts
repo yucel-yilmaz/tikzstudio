@@ -15,6 +15,7 @@ const envSchema = z.object({
 	// a container and talks to the host Docker daemon, this must be a path that
 	// exists at the same location on the host (see docker-compose.yml).
 	COMPILE_WORK_DIR: z.string().optional(),
+	TEMPLATE_PREVIEW_DIR: z.string().default(".data/template-previews"),
 	MATHPIX_APP_ID: z.string().optional(),
 	MATHPIX_APP_KEY: z.string().optional(),
 	DOCKER_MODEL_RUNNER_URL: z.string().default("http://localhost:12434"),
@@ -38,6 +39,7 @@ export const env = envSchema.parse({
 	DOCKER_COMPILER_IMAGE: process.env.DOCKER_COMPILER_IMAGE,
 	COMPILE_STORAGE_DIR: process.env.COMPILE_STORAGE_DIR,
 	COMPILE_WORK_DIR: process.env.COMPILE_WORK_DIR || undefined,
+	TEMPLATE_PREVIEW_DIR: process.env.TEMPLATE_PREVIEW_DIR,
 	MATHPIX_APP_ID: process.env.MATHPIX_APP_ID,
 	MATHPIX_APP_KEY: process.env.MATHPIX_APP_KEY,
 	DOCKER_MODEL_RUNNER_URL: process.env.DOCKER_MODEL_RUNNER_URL,
