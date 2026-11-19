@@ -33,7 +33,7 @@ export function useCompile(
 	const compileQuery = useQuery({
 		queryKey: ["compile-job", compileJobId],
 		queryFn: () => {
-			if (!compileJobId) throw new Error("Compile job id is required.");
+			if (!compileJobId) throw new Error("Derleme işi kimliği gerekli.");
 			return getCompileJob(compileJobId);
 		},
 		enabled: Boolean(compileJobId),
@@ -68,7 +68,7 @@ export function useCompile(
 				return;
 			}
 			toast.error(
-				error instanceof Error ? error.message : "Failed to start compilation.",
+				error instanceof Error ? error.message : "Derleme başlatılamadı.",
 			);
 		},
 	});

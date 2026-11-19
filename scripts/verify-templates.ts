@@ -1,5 +1,5 @@
 /**
- * Compiles every high-school math template with the sandbox image, using the
+ * Compiles every official template (basic + high-school math) with the sandbox image, using the
  * same `docker run` hardening flags as the app, and reports pass/fail per
  * engine. Run after editing prisma/math-templates.ts or the compiler image:
  *
@@ -20,6 +20,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { slugifyFilename } from "../lib/utils";
+import { basicTemplates } from "../prisma/basic-templates";
 import { mathTemplates } from "../prisma/math-templates";
 
 const engines = (process.argv[2] ?? "tectonic,pdflatex").split(",");
@@ -28,7 +29,7 @@ const image = process.env.DOCKER_COMPILER_IMAGE ?? "tikzlab-compiler:latest";
 if (previewDir) mkdirSync(previewDir, { recursive: true });
 
 let failures = 0;
-for (const template of mathTemplates) {
+for (const template of [...basicTemplates, ...mathTemplates]) {
 	const files = template.files ?? [
 		{ path: "main.tex", content: template.content ?? "", isMain: true },
 	];

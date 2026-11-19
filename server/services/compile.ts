@@ -48,7 +48,7 @@ export async function enqueueCompileForProject(input: {
 		project.files.find((file) => file.path === DEFAULT_MAIN_FILE_PATH);
 
 	if (!mainFile) {
-		throw new AppError("MISSING_FILE", "Main file not found.", 400);
+		throw new AppError("MISSING_FILE", "Ana dosya bulunamadı.", 400);
 	}
 
 	await enforceCompileRateLimit(input.ownerId);
@@ -81,13 +81,13 @@ export async function runCompileJob(jobId: string) {
 	});
 
 	if (!job) {
-		throw new AppError("NOT_FOUND", "Compile job not found.", 404);
+		throw new AppError("NOT_FOUND", "Derleme işi bulunamadı.", 404);
 	}
 
 	const mainFile =
 		job.project.files.find((file) => file.isMain) ?? job.project.files[0];
 	if (!mainFile) {
-		throw new AppError("MISSING_FILE", "No files available for compile.", 400);
+		throw new AppError("MISSING_FILE", "Derlenecek dosya yok.", 400);
 	}
 
 	await prisma.compileJob.update({
@@ -157,7 +157,7 @@ export async function getCompileJobForUser(ownerId: string, jobId: string) {
 	});
 
 	if (!job) {
-		throw new AppError("NOT_FOUND", "Compile job not found.", 404);
+		throw new AppError("NOT_FOUND", "Derleme işi bulunamadı.", 404);
 	}
 
 	return job;

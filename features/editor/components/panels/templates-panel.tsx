@@ -87,7 +87,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 						<Input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
-							placeholder="Search templates…"
+							placeholder="Şablonlarda ara…"
 							className="h-8 pl-8 text-sm"
 						/>
 					</div>
@@ -98,7 +98,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 						onClick={() => setIsCreating((v) => !v)}
 					>
 						<Plus className="size-3" />
-						New
+						Yeni
 					</Button>
 				</div>
 				{categories.length > 0 ? (
@@ -113,7 +113,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 									: "border-border text-muted-foreground hover:bg-muted",
 							)}
 						>
-							All
+							Tümü
 						</button>
 						{categories.map((cat) => (
 							<button
@@ -144,7 +144,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 				<DialogContent className="flex max-h-[80vh] flex-col gap-0 p-0 sm:max-w-lg">
 					<DialogHeader className="border-b px-4 py-3">
 						<DialogTitle className="text-sm font-medium">
-							New Template
+							Yeni şablon
 						</DialogTitle>
 					</DialogHeader>
 					<form
@@ -187,10 +187,10 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 								variant="ghost"
 								onClick={() => setIsCreating(false)}
 							>
-								Cancel
+								İptal
 							</Button>
 							<Button type="submit" disabled={createMutation.isPending}>
-								Save
+								Kaydet
 							</Button>
 						</div>
 					</form>
@@ -201,7 +201,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 				<div className="grid grid-cols-1 gap-2 px-4 py-4 xl:grid-cols-2">
 					{filtered.length === 0 ? (
 						<p className="col-span-full text-center text-xs text-muted-foreground">
-							No matching templates found.
+							Eşleşen şablon bulunamadı.
 						</p>
 					) : null}
 					{filtered.map((template) => {
@@ -241,7 +241,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 										type="button"
 										className="absolute right-2 top-2 hidden rounded p-0.5 text-muted-foreground hover:text-destructive group-hover:flex"
 										onClick={() => deleteMutation.mutate(template.id)}
-										aria-label="Delete"
+										aria-label="Sil"
 									>
 										<Trash2 className="size-3" />
 									</button>

@@ -59,7 +59,7 @@ export function toErrorResponse(error: unknown): Response {
 		const payload: AppErrorPayload = {
 			error: {
 				code: "VALIDATION_ERROR",
-				message: error.issues[0]?.message ?? "Invalid request.",
+				message: error.issues[0]?.message ?? "Geçersiz istek.",
 				details: { issues: error.issues },
 			},
 		};
@@ -72,7 +72,7 @@ export function toErrorResponse(error: unknown): Response {
 	const payload: AppErrorPayload = {
 		error: {
 			code: "UNKNOWN_ERROR",
-			message: "Unexpected server error.",
+			message: "Beklenmeyen bir sunucu hatası oluştu.",
 		},
 	};
 

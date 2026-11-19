@@ -38,12 +38,20 @@ import {
 import type { ProjectFileDto } from "@/lib/types";
 import { formatRelativeDate } from "@/lib/utils";
 
+const STATUS_LABELS: Record<string, string> = {
+	PENDING: "Sırada",
+	RUNNING: "Derleniyor…",
+	SUCCESS: "Başarılı",
+	FAILED: "Başarısız",
+	TIMEOUT: "Zaman aşımı",
+};
+
 function StatusBadge({ status }: { status: string | undefined }) {
 	if (!status) {
 		return (
 			<Badge variant="outline" className="gap-1.5 text-muted-foreground">
 				<Clock3 className="size-3" />
-				Not compiled yet
+				Henüz derlenmedi
 			</Badge>
 		);
 	}
@@ -55,7 +63,7 @@ function StatusBadge({ status }: { status: string | undefined }) {
 				className="gap-1.5 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
 			>
 				<CheckCircle2 className="size-3" />
-				Success
+				Başarılı
 			</Badge>
 		);
 	}
@@ -67,7 +75,7 @@ function StatusBadge({ status }: { status: string | undefined }) {
 				className="gap-1.5 border-destructive/20 bg-destructive/10 text-destructive"
 			>
 				<XCircle className="size-3" />
-				Failed
+				Başarısız
 			</Badge>
 		);
 	}
@@ -75,7 +83,7 @@ function StatusBadge({ status }: { status: string | undefined }) {
 	return (
 		<Badge variant="outline" className="gap-1.5 text-muted-foreground">
 			<Clock3 className="size-3" />
-			{status}
+			{STATUS_LABELS[status] ?? status}
 		</Badge>
 	);
 }
@@ -123,7 +131,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 			<div className="flex min-h-screen items-center justify-center">
 				<div className="flex items-center gap-2 text-muted-foreground">
 					<LoaderCircle className="size-4 animate-spin" />
-					<span className="text-sm">Loading…</span>
+					<span className="text-sm">Yükleniyor…</span>
 				</div>
 			</div>
 		);
@@ -133,12 +141,12 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 		return (
 			<div className="flex min-h-screen items-center justify-center">
 				<div className="max-w-sm space-y-3 text-center">
-					<p className="text-base font-medium">Project not found</p>
+					<p className="text-base font-medium">Proje bulunamadı</p>
 					<p className="text-sm text-muted-foreground">
-						This project is not public or may have been deleted.
+						Bu proje herkese açık değil veya silinmiş olabilir.
 					</p>
 					<Button asChild variant="outline" size="sm">
-						<Link href="/">Back to home</Link>
+						<Link href="/">Ana sayfaya dön</Link>
 					</Button>
 				</div>
 			</div>
@@ -167,7 +175,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 							<Button asChild variant="outline" size="sm">
 								<a href={`${compile.outputUrl}?download=1`}>
 									<Download className="size-4" />
-									Download PDF
+									PDF indir
 								</a>
 							</Button>
 						) : null}
@@ -175,7 +183,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 							<Button asChild variant="outline" size="sm">
 								<a href={`${compile.svgOutputUrl}&download=1`}>
 									<Download className="size-4" />
-									Download SVG
+									SVG indir
 								</a>
 							</Button>
 						) : null}
@@ -189,7 +197,9 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 							) : (
 								<GitFork className="size-4" />
 							)}
-							{forkMutation.isPending ? "Forking…" : "Fork"}
+							{forkMutation.isPending
+								? "Kopyalanıyor…"
+								: "Kendi projelerime kopyala"}
 						</Button>
 					</div>
 				</div>
@@ -205,7 +215,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 					) : null}
 					{compile?.finishedAt ? (
 						<p className="text-xs text-muted-foreground">
-							Last compiled: {formatRelativeDate(compile.finishedAt)}
+							Son derleme: {formatRelativeDate(compile.finishedAt)}
 						</p>
 					) : null}
 				</div>
@@ -217,12 +227,12 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 								<div className="flex items-center gap-2">
 									<Code2 className="size-4 text-muted-foreground" />
 									<CardTitle className="text-sm font-medium">
-										Source Code
+										Kaynak kod
 									</CardTitle>
 								</div>
 								{files.length > 1 ? (
 									<span className="text-xs text-muted-foreground">
-										{files.length} {files.length === 1 ? "file" : "files"}
+										{files.length} dosya
 									</span>
 								) : null}
 							</div>
@@ -249,7 +259,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 															variant="secondary"
 															className="ml-1 text-[10px]"
 														>
-															Main
+															Ana dosya
 														</Badge>
 													) : null}
 												</TabsTrigger>
@@ -291,7 +301,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 							<CardHeader className="border-b py-3">
 								<div className="flex items-center justify-between gap-3">
 									<CardTitle className="text-sm font-medium">
-										PDF Preview
+										PDF önizleme
 									</CardTitle>
 									<StatusBadge status={compile?.status} />
 								</div>
@@ -316,7 +326,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 							<Card className="shadow-none">
 								<CardHeader className="border-b py-3">
 									<CardTitle className="text-sm font-medium">
-										Compile Log
+										Derleme günlüğü
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="p-0">

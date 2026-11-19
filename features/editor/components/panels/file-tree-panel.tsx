@@ -95,7 +95,7 @@ export function FileTreePanel({
 						<Input
 							autoFocus
 							value={newFilePath}
-							placeholder="example.tex"
+							placeholder="ornek.tex"
 							onChange={(e) => setNewFilePath(e.target.value)}
 							onKeyDown={(e) => {
 								if (e.key === "Enter") {
@@ -113,7 +113,7 @@ export function FileTreePanel({
 							size="icon-sm"
 							variant="ghost"
 							onClick={() => void submitNewFile()}
-							aria-label="Olustur"
+							aria-label="Oluştur"
 						>
 							<Check className="size-4" />
 						</Button>
@@ -125,7 +125,7 @@ export function FileTreePanel({
 								setIsCreating(false);
 								setNewFilePath("");
 							}}
-							aria-label="Iptal"
+							aria-label="İptal"
 						>
 							<X className="size-4" />
 						</Button>
@@ -149,7 +149,7 @@ export function FileTreePanel({
 							onClick={() => setIsCreating(true)}
 						>
 							<FilePlus className="size-4" />
-							New file
+							Yeni dosya
 						</Button>
 						<Button
 							type="button"
@@ -213,7 +213,7 @@ export function FileTreePanel({
 									size="icon-sm"
 									variant="ghost"
 									onClick={() => setRenamingFileId(null)}
-									aria-label="Iptal"
+									aria-label="İptal"
 								>
 									<X className="size-4" />
 								</Button>
@@ -269,7 +269,7 @@ export function FileTreePanel({
 										size="icon-sm"
 										variant="ghost"
 										className="shrink-0 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
-										aria-label="File operations"
+										aria-label="Dosya işlemleri"
 									>
 										<MoreVertical className="size-4" />
 									</Button>
@@ -279,7 +279,7 @@ export function FileTreePanel({
 										onSelect={() => startRename(file.id, file.path)}
 									>
 										<Pencil />
-										Rename
+										Yeniden adlandır
 									</DropdownMenuItem>
 									{!file.isMain ? (
 										<DropdownMenuItem
@@ -288,7 +288,7 @@ export function FileTreePanel({
 											}}
 										>
 											<Star />
-											Set as main
+											Ana dosya yap
 										</DropdownMenuItem>
 									) : null}
 									<DropdownMenuSeparator />
@@ -299,7 +299,7 @@ export function FileTreePanel({
 											if (file.isMain) return;
 											if (
 												typeof window !== "undefined" &&
-												!window.confirm(`Delete "${file.path}"?`)
+												!window.confirm(`"${file.path}" silinsin mi?`)
 											) {
 												return;
 											}
@@ -307,7 +307,7 @@ export function FileTreePanel({
 										}}
 									>
 										<Trash2 />
-										Delete
+										Sil
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>

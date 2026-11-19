@@ -35,7 +35,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 		if (sourceBytes > env.MAX_SOURCE_SIZE_KB * 1024) {
 			throw new AppError(
 				"VALIDATION_ERROR",
-				"Source exceeds allowed size.",
+				"Kaynak dosyalar izin verilen boyutu aşıyor.",
 				400,
 				{
 					limitKb: env.MAX_SOURCE_SIZE_KB,
@@ -63,7 +63,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 				) {
 					throw new AppError(
 						"SECURITY_BLOCKED",
-						`Unsafe file path rejected: ${file.path}`,
+						`Güvenli olmayan dosya yolu reddedildi: ${file.path}`,
 						400,
 					);
 				}
@@ -144,7 +144,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 			if (fileInfo.size > env.MAX_OUTPUT_SIZE_MB * 1024 * 1024) {
 				return {
 					status: "FAILED",
-					log: `${log}\nOutput exceeded maximum size.`,
+					log: `${log}\nÇıktı izin verilen en büyük boyutu aştı.`,
 					errorCode: "SECURITY_BLOCKED",
 					pdfOutput: null,
 					svgOutput: null,
@@ -160,7 +160,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 				if (svgInfo.size > env.MAX_OUTPUT_SIZE_MB * 1024 * 1024) {
 					return {
 						status: "FAILED",
-						log: `${log}\nSVG output exceeded maximum size.`,
+						log: `${log}\nSVG çıktısı izin verilen en büyük boyutu aştı.`,
 						errorCode: "SECURITY_BLOCKED",
 						pdfOutput: null,
 						svgOutput: null,
@@ -191,7 +191,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 		} catch (error) {
 			const finishedAt = new Date();
 			const message =
-				error instanceof Error ? error.message : "Compile failed.";
+				error instanceof Error ? error.message : "Derleme başarısız oldu.";
 			return {
 				status: "FAILED",
 				log: message,
@@ -226,7 +226,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 					child.kill("SIGKILL");
 					resolve({
 						code: null,
-						log: `${log}\nCompilation timed out.`,
+						log: `${log}\nDerleme zaman aşımına uğradı.`,
 						timedOut: true,
 					});
 				}, timeoutMs);

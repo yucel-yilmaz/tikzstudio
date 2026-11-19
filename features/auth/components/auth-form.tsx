@@ -25,6 +25,25 @@ const SOCIAL_LABELS: Record<SocialProviderId, string> = {
 
 type AuthMode = "login" | "signup";
 
+// better-auth returns English messages; show Turkish ones for known codes.
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+	INVALID_EMAIL_OR_PASSWORD: "E-posta veya şifre hatalı.",
+	USER_ALREADY_EXISTS: "Bu e-posta adresiyle zaten bir hesap var.",
+	USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
+		"Bu e-posta adresiyle zaten bir hesap var. Başka bir e-posta deneyin.",
+	PASSWORD_TOO_SHORT: "Şifre en az 8 karakter olmalı.",
+	PASSWORD_TOO_LONG: "Şifre çok uzun.",
+	INVALID_EMAIL: "Geçerli bir e-posta adresi girin.",
+	TOO_MANY_REQUESTS:
+		"Çok fazla deneme yapıldı. Lütfen biraz sonra tekrar deneyin.",
+};
+
+function authErrorMessage(error?: { code?: string } | null) {
+	return (
+		(error?.code && AUTH_ERROR_MESSAGES[error.code]) || "Giriş başarısız oldu."
+	);
+}
+
 const endpointByMode: Record<AuthMode, string> = {
 	login: "/api/auth/sign-in/email",
 	signup: "/api/auth/sign-up/email",
@@ -51,7 +70,7 @@ export function AuthForm({
 			.catch(() => null);
 		if (!result || result.error) {
 			setSubmitting(false);
-			setError(result?.error?.message ?? "Authentication failed.");
+			setError(authErrorMessage(result?.error));
 		}
 	}
 
@@ -86,9 +105,13 @@ export function AuthForm({
 
 		if (!response.ok) {
 			const body = (await response.json().catch(() => null)) as {
-				message?: string;
+				code?: string;
 			} | null;
-			setError(body?.message ?? "Authentication failed.");
+			setError(
+				response.status === 429
+					? AUTH_ERROR_MESSAGES.TOO_MANY_REQUESTS
+					: authErrorMessage(body),
+			);
 			return;
 		}
 
@@ -105,25 +128,25 @@ export function AuthForm({
 				<CardContent className="relative flex h-full flex-col justify-between gap-8 p-8 lg:p-10">
 					<div className="space-y-5">
 						<Badge variant="outline" className="normal-case tracking-normal">
-							TikZLab Workspace
+							TikZ Studio
 						</Badge>
 						<div className="space-y-3">
 							<h1 className="max-w-lg text-4xl font-semibold tracking-tight lg:text-5xl">
-								A workspace designed for serious TikZ work in the browser.
+								Matematik şekilleriniz için tarayıcıda çalışan TikZ editörü.
 							</h1>
 							<p className="max-w-xl text-base leading-7 text-(--ink-1)">
-								Code editor, secure compilation, PDF preview and log stream on
-								the same surface. A fast production environment without
-								unnecessary tool clutter for technical diagrams.
+								Kod editörü, güvenli derleme, PDF önizleme ve derleme günlüğü
+								aynı ekranda. Geometri çizimleri, grafikler ve sınav kâğıtları
+								için kurulum gerektirmeyen hızlı bir çalışma ortamı.
 							</p>
 						</div>
 					</div>
 
 					<div className="grid gap-3">
 						{[
-							"Save projects and manage every change in one session.",
-							"Compile in a sandbox and see output and errors instantly.",
-							"Start new documents faster with templates and snippets.",
+							"Projelerinizi kaydedin, tüm değişiklikleri tek yerden yönetin.",
+							"Güvenli ortamda derleyin, çıktıyı ve hataları anında görün.",
+							"Şablonlar ve kod parçacıklarıyla yeni belgelere hızla başlayın.",
 						].map((item) => (
 							<div
 								key={item}
@@ -140,32 +163,41 @@ export function AuthForm({
 				<CardHeader className="space-y-4 pb-3">
 					<div className="flex items-center justify-between gap-3">
 						<Badge variant="default" className="normal-case tracking-normal">
-							{mode === "signup" ? "Sign up" : "Sign in"}
+							{mode === "signup" ? "Hesap oluştur" : "Giriş yap"}
 						</Badge>
 						<Button asChild variant="ghost" size="sm">
 							<Link href="/" className="gap-2">
 								<ArrowLeft size={15} />
-								Home
+								Ana sayfa
 							</Link>
 						</Button>
 					</div>
 					<div className="space-y-2">
 						<CardTitle className="text-3xl">
 							{mode === "signup"
-								? "Create your TikZLab account"
-								: "Back to your workspace"}
+								? "TikZ Studio hesabınızı oluşturun"
+								: "Çalışma alanınıza dönün"}
 						</CardTitle>
 						<CardDescription className="text-sm leading-6">
-							Sign in to save, compile, and manage your TikZ projects.
+							TikZ projelerinizi kaydetmek, derlemek ve yönetmek için giriş
+							yapın.
 						</CardDescription>
 					</div>
 				</CardHeader>
 
 				<CardContent className="space-y-5">
-					<form action={handleSubmit} className="space-y-5">
+					<form
+						// onSubmit instead of `action`: React resets uncontrolled inputs
+						// after a form action, which wiped the email on a failed sign-in.
+						onSubmit={(event) => {
+							event.preventDefault();
+							void handleSubmit(new FormData(event.currentTarget));
+						}}
+						className="space-y-5"
+					>
 						{mode === "signup" ? (
 							<label className="block space-y-2">
-								<span className="text-sm font-medium">Full name</span>
+								<span className="text-sm font-medium">Ad soyad</span>
 								<div className="relative">
 									<User2
 										className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--ink-1)"
@@ -175,14 +207,14 @@ export function AuthForm({
 										name="name"
 										required
 										className="pl-11"
-										placeholder="Enter your full name"
+										placeholder="Adınızı ve soyadınızı girin"
 									/>
 								</div>
 							</label>
 						) : null}
 
 						<label className="block space-y-2">
-							<span className="text-sm font-medium">Email</span>
+							<span className="text-sm font-medium">E-posta</span>
 							<div className="relative">
 								<Mail
 									className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--ink-1)"
@@ -193,13 +225,13 @@ export function AuthForm({
 									name="email"
 									required
 									className="pl-11"
-									placeholder="you@example.com"
+									placeholder="ornek@okul.k12.tr"
 								/>
 							</div>
 						</label>
 
 						<label className="block space-y-2">
-							<span className="text-sm font-medium">Password</span>
+							<span className="text-sm font-medium">Şifre</span>
 							<div className="relative">
 								<LockKeyhole
 									className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--ink-1)"
@@ -211,7 +243,7 @@ export function AuthForm({
 									required
 									minLength={8}
 									className="pl-11"
-									placeholder="At least 8 characters"
+									placeholder="En az 8 karakter"
 								/>
 							</div>
 						</label>
@@ -224,10 +256,10 @@ export function AuthForm({
 
 						<Button type="submit" disabled={pending} className="w-full">
 							{pending
-								? "Processing…"
+								? "İşleniyor…"
 								: mode === "signup"
-									? "Create account"
-									: "Sign in"}
+									? "Hesap oluştur"
+									: "Giriş yap"}
 						</Button>
 					</form>
 
@@ -235,7 +267,7 @@ export function AuthForm({
 						<div className="space-y-3">
 							<div className="flex items-center gap-3 text-xs text-(--ink-1)">
 								<span className="h-px flex-1 bg-(--line)" />
-								or
+								veya
 								<span className="h-px flex-1 bg-(--line)" />
 							</div>
 							<div className="grid gap-2 sm:grid-cols-2">
@@ -247,7 +279,7 @@ export function AuthForm({
 										disabled={pending}
 										onClick={() => handleSocial(provider)}
 									>
-										Continue with {SOCIAL_LABELS[provider]}
+										{SOCIAL_LABELS[provider]} ile devam et
 									</Button>
 								))}
 							</div>
@@ -255,12 +287,12 @@ export function AuthForm({
 					) : null}
 
 					<div className="rounded-3xl border border-(--line) bg-white/75 p-4 text-sm leading-6 text-(--ink-1)">
-						{mode === "signup" ? "Already have an account?" : "New here?"}{" "}
+						{mode === "signup" ? "Zaten hesabınız var mı?" : "Yeni misiniz?"}{" "}
 						<Link
 							href={mode === "signup" ? "/login" : "/signup"}
 							className="font-medium text-(--accent-strong)"
 						>
-							{mode === "signup" ? "Sign in" : "Create account"}
+							{mode === "signup" ? "Giriş yap" : "Hesap oluştur"}
 						</Link>
 					</div>
 				</CardContent>

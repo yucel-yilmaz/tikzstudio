@@ -76,7 +76,7 @@ export async function requireOwnedProject(ownerId: string, projectId: string) {
 	const project = await getOwnedProject(ownerId, projectId);
 
 	if (!project) {
-		throw new AppError("NOT_FOUND", "Project not found.", 404);
+		throw new AppError("NOT_FOUND", "Proje bulunamadı.", 404);
 	}
 
 	return project;
@@ -102,7 +102,7 @@ export async function forkProjectForUser(
 	return prisma.project.create({
 		data: {
 			ownerId,
-			title: `Copy of ${source.title}`,
+			title: `${source.title} (kopya)`,
 			description: source.description,
 			isPublic: false,
 			files: {
@@ -122,7 +122,7 @@ export async function requirePublicProject(projectId: string) {
 	const project = await getPublicProject(projectId);
 
 	if (!project) {
-		throw new AppError("NOT_FOUND", "Project not found.", 404);
+		throw new AppError("NOT_FOUND", "Proje bulunamadı.", 404);
 	}
 
 	return project;
@@ -183,7 +183,7 @@ export async function updateProjectFileForUser(
 	const file = project.files.find((candidate) => candidate.id === fileId);
 
 	if (!file) {
-		throw new AppError("NOT_FOUND", "Project file not found.", 404);
+		throw new AppError("NOT_FOUND", "Proje dosyası bulunamadı.", 404);
 	}
 
 	if (input.path && input.path !== file.path) {
@@ -191,11 +191,7 @@ export async function updateProjectFileForUser(
 			(candidate) => candidate.id !== fileId && candidate.path === input.path,
 		);
 		if (conflict) {
-			throw new AppError(
-				"CONFLICT",
-				"A file with the same path already exists.",
-				409,
-			);
+			throw new AppError("CONFLICT", "Bu yolda zaten bir dosya var.", 409);
 		}
 	}
 
@@ -236,11 +232,7 @@ export async function createProjectFileForUser(
 		(candidate) => candidate.path === input.path,
 	);
 	if (conflict) {
-		throw new AppError(
-			"CONFLICT",
-			"A file with the same path already exists.",
-			409,
-		);
+		throw new AppError("CONFLICT", "Bu yolda zaten bir dosya var.", 409);
 	}
 
 	return prisma.projectFile.create({
@@ -282,11 +274,7 @@ export async function uploadBinaryFileForUser(
 	const project = await requireOwnedProject(ownerId, projectId);
 	const conflict = project.files.find((f) => f.path === filePath);
 	if (conflict) {
-		throw new AppError(
-			"CONFLICT",
-			"A file with the same path already exists.",
-			409,
-		);
+		throw new AppError("CONFLICT", "Bu yolda zaten bir dosya var.", 409);
 	}
 
 	const asText = isTextFile(filePath);
@@ -314,13 +302,13 @@ export async function deleteProjectFileForUser(
 	const file = project.files.find((candidate) => candidate.id === fileId);
 
 	if (!file) {
-		throw new AppError("NOT_FOUND", "Project file not found.", 404);
+		throw new AppError("NOT_FOUND", "Proje dosyası bulunamadı.", 404);
 	}
 
 	if (file.isMain) {
 		throw new AppError(
 			"VALIDATION_ERROR",
-			"Cannot delete the main file. Set another file as main first.",
+			"Ana dosya silinemez. Önce başka bir dosyayı ana dosya yapın.",
 			400,
 		);
 	}

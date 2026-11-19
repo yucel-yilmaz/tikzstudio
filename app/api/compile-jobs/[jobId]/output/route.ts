@@ -43,7 +43,7 @@ export async function GET(
 
 		if (!job) {
 			return Response.json(
-				{ error: { code: "NOT_FOUND", message: "Output not found." } },
+				{ error: { code: "NOT_FOUND", message: "Çıktı bulunamadı." } },
 				{ status: 404 },
 			);
 		}
@@ -51,7 +51,7 @@ export async function GET(
 		if (!session && !job.project.isPublic) {
 			return Response.json(
 				{
-					error: { code: "UNAUTHORIZED", message: "Authentication required." },
+					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
 				},
 				{ status: 401 },
 			);
@@ -69,7 +69,7 @@ export async function GET(
 
 		if (!outputUrl) {
 			return Response.json(
-				{ error: { code: "NOT_FOUND", message: "Output not found." } },
+				{ error: { code: "NOT_FOUND", message: "Çıktı bulunamadı." } },
 				{ status: 404 },
 			);
 		}

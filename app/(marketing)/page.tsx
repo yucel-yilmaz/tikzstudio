@@ -22,50 +22,50 @@ export default function LandingPage() {
 					<div className="space-y-6">
 						<div className="flex flex-wrap items-center gap-2">
 							<Badge variant="outline" className="normal-case tracking-normal">
-								TikZLab
+								TikZ Studio
 							</Badge>
 							<Badge variant="default" className="normal-case tracking-normal">
-								Next.js-based TikZ workspace
+								Matematik öğretmenleri için TikZ çalışma alanı
 							</Badge>
 						</div>
 
 						<div className="space-y-4">
 							<h1 className="max-w-4xl text-5xl font-semibold leading-tight tracking-tight md:text-6xl">
-								Create TikZ diagrams with a modern editor, secure compilation
-								and live PDF output.
+								Geometri çizimlerini, fonksiyon grafiklerini ve sınav
+								kâğıtlarını TikZ ile tarayıcıda hazırlayın.
 							</h1>
 							<p className="max-w-2xl text-base leading-7 text-(--ink-1) md:text-lg">
-								A professional browser editor for research, education and
-								technical documentation teams. Write, compile, inspect logs and
-								manage PDF output on a single surface.
+								Kurulum gerektirmeyen bir LaTeX editörü: kodunuzu yazın, tek
+								tıkla derleyin, sonucu anında PDF olarak görün. Ders notu ve
+								yazılı sınav hazırlarken tüm işinizi tek ekranda yapın.
 							</p>
 						</div>
 
 						<div className="flex flex-col gap-3 sm:flex-row">
 							<Button asChild size="lg">
 								<Link href="/signup">
-									Get started
+									Hemen başla
 									<ArrowRight size={16} />
 								</Link>
 							</Button>
 							<Button asChild variant="outline" size="lg">
-								<Link href="/login">Sign in</Link>
+								<Link href="/login">Giriş yap</Link>
 							</Button>
 						</div>
 
 						<div className="grid gap-3 pt-2 sm:grid-cols-3">
 							{[
 								[
-									"Multi-file templates",
-									"Start from 20+ ready templates, including a high-school math pack.",
+									"Hazır şablonlar",
+									"Lise matematik paketi dahil 20'den fazla hazır şablonla başlayın.",
 								],
 								[
-									"Sandboxed compilation",
-									"5 engines — Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, Biber.",
+									"Güvenli derleme",
+									"5 motor: Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, Biber.",
 								],
 								[
 									"PDF, SVG & PNG",
-									"Download in any format, directly from the browser.",
+									"İstediğiniz biçimde, doğrudan tarayıcıdan indirin.",
 								],
 							].map(([title, description]) => (
 								<div
@@ -87,7 +87,7 @@ export default function LandingPage() {
 								<div className="space-y-1">
 									<p className="text-sm font-medium">main.tex</p>
 									<p className="text-xs uppercase tracking-[0.16em] text-[#c9bca7]">
-										Active editing
+										Düzenleniyor
 									</p>
 								</div>
 								<Badge
@@ -110,11 +110,11 @@ export default function LandingPage() {
 
 							<div className="grid gap-3">
 								{[
-									["Edit code", "Update the TikZ source in the editor panel."],
-									["Compile", "Generate PDF inside an isolated process."],
+									["Kodu düzenle", "TikZ kodunu editör panelinde güncelleyin."],
+									["Derle", "PDF, yalıtılmış bir ortamda oluşturulur."],
 									[
-										"Review",
-										"Verify the result from the preview and log view.",
+										"Kontrol et",
+										"Sonucu önizlemeden ve derleme günlüğünden doğrulayın.",
 									],
 								].map(([title, description]) => (
 									<div
@@ -137,27 +137,27 @@ export default function LandingPage() {
 				{[
 					{
 						icon: Workflow,
-						title: "Single-surface workflow",
+						title: "Tek ekranda çalışma",
 						description:
-							"Manage code, compilation and PDF/SVG/PNG output in one workspace without splitting across separate tools.",
+							"Kod, derleme ve PDF/SVG/PNG çıktısı aynı çalışma alanında; ayrı programlar arasında gidip gelmenize gerek yok.",
 					},
 					{
 						icon: ShieldCheck,
-						title: "Secure compile sandbox",
+						title: "Güvenli derleme ortamı",
 						description:
-							"Five engines — Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX+Biber — running in a network-isolated Docker environment.",
+							"Beş motor (Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX+Biber), ağdan yalıtılmış bir Docker ortamında çalışır.",
 					},
 					{
 						icon: ImageDown,
-						title: "Image to LaTeX",
+						title: "Görselden LaTeX'e",
 						description:
-							"Convert formula images to LaTeX using Docker Model Runner, pix2tex, or Mathpix — directly inside the editor.",
+							"Formül fotoğraflarını Docker Model Runner, pix2tex veya Mathpix ile doğrudan editörün içinde LaTeX koduna dönüştürün.",
 					},
 					{
 						icon: Layers3,
-						title: "Multi-file templates",
+						title: "Matematik şablonları",
 						description:
-							"Multi-file starters with figures, styles and images — plus Turkish high-school math templates for geometry, graphs, probability and exam sheets.",
+							"Geometri, fonksiyon grafikleri, olasılık ve yazılı sınav kâğıtları için hazır lise matematik şablonları; şekil, stil ve görsel içeren çok dosyalı başlangıç projeleri.",
 					},
 				].map(({ icon: Icon, title, description }) => (
 					<Card key={title}>
@@ -180,17 +180,17 @@ export default function LandingPage() {
 				<Card>
 					<CardContent className="space-y-5 p-6">
 						<Badge variant="outline" className="normal-case tracking-normal">
-							Who is it for?
+							Kimler için?
 						</Badge>
 						<div className="space-y-3">
 							<h2 className="text-3xl font-semibold">
-								For teams who don&apos;t want to trade diagram quality for tool
-								complexity.
+								Karmaşık programlarla uğraşmadan kaliteli şekiller hazırlamak
+								isteyen öğretmenler için.
 							</h2>
 							<p className="text-sm leading-7 text-(--ink-1)">
-								A clean, focused TikZ surface for teams producing academic
-								figures, technical schematics, algorithm flows and educational
-								content.
+								Çalışma kâğıdı, yazılı sınav, ders notu ve deneme sınavı için
+								geometri şekilleri, koordinat düzlemleri ve grafikler üreten
+								matematik öğretmenlerine sade ve odaklı bir TikZ ortamı.
 							</p>
 						</div>
 					</CardContent>
@@ -203,16 +203,16 @@ export default function LandingPage() {
 						</div>
 						<div className="space-y-3">
 							<h2 className="text-2xl font-semibold">
-								Quick start, professional output
+								Hızlı başlangıç, baskıya hazır çıktı
 							</h2>
 							<p className="text-sm leading-7 text-(--ink-1)">
-								Cut the time from first line to downloaded PDF while keeping the
-								workspace professional.
+								İlk satırdan indirilen PDF'e kadar geçen süreyi kısaltın;
+								şekilleriniz her zaman temiz ve tutarlı görünsün.
 							</p>
 						</div>
 						<Button asChild variant="secondary">
 							<Link href="/signup">
-								Create account
+								Hesap oluştur
 								<ArrowRight size={16} />
 							</Link>
 						</Button>

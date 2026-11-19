@@ -13,14 +13,19 @@ export async function POST(
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session)
-			return Response.json({ error: "Unauthorized" }, { status: 401 });
+			return Response.json(
+				{
+					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
+				},
+				{ status: 401 },
+			);
 
 		const { projectId } = await context.params;
 		const formData = await request.formData();
 		const fileEntry = formData.get("file");
 
 		if (!(fileEntry instanceof File))
-			throw new AppError("BAD_REQUEST", "file field required", 400);
+			throw new AppError("BAD_REQUEST", "Dosya alanı gerekli.", 400);
 
 		if (fileEntry.size > MAX_UPLOAD_BYTES)
 			throw new AppError(

@@ -19,6 +19,8 @@ export type SeedTemplateFile = {
 
 export type SeedTemplate = {
 	title: string;
+	/** Former titles of this official template (seed renames them in place). */
+	previousTitles?: string[];
 	category: string;
 	description: string;
 	content?: string;

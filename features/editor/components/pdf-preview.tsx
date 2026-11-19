@@ -69,7 +69,7 @@ export function PdfPreview({
 
 				if (!response.ok) {
 					throw new Error(
-						`Failed to load PDF (${response.status} ${response.statusText}).`,
+						`PDF yüklenemedi (${response.status} ${response.statusText}).`,
 					);
 				}
 
@@ -114,7 +114,7 @@ export function PdfPreview({
 				setError(
 					renderError instanceof Error
 						? renderError.message
-						: "PDF render failed.",
+						: "PDF görüntülenemedi.",
 				);
 			} finally {
 				if (active) {
@@ -135,9 +135,9 @@ export function PdfPreview({
 		return (
 			<div className="flex h-full min-h-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 p-4 text-center">
 				<div className="max-w-xs space-y-2">
-					<p className="text-sm font-medium">No preview yet</p>
+					<p className="text-sm font-medium">Henüz önizleme yok</p>
 					<p className="text-sm text-muted-foreground">
-						PDF will appear here once compilation completes.
+						Derleme tamamlandığında PDF burada görünecek.
 					</p>
 				</div>
 			</div>
@@ -148,9 +148,9 @@ export function PdfPreview({
 		<div className="flex h-full min-w-0 flex-col gap-3 overflow-hidden">
 			<div className="flex items-center justify-between gap-3">
 				<div className="space-y-1">
-					<p className="text-sm font-medium">PDF Preview</p>
+					<p className="text-sm font-medium">PDF önizleme</p>
 					<p className="text-xs text-muted-foreground">
-						Zoom {Math.round(zoom * 100)}%
+						Yakınlaştırma %{Math.round(zoom * 100)}
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
@@ -159,6 +159,8 @@ export function PdfPreview({
 						variant="outline"
 						size="icon-sm"
 						onClick={() => onZoomChange(Math.max(0.6, zoom - 0.2))}
+						aria-label="Uzaklaştır"
+						title="Uzaklaştır"
 					>
 						<Minus />
 					</Button>
@@ -167,6 +169,8 @@ export function PdfPreview({
 						variant="outline"
 						size="icon-sm"
 						onClick={() => onZoomChange(Math.min(2.4, zoom + 0.2))}
+						aria-label="Yakınlaştır"
+						title="Yakınlaştır"
 					>
 						<Plus />
 					</Button>
@@ -184,7 +188,7 @@ export function PdfPreview({
 					)}
 				>
 					<LoaderCircle className="animate-spin" size={16} />
-					<span className="text-sm text-muted-foreground">Loading PDF…</span>
+					<span className="text-sm text-muted-foreground">PDF yükleniyor…</span>
 				</div>
 
 				{error ? (

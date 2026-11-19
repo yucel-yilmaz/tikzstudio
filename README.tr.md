@@ -23,7 +23,7 @@
 - 🚦 **Hız sınırlaması** — kullanıcı başına dakikada 5 derleme (veritabanı destekli, ek bağımlılık yok)
 - 💾 **Otomatik kaydetme** — geri çekilme ve görünür kayıt durumu ile
 - 🌗 **Açık/koyu tema** desteği (Tailwind v4)
-- 🇹🇷 **Türkçe içerik** — Türkçe babel ve fontlar tüm motorlarda çalışır; matematik şablonları ve sunucu mesajları Türkçedir (editör arayüzü henüz İngilizce)
+- 🇹🇷 **Türkçe arayüz** — arayüzün tamamı, API hata mesajları ve resmi şablonlar Türkçedir; Türkçe babel ve fontlar tüm motorlarda çalışır
 
 ---
 
@@ -299,7 +299,8 @@ npm run db:migrate
 - [x] Lise matematik şablon paketi (Türkçe)
 - [ ] Şablon ZIP içe/dışa aktarma ve otomatik şablon önizlemesi
 - [ ] "Projeyi şablon olarak kaydet" düğmesi (servis hazır, arayüze bağlanmadı)
-- [ ] Tam Türkçe arayüz (i18n)
+- [x] Türkçe arayüz
+- [ ] Çok dilli arayüz (i18n altyapısı)
 - [x] Çoklu provider destekli görüntüden LaTeX (img2latex)
 - [ ] Gerçek zamanlı işbirliği (Y.js)
 - [ ] Mobil öncelikli editör iyileştirmeleri

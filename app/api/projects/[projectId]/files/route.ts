@@ -16,7 +16,7 @@ export async function GET(
 		if (!session) {
 			return Response.json(
 				{
-					error: { code: "UNAUTHORIZED", message: "Authentication required." },
+					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
 				},
 				{ status: 401 },
 			);
@@ -42,7 +42,7 @@ export async function POST(
 		if (!session) {
 			return Response.json(
 				{
-					error: { code: "UNAUTHORIZED", message: "Authentication required." },
+					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
 				},
 				{ status: 401 },
 			);

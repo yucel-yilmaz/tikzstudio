@@ -53,7 +53,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 		<>
 			<div className="flex items-center justify-between px-4 pb-2 pt-3">
 				<span className="text-xs text-muted-foreground">
-					{snippets.length} snippet
+					{snippets.length} kod parçacığı
 				</span>
 				<Button
 					size="sm"
@@ -62,7 +62,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 					onClick={() => setIsCreating((v) => !v)}
 				>
 					<Plus className="size-3" />
-					New
+					Yeni
 				</Button>
 			</div>
 
@@ -77,7 +77,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 				<DialogContent className="flex max-h-[80vh] flex-col gap-0 p-0 sm:max-w-lg">
 					<DialogHeader className="border-b px-4 py-3">
 						<DialogTitle className="text-sm font-medium">
-							New Snippet
+							Yeni kod parçacığı
 						</DialogTitle>
 					</DialogHeader>
 					<form
@@ -99,7 +99,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 							/>
 							<div className="flex gap-2">
 								<Input
-									placeholder="\trigger"
+									placeholder="Tetikleyici (ör. \daire)"
 									value={form.trigger}
 									onChange={(e) =>
 										setForm((f) => ({ ...f, trigger: e.target.value }))
@@ -130,10 +130,10 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 								variant="ghost"
 								onClick={() => setIsCreating(false)}
 							>
-								Cancel
+								İptal
 							</Button>
 							<Button type="submit" disabled={createMutation.isPending}>
-								Save
+								Kaydet
 							</Button>
 						</div>
 					</form>
@@ -166,7 +166,7 @@ export function SnippetsPanel({ snippets, onInsert }: SnippetsPanelProps) {
 									type="button"
 									className="absolute right-2 top-2 hidden rounded p-0.5 text-muted-foreground hover:text-destructive group-hover:flex"
 									onClick={() => deleteMutation.mutate(snippet.id)}
-									aria-label="Delete"
+									aria-label="Sil"
 								>
 									<Trash2 className="size-3" />
 								</button>

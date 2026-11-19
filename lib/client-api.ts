@@ -50,7 +50,7 @@ async function requestJson<T>(
 			.json()
 			.catch(() => null)) as ApiErrorShape | null;
 		throw new ClientApiError(
-			payload?.error?.message ?? "Request failed.",
+			payload?.error?.message ?? "İstek başarısız oldu.",
 			payload?.error?.code ?? "UNKNOWN_ERROR",
 			response.status,
 		);

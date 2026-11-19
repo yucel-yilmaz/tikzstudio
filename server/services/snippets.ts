@@ -44,7 +44,8 @@ export async function createUserSnippet(
 	data: CreateSnippetInput,
 ) {
 	const trigger = data.trigger.replace(/^\\/u, "").trim();
-	if (!trigger) throw new AppError("BAD_REQUEST", "Trigger boş olamaz", 400);
+	if (!trigger)
+		throw new AppError("BAD_REQUEST", "Tetikleyici boş olamaz.", 400);
 
 	const existing = await prisma.snippet.findFirst({
 		where: { ownerId, trigger },
@@ -52,7 +53,7 @@ export async function createUserSnippet(
 	if (existing)
 		throw new AppError(
 			"CONFLICT",
-			`"\\${trigger}" trigger'ı zaten kullanımda`,
+			`"\\${trigger}" tetikleyicisi zaten kullanımda.`,
 			409,
 		);
 
@@ -71,6 +72,6 @@ export async function createUserSnippet(
 export async function deleteUserSnippet(ownerId: string, snippetId: string) {
 	const snippet = await prisma.snippet.findUnique({ where: { id: snippetId } });
 	if (!snippet || snippet.ownerId !== ownerId)
-		throw new AppError("NOT_FOUND", "Snippet bulunamadı", 404);
+		throw new AppError("NOT_FOUND", "Kod parçacığı bulunamadı.", 404);
 	await prisma.snippet.delete({ where: { id: snippetId } });
 }

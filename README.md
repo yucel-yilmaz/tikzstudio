@@ -23,7 +23,7 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file
 - 🚦 **Rate limiting** — 5 compiles per minute per user (database-backed, no extra dependencies)
 - 💾 **Auto-save** with debounce and visible save state
 - 🌗 **Light/dark theme** support (Tailwind v4)
-- 🇹🇷 **Turkish content** — Turkish babel and fonts work in every engine; math templates and server messages are Turkish (the editor UI itself is still English)
+- 🇹🇷 **Turkish UI** — the whole interface, API error messages and official templates are in Turkish; Turkish babel and fonts work in every engine
 
 ---
 
@@ -311,7 +311,8 @@ npm run db:migrate
 - [x] High-school math template pack (Turkish)
 - [ ] Template ZIP import/export and auto-generated template previews
 - [ ] "Save project as template" button (service exists, not yet wired to the UI)
-- [ ] Full Turkish UI (i18n)
+- [x] Turkish UI
+- [ ] Multi-language UI (i18n framework)
 - [x] Image to LaTeX (img2latex) with multiple provider support
 - [ ] Real-time collaboration (Y.js)
 - [ ] Mobile-first editor improvements

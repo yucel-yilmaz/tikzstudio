@@ -9,8 +9,9 @@ import { cn } from "@/lib/utils";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-	title: "TikZLab",
-	description: "A modern LaTeX editor focused on TikZ diagrams.",
+	title: "TikZ Studio",
+	description:
+		"Geometri çizimleri, grafikler ve sınav kâğıtları için tarayıcıda çalışan modern TikZ ve LaTeX editörü.",
 };
 
 export default function RootLayout({
@@ -20,7 +21,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html
-			lang="en"
+			lang="tr"
 			className={cn("h-full antialiased", "font-sans", geist.variable)}
 		>
 			<body className="min-h-full bg-background text-foreground">
