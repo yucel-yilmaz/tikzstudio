@@ -1,36 +1,79 @@
-# TikZ Studio — Browser-based TikZ/LaTeX Diagram Editor
+# TikZ Studio
 
-A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file LaTeX documents. Built on Next.js 16 with React 19, it pairs a CodeMirror editor with sandboxed Docker compilation and live PDF preview — so you can edit, compile, and download high-quality figures from any browser. It is built for anyone who writes TikZ/LaTeX: high-school and university students, teachers, and academics.
+**An online TikZ and LaTeX editor. Write code, compile it in a sandbox, and see the PDF side by side, all in the browser.**
 
-> Status: under active development. APIs and UI may change.
+[**Open the app → tikz.futurego.tech**](https://tikz.futurego.tech) · [Product site](https://yucel-yilmaz.github.io/tikzstudio/) · [Türkçe README](README.tr.md)
+
+![The TikZ Studio editor: TikZ source for a triangle with its circumcircle on the left, the compiled PDF on the right](site/screenshots/editor-preview.png)
+
+TikZ Studio pairs a CodeMirror editor with a live PDF preview and a hardened Docker compiler (Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX + Biber). It is built for anyone who writes TikZ/LaTeX: high-school and university students, teachers, and academics. Nothing needs to be installed on the user's machine.
+
+> **Language:** the interface, API error messages and official templates are in Turkish. Documents can be written in any language; the screenshots below use English example projects.
+>
+> **Status:** under active development. APIs and UI may change.
 
 ---
 
 ## ✨ Features
 
-- 📝 **CodeMirror 6 editor** with LaTeX syntax highlighting, bracket matching, line numbers, and inline error diagnostics
+### Writing and compiling
+
+- 📝 **CodeMirror 6 editor** with LaTeX syntax highlighting, bracket matching, line numbers, inline error markers, and auto-save about a second after you stop typing
+- ⚙️ **Five LaTeX engines** selectable per project: Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX + Biber
 - 🛡️ **Sandboxed compilation** in a hardened Docker container (`--network none`, `--read-only`, capability drops, memory/CPU/timeout caps, process-level timeout)
-- ⚙️ **Five LaTeX engines** selectable per compile: Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX + Biber
-- 📄 **Live PDF preview** rendered with PDF.js, DPR-aware for high-DPI displays
-- 🎨 **SVG + PNG export** alongside PDF — SVG is DOMPurify-sanitised; PNG rendered at 300 DPI via `pdftoppm` (print-ready for worksheets)
-- 🖼️ **Image to LaTeX** (img2latex) — convert math/formula images to LaTeX via Docker Model Runner (`ai/qwen3-vl`), pix2tex (local Docker API), or Mathpix
-- 🗂️ **Multi-file projects** — create, rename, delete, upload binaries (images, fonts, `.cls`, `.sty`), mark as main
-- 📚 **Compile history** — browse past jobs, download archived PDF/SVG/PNG outputs
-- 🔁 **Project forking** — copy any public project into your own workspace
-- 🧩 **Multi-file templates** — new projects copy every file of a template (including images and `.sty` files); create your own templates from the editor
-- 📚 **Template library (33 templates)** — all Turkish-labelled, multi-file where useful, and verified against Tectonic and pdfLaTeX:
-  - **Basics:** shapes, nodes, flowcharts, trees, graphs
+- 📄 **Live PDF preview** rendered with PDF.js, DPR-aware for high-DPI displays, with zoom and a summarised compile log
+- 🎨 **SVG + PNG export** alongside PDF: SVG is DOMPurify-sanitised; PNG is rendered at 300 DPI via `pdftoppm` (print-ready for worksheets)
+- 📚 **Compile history**: browse past jobs and download archived PDF/SVG/PNG outputs
+- 🖼️ **Image to LaTeX** (img2latex): convert formula images via Docker Model Runner (`ai/qwen3-vl`), pix2tex (local Docker API) or Mathpix; only configured providers are shown
+
+### Projects, templates and sharing
+
+- 🗂️ **Multi-file projects**: create, rename, delete, upload binaries (images, fonts, `.cls`, `.sty`), mark as main
+- 📚 **34 official templates**, Turkish-labelled, multi-file where useful, verified against Tectonic and pdfLaTeX:
+  - **Tutorial:** a guided first TikZ drawing
+  - **Basics:** shapes, nodes, flowcharts, trees, graphs, a simple neural network
   - **High-school math:** triangles, circles, tkz-euclide, line/parabola/piecewise graphs, unit circle, number line, Venn, probability tree, solids, area between curves, A–E exam sheet
   - **University & academic:** data plot with error bars and fit, grouped bar chart, normal distribution, 3D surface, vectors/projection, commutative diagrams (tikz-cd), finite automaton, control-system block diagram, Beamer slides, multi-file article skeleton
-- 🖼️ **Template previews** — every template shows a thumbnail in the new-project dialog (with a category filter) and the templates panel; personal templates get one from the project's latest successful compile
-- 📦 **ZIP import/export** — import an Overleaf (or any) project as a `.zip`: a single top folder is unwrapped, build artifacts are skipped, the main file is detected; export any project as a `.zip`. Limits: 20 MB archive, 300 files, 5 MB per file
-- 💾 **Save as template** — turn any project (all files) into a personal template from the project settings panel
-- 🔐 **Authentication** via [better-auth](https://www.better-auth.com/) — email + password; GitHub and Google OAuth are enabled automatically when their client id/secret are set
-- 🛡️ **Account security** — password reset by email (1-hour single-use links, other sessions revoked, change notice), email verification (required automatically once SMTP is configured), an account page (change password, sign out other sessions) and per-IP rate limits on sign-in/sign-up/email endpoints. Configure SMTP via `SMTP_*`/`MAIL_FROM`; without it emails are logged to the server console
-- 🚦 **Rate limiting** — 5 compiles per minute per user (database-backed, no extra dependencies)
-- 💾 **Auto-save** with debounce and visible save state
+- 🖼️ **Template previews**: every template shows a thumbnail in the new-project dialog (with a category filter) and the templates panel; personal templates get one from the project's latest successful compile
+- 🧩 **Snippets with triggers**: insert common TikZ blocks from a panel or by typing `\trigger`; add your own snippets and single-file templates
+- 💾 **Save as template**: turn any project (all files) into a personal template from the project settings panel
+- 📦 **ZIP import/export (Overleaf-compatible)**: a single top folder is unwrapped, build artifacts are skipped, the main file is detected. Limits: 20 MB archive, 300 files, 5 MB per file
+- 🔁 **Public sharing and forking**: a public project gets a read-only page; anyone can copy it into their own workspace
+
+### Accounts and help
+
+- 🔐 **Authentication** via [better-auth](https://www.better-auth.com/): email + password; GitHub and Google OAuth are enabled automatically when their client id/secret are set
+- 🛡️ **Account security**: password reset by email (1-hour single-use links, other sessions revoked, change notice), email verification (required automatically once SMTP is configured), an account page (change password, sign out other sessions, delete account) and per-IP rate limits on sign-in/sign-up/email endpoints. Configure SMTP via `SMTP_*`/`MAIL_FROM`; without it emails are logged to the server console
+- 🚦 **Rate limiting**: 5 compiles per minute per user (database-backed, no extra dependencies)
+- ❓ **Help center and onboarding tour**: articles on engines, outputs, templates, sharing, Turkish documents and troubleshooting, plus a first-visit tour of the screen
 - 🌗 **Light/dark theme** support (Tailwind v4)
-- 🇹🇷 **Turkish UI** — the whole interface, API error messages and official templates are in Turkish; Turkish babel and fonts work in every engine
+- 🇹🇷 **Turkish UI**: Turkish babel and fonts work in every engine, including Turkish characters in file names
+
+---
+
+## 📸 Screenshots
+
+| Template gallery | Dashboard |
+| --- | --- |
+| ![New project dialog with template thumbnails and a category filter](site/screenshots/template-gallery.png) | ![Dashboard with six English example projects](site/screenshots/dashboard.png) |
+
+**Full LaTeX documents**: an article with sections, numbered equations and an embedded TikZ plot, compiled with pdfLaTeX.
+
+![Editor with a heat-equation article and its compiled PDF](site/screenshots/article-editor.png)
+
+**Public share page**: read-only source and preview, with a button to fork the project into your own account.
+
+![Public share page for a pgfplots sine and cosine plot](site/screenshots/public-share.png)
+
+**On a phone**, the panels stack vertically:
+
+<img src="site/screenshots/mobile-editor.png" alt="Output panel with download buttons and the rendered plot on a phone-sized screen" width="320">
+
+---
+
+## 🌐 Product site
+
+The English product site lives in [`site/`](site/) as plain static HTML/CSS (no build step, no third-party scripts) and is deployed to **https://yucel-yilmaz.github.io/tikzstudio/** by [`.github/workflows/pages.yml`](.github/workflows/pages.yml) on every push to `master` that touches `site/**`. To preview it locally, open `site/index.html` in a browser.
 
 ---
 
@@ -211,7 +254,7 @@ app/                  Next.js App Router routes (UI + API handlers)
   api/                REST endpoints (projects, files, compile jobs, templates, img2latex, auth)
   (app)/              Authenticated routes (dashboard, editor)
   (marketing)/        Public marketing pages
-features/             Feature modules (auth, dashboard, editor, share)
+features/             Feature modules (auth, dashboard, editor, help, share)
   editor/components/  Editor UI: code-editor, pdf-preview, layouts
   editor/store/       Zustand stores
 components/           Shared UI primitives (shadcn/ui, ErrorBoundary)
@@ -223,6 +266,7 @@ server/               Server-side logic
   schemas/            Zod request schemas
 prisma/               Schema, migrations, seed
 docker/compiler/      Dockerfile + warmup docs + compile.sh for the sandbox
+site/                 Static English product site (GitHub Pages)
 tests/                Vitest unit tests
 ```
 
@@ -322,6 +366,8 @@ npm run db:migrate
 - [x] docker-compose.yml for one-command local setup
 - [x] Multi-file template system
 - [x] Template library: high-school math and university/academic packs (Turkish)
+- [x] Help center and onboarding tour
+- [x] English product site (GitHub Pages)
 - [x] Project ZIP import/export (Overleaf-compatible) and template previews
 - [x] Save project as template (project settings panel; unsaved edits are saved first)
 - [x] Turkish UI
