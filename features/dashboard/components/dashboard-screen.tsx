@@ -23,13 +23,19 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+	NativeSelect,
+	NativeSelectOption,
+} from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
+import { TemplateThumbnail } from "@/features/templates/components/template-thumbnail";
 import {
 	createProject,
 	deleteProject,
 	getProjects,
 	getTemplates,
 } from "@/lib/client-api";
+import { DEFAULT_TEMPLATE_PREVIEW_URL } from "@/lib/defaults";
 import { formatRelativeDate } from "@/lib/utils";
 
 export function DashboardScreen({ userName }: { userName: string }) {
@@ -74,6 +80,21 @@ export function DashboardScreen({ userName }: { userName: string }) {
 	const groupedTemplates = useMemo(
 		() => templatesQuery.data?.templates ?? [],
 		[templatesQuery.data],
+	);
+	const [templateCategory, setTemplateCategory] = useState<string | null>(null);
+	const templateCategories = useMemo(
+		() =>
+			Array.from(new Set(groupedTemplates.map((t) => t.category))).sort(
+				(a, b) => a.localeCompare(b, "tr"),
+			),
+		[groupedTemplates],
+	);
+	const visibleTemplates = useMemo(
+		() =>
+			templateCategory === null
+				? groupedTemplates
+				: groupedTemplates.filter((t) => t.category === templateCategory),
+		[groupedTemplates, templateCategory],
 	);
 	const projectCount = projectsQuery.data?.projects.length ?? 0;
 
@@ -318,29 +339,78 @@ export function DashboardScreen({ userName }: { userName: string }) {
 										</p>
 									</div>
 
-									<div className="grid max-h-[45vh] gap-3 overflow-y-auto pr-1 md:grid-cols-2">
-										<button
-											type="button"
-											onClick={() => setTemplateId(undefined)}
-											className={`rounded-[26px] border px-4 py-4 text-left transition ${templateId ? "border-(--line) bg-white/75" : "border-[rgba(200,85,61,0.32)] bg-[rgba(200,85,61,0.10)]"}`}
+									<div className="flex items-center gap-2">
+										<label
+											htmlFor="template-category"
+											className="text-sm text-(--ink-1)"
 										>
-											<div className="font-medium">Varsayılan TikZ</div>
-											<p className="mt-1 text-sm text-(--ink-1)">
-												Basit bir "Merhaba TikZ" belgesiyle temiz başlangıç.
-											</p>
-										</button>
+											Kategori
+										</label>
+										<NativeSelect
+											id="template-category"
+											value={templateCategory ?? ""}
+											onChange={(event) =>
+												setTemplateCategory(event.target.value || null)
+											}
+										>
+											<NativeSelectOption value="">
+												Tümü ({groupedTemplates.length})
+											</NativeSelectOption>
+											{templateCategories.map((category) => (
+												<NativeSelectOption key={category} value={category}>
+													{category} (
+													{
+														groupedTemplates.filter(
+															(t) => t.category === category,
+														).length
+													}
+													)
+												</NativeSelectOption>
+											))}
+										</NativeSelect>
+									</div>
 
-										{groupedTemplates.map((template) => (
+									<div className="grid max-h-[45vh] gap-3 overflow-y-auto pr-1 sm:grid-cols-2 md:grid-cols-3">
+										{templateCategory === null ? (
+											<button
+												type="button"
+												onClick={() => setTemplateId(undefined)}
+												className={`flex flex-col gap-2 rounded-[22px] border p-2.5 text-left transition ${templateId ? "border-(--line) bg-white/75" : "border-[rgba(200,85,61,0.32)] bg-[rgba(200,85,61,0.10)]"}`}
+											>
+												<TemplateThumbnail
+													src={DEFAULT_TEMPLATE_PREVIEW_URL}
+													title="Varsayılan TikZ"
+												/>
+												<div className="px-1">
+													<div className="text-sm font-medium">
+														Varsayılan TikZ
+													</div>
+													<p className="text-xs text-(--ink-1)">
+														Basit bir "Merhaba TikZ" belgesi
+													</p>
+												</div>
+											</button>
+										) : null}
+
+										{visibleTemplates.map((template) => (
 											<button
 												key={template.id}
 												type="button"
 												onClick={() => setTemplateId(template.id)}
-												className={`rounded-[26px] border px-4 py-4 text-left transition ${templateId === template.id ? "border-[rgba(200,85,61,0.32)] bg-[rgba(200,85,61,0.10)]" : "border-(--line) bg-white/75"}`}
+												className={`flex flex-col gap-2 rounded-[22px] border p-2.5 text-left transition ${templateId === template.id ? "border-[rgba(200,85,61,0.32)] bg-[rgba(200,85,61,0.10)]" : "border-(--line) bg-white/75"}`}
 											>
-												<div className="font-medium">{template.title}</div>
-												<p className="mt-1 text-sm text-(--ink-1)">
-													{template.category}
-												</p>
+												<TemplateThumbnail
+													src={template.previewUrl}
+													title={template.title}
+												/>
+												<div className="px-1">
+													<div className="line-clamp-2 text-sm font-medium">
+														{template.title}
+													</div>
+													<p className="text-xs text-(--ink-1)">
+														{template.category}
+													</p>
+												</div>
 											</button>
 										))}
 									</div>

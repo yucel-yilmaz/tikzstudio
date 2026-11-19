@@ -70,7 +70,7 @@ Editor state (open files, active tab, unsaved changes) is managed via Zustand st
 
 `docker/compiler/Dockerfile` builds in two stages: Rust/Tectonic compilation, then a Debian runtime with TeX Live packages. The entrypoint is `docker/compiler/compile.sh` which dispatches on the engine argument (`tectonic`, `pdflatex`, `xelatex`, `lualatex`, `pdflatex_biber`). Output files (`output.pdf`, `output.svg`, `output.png`) are written to `/output/` inside the container.
 
-Tectonic uses `--only-cached` — any package, TikZ library or font size not exercised at image build time causes a compile failure. The build compiles `docker/compiler/warmup*.tex` and every official template under `docker/compiler/warmup-templates/`. After adding or editing templates in `prisma/*-templates.ts` (registry: `prisma/official-templates.ts`), run `npm run warmup:sync`, rebuild the image, then `npm run templates:verify` (Tectonic + pdfLaTeX). `tests/server/warmup-sync.test.ts` fails if the warm-up copies are stale.
+Tectonic uses `--only-cached` — any package, TikZ library or font size not exercised at image build time causes a compile failure. The build compiles `docker/compiler/warmup*.tex` and every official template under `docker/compiler/warmup-templates/`. After adding or editing templates in `prisma/*-templates.ts` (registry: `prisma/official-templates.ts`), run `npm run warmup:sync`, rebuild the image, then `npm run templates:verify` (Tectonic + pdfLaTeX) and `npm run templates:previews` (regenerates `public/template-previews/`; `tests/server/template-previews.test.ts` fails if one is missing). `tests/server/warmup-sync.test.ts` fails if the warm-up copies are stale.
 
 ### Database
 

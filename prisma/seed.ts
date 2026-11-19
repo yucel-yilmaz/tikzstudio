@@ -1,6 +1,10 @@
 import { prisma } from "../lib/prisma";
 import type { SeedSnippet, SeedTemplate } from "./math-templates";
-import { officialSnippets, officialTemplates } from "./official-templates";
+import {
+	officialPreviewUrl,
+	officialSnippets,
+	officialTemplates,
+} from "./official-templates";
 
 /**
  * Idempotent seed: official (owner-less) templates and snippets are matched by
@@ -14,6 +18,7 @@ async function upsertOfficialTemplate(template: SeedTemplate) {
 		category: template.category,
 		description: template.description,
 		content: template.content ?? null,
+		previewUrl: officialPreviewUrl(template),
 		isOfficial: true,
 	};
 

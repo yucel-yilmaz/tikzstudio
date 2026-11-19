@@ -2,6 +2,10 @@ import type { LatexEngine } from "@/generated/prisma";
 import { AppError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import type { CreateTemplateInput, TemplateFileDto } from "@/lib/types";
+import {
+	createPreviewFromLatestCompile,
+	removeUserTemplatePreview,
+} from "@/server/services/template-previews";
 
 const TEMPLATE_INCLUDE = { files: true } as const;
 
@@ -120,7 +124,7 @@ export async function createTemplateFromProject(
 	});
 	if (!project) throw new AppError("NOT_FOUND", "Proje bulunamadı.", 404);
 
-	return prisma.template.create({
+	const template = await prisma.template.create({
 		include: TEMPLATE_INCLUDE,
 		data: {
 			title: meta.title.trim(),
@@ -140,6 +144,17 @@ export async function createTemplateFromProject(
 			},
 		},
 	});
+
+	const previewUrl = await createPreviewFromLatestCompile(
+		template.id,
+		projectId,
+	);
+	if (!previewUrl) return template;
+	return prisma.template.update({
+		where: { id: template.id },
+		data: { previewUrl },
+		include: TEMPLATE_INCLUDE,
+	});
 }
 
 export async function deleteUserTemplate(ownerId: string, templateId: string) {
@@ -149,6 +164,7 @@ export async function deleteUserTemplate(ownerId: string, templateId: string) {
 	if (!template || template.ownerId !== ownerId)
 		throw new AppError("NOT_FOUND", "Şablon bulunamadı.", 404);
 	await prisma.template.delete({ where: { id: templateId } });
+	await removeUserTemplatePreview(templateId);
 }
 
 export async function updateTemplatePreview(
