@@ -91,6 +91,13 @@ services:
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
+    # Nothing runs in this container; the check only lets Coolify report the
+    # stack as healthy instead of "unknown".
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 30s
+      timeout: 5s
+      start_period: 5s
     mem_limit: 16m
 
 volumes:

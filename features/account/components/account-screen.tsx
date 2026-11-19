@@ -7,6 +7,7 @@ import {
 	LogOut,
 	MailWarning,
 	ShieldCheck,
+	Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -74,6 +75,7 @@ export function AccountScreen({
 				</Card>
 			)}
 			<SessionsCard />
+			<DeleteAccountCard email={email} hasPassword={hasPassword} />
 		</div>
 	);
 }
@@ -277,6 +279,119 @@ function SessionsCard() {
 					>
 						<LogOut />
 						Diğer oturumlarımı kapat
+					</Button>
+				)}
+			</CardContent>
+		</Card>
+	);
+}
+
+function DeleteAccountCard({
+	email,
+	hasPassword,
+}: {
+	email: string;
+	hasPassword: boolean;
+}) {
+	const [open, setOpen] = useState(false);
+	const [password, setPassword] = useState("");
+	const [confirmEmail, setConfirmEmail] = useState("");
+	const [deleting, setDeleting] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const confirmed =
+		confirmEmail.trim().toLowerCase() === email.toLowerCase() &&
+		(!hasPassword || password.length > 0);
+
+	return (
+		<Card className="border-[rgba(180,35,24,0.25)]">
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2 text-lg text-(--danger)">
+					<Trash2 className="size-5" />
+					Hesabımı sil
+				</CardTitle>
+				<CardDescription>
+					Hesabınız ve bütün projeleriniz, dosyalarınız, derleme çıktılarınız ve
+					kişisel şablonlarınız kalıcı olarak silinir. Bu işlem geri alınamaz;
+					önce saklamak istediğiniz projeleri .zip olarak indirin.
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-4">
+				{open ? (
+					<form
+						className="space-y-4"
+						onSubmit={async (event) => {
+							event.preventDefault();
+							if (!confirmed) return;
+							setError(null);
+							setDeleting(true);
+							const result = await postAuth(
+								"/delete-user",
+								hasPassword ? { password } : {},
+							);
+							if (result.ok) {
+								window.location.assign("/");
+								return;
+							}
+							setDeleting(false);
+							setError(result.message);
+						}}
+					>
+						<label className="block space-y-2">
+							<span className="text-sm font-medium">
+								Onaylamak için e-posta adresinizi yazın
+							</span>
+							<Input
+								value={confirmEmail}
+								onChange={(event) => setConfirmEmail(event.target.value)}
+								placeholder={email}
+								autoComplete="off"
+							/>
+						</label>
+						{hasPassword ? (
+							<label className="block space-y-2">
+								<span className="text-sm font-medium">Şifreniz</span>
+								<Input
+									type="password"
+									value={password}
+									onChange={(event) => setPassword(event.target.value)}
+									autoComplete="current-password"
+								/>
+							</label>
+						) : (
+							<p className="text-xs text-(--ink-1)">
+								GitHub/Google ile giriş yaptığınız için şifre istenmez; son
+								girişiniz bir günden eskiyse önce çıkış yapıp yeniden giriş
+								yapmanız gerekir.
+							</p>
+						)}
+						{error ? <Notice tone="error">{error}</Notice> : null}
+						<div className="flex flex-wrap gap-2">
+							<Button
+								type="submit"
+								variant="destructive"
+								disabled={!confirmed || deleting}
+							>
+								{deleting ? "Siliniyor…" : "Hesabımı kalıcı olarak sil"}
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								disabled={deleting}
+								onClick={() => {
+									setOpen(false);
+									setPassword("");
+									setConfirmEmail("");
+									setError(null);
+								}}
+							>
+								Vazgeç
+							</Button>
+						</div>
+					</form>
+				) : (
+					<Button variant="outline" onClick={() => setOpen(true)}>
+						<Trash2 />
+						Hesabımı silmek istiyorum
 					</Button>
 				)}
 			</CardContent>

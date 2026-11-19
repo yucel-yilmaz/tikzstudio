@@ -28,7 +28,7 @@ export const gettingStarted: HelpArticle = {
 				"Ad soyad, e-posta ve en az 8 karakterlik bir şifre girin.",
 				"E-posta doğrulaması açıksa gelen kutunuza bir bağlantı gönderilir; hesabınızı etkinleştirmek için tıklayın (spam klasörüne de bakın).",
 				"Zaten hesabınız varsa **Giriş yap** sayfasını kullanın. Şifrenizi unuttuysanız **Şifremi unuttum** bağlantısıyla sıfırlayabilirsiniz.",
-				"Panelin üstündeki **Hesabım** sayfasından şifrenizi değiştirebilir ve ortak bir bilgisayarda açık kalan oturumlarınızı kapatabilirsiniz.",
+				"Panelin üstündeki **Hesabım** sayfasından şifrenizi değiştirebilir ve ortak bir bilgisayarda açık kalan oturumlarınızı kapatabilir, gerekirse hesabınızı bütün projeleriyle birlikte kalıcı olarak silebilirsiniz.",
 			],
 		},
 		{

@@ -17,6 +17,9 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
 		"Bağlantı geçersiz veya süresi dolmuş. Lütfen yeni bir bağlantı isteyin.",
 	TOKEN_EXPIRED: "Bağlantının süresi dolmuş. Lütfen yeni bir bağlantı isteyin.",
 	EMAIL_ALREADY_VERIFIED: "E-posta adresiniz zaten doğrulanmış.",
+	SESSION_EXPIRED:
+		"Güvenliğiniz için bu işlemden önce çıkış yapıp yeniden giriş yapın.",
+	CREDENTIAL_ACCOUNT_NOT_FOUND: "Bu hesapta şifre tanımlı değil.",
 	TOO_MANY_REQUESTS:
 		"Çok fazla deneme yapıldı. Lütfen biraz sonra tekrar deneyin.",
 };

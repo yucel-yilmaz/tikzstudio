@@ -11,6 +11,7 @@ import {
 import { env } from "@/lib/env";
 import { requiresEmailVerification, sendMail } from "@/lib/mailer";
 import { prisma } from "@/lib/prisma";
+import { removeUserTemplatePreviews } from "@/server/services/template-previews";
 
 const requireEmailVerification = requiresEmailVerification();
 
@@ -83,10 +84,22 @@ export const auth = betterAuth({
 			"/reset-password": { window: 60, max: 5 },
 			"/send-verification-email": { window: 60, max: 3 },
 			"/change-password": { window: 60, max: 5 },
+			"/delete-user": { window: 60, max: 5 },
 		},
 	},
 	user: {
 		modelName: "User",
+		// "Hesabımı sil" on the account page. Password accounts must confirm
+		// their password; OAuth accounts need a recent sign-in (fresh session).
+		// Projects, files, compile jobs, templates and snippets are removed by
+		// the database cascade; compile artifacts on disk are pruned by the
+		// cleanup worker; template preview images are removed here.
+		deleteUser: {
+			enabled: true,
+			beforeDelete: async (user) => {
+				await removeUserTemplatePreviews(user.id);
+			},
+		},
 	},
 	session: {
 		modelName: "Session",
