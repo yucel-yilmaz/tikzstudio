@@ -8,12 +8,14 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { importProject } from "@/lib/client-api";
+import { useT } from "@/lib/i18n/client";
 
 /**
  * Creates a project from a .zip (e.g. Overleaf "Download as source") and
  * opens it in the editor. Renamed or skipped files are reported in a toast.
  */
 export function ImportProjectButton() {
+	const t = useT();
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const inputRef = useRef<HTMLInputElement | null>(null);
@@ -24,16 +26,19 @@ export function ImportProjectButton() {
 		try {
 			const { project, warnings } = await importProject(file);
 			await queryClient.invalidateQueries({ queryKey: ["projects"] });
-			toast.success(`"${project.title}" içe aktarıldı`, {
+			toast.success(t("projects.imported", { title: project.title }), {
 				description: warnings.length
-					? `${warnings.length} uyarı: ${warnings.slice(0, 3).join(" ")}${warnings.length > 3 ? " …" : ""}`
-					: `${project.files.length} dosya yüklendi.`,
+					? t("projects.importWarnings", {
+							count: warnings.length,
+							list: `${warnings.slice(0, 3).join(" ")}${warnings.length > 3 ? " …" : ""}`,
+						})
+					: t("projects.importedFiles", { count: project.files.length }),
 				duration: warnings.length ? 12000 : 4000,
 			});
 			router.push(`/projects/${project.id}/editor`);
 		} catch (error) {
 			toast.error(
-				error instanceof Error ? error.message : "ZIP içe aktarılamadı.",
+				error instanceof Error ? error.message : t("projects.importFailed"),
 			);
 		} finally {
 			setImporting(false);
@@ -59,10 +64,10 @@ export function ImportProjectButton() {
 				variant="outline"
 				disabled={importing}
 				onClick={() => inputRef.current?.click()}
-				title="Overleaf'ten veya bilgisayarınızdan bir .zip projesini içe aktarın"
+				title={t("projects.importHint")}
 			>
 				<FileArchive size={16} />
-				{importing ? "İçe aktarılıyor…" : "İçe aktar (.zip)"}
+				{importing ? t("projects.importing") : t("projects.importButton")}
 			</Button>
 		</>
 	);

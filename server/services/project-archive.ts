@@ -1,4 +1,6 @@
 import { AppError } from "@/lib/errors";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
+import { getTranslator } from "@/lib/i18n/messages";
 import {
 	ArchiveError,
 	buildProjectZip,
@@ -11,10 +13,15 @@ import {
 	requireOwnedProject,
 } from "@/server/services/projects";
 
-export async function exportProjectArchive(ownerId: string, projectId: string) {
+export async function exportProjectArchive(
+	ownerId: string,
+	projectId: string,
+	locale: Locale = DEFAULT_LOCALE,
+) {
 	const project = await requireOwnedProject(ownerId, projectId);
+	const fallbackName = getTranslator(locale)("projects.exportDefaultFileName");
 	return {
-		fileName: `${slugifyFilename(project.title) || "tikzstudio-proje"}.zip`,
+		fileName: `${slugifyFilename(project.title) || fallbackName}.zip`,
 		data: buildProjectZip(project.files),
 	};
 }
@@ -23,9 +30,13 @@ export async function importProjectArchive(input: {
 	ownerId: string;
 	archive: Uint8Array;
 	title: string;
+	locale?: Locale;
 }) {
 	try {
-		const plan = planArchiveImport(readZip(input.archive));
+		const plan = planArchiveImport(
+			readZip(input.archive),
+			getTranslator(input.locale ?? DEFAULT_LOCALE),
+		);
 		const project = await createProjectForUser({
 			ownerId: input.ownerId,
 			title: input.title,
@@ -34,7 +45,11 @@ export async function importProjectArchive(input: {
 		return { project, warnings: plan.warnings };
 	} catch (error) {
 		if (error instanceof ArchiveError) {
-			throw new AppError("VALIDATION_ERROR", error.message, 400);
+			throw new AppError(
+				"VALIDATION_ERROR",
+				[error.key, error.params ?? {}],
+				400,
+			);
 		}
 		throw error;
 	}

@@ -9,6 +9,8 @@ import {
 	MAX_PROJECT_PATH_LENGTH,
 	normalizeProjectPath,
 } from "@/lib/file-path";
+import { getTranslator } from "@/lib/i18n/messages";
+import type { KeysOf, MessageParams, Translator } from "@/lib/i18n/translate";
 import { isTextFile } from "@/lib/project-files";
 
 export const ARCHIVE_LIMITS = {
@@ -19,7 +21,21 @@ export const ARCHIVE_LIMITS = {
 	maxTotalBytes: 25 * 1024 * 1024,
 } as const;
 
-export class ArchiveError extends Error {}
+/**
+ * An invalid archive. `message` is in the default language; `key`/`params`
+ * let API routes answer in the user's language.
+ */
+export class ArchiveError extends Error {
+	key: KeysOf<"errors">;
+	params?: MessageParams;
+
+	constructor(key: KeysOf<"errors">, params?: MessageParams) {
+		super(getTranslator()(`errors.${key}`, params));
+		this.name = "ArchiveError";
+		this.key = key;
+		this.params = params;
+	}
+}
 
 export type ArchiveFile = {
 	path: string;
@@ -81,7 +97,7 @@ export function readZip(
 	archive: Uint8Array,
 ): { path: string; data: Uint8Array }[] {
 	if (archive.length > ARCHIVE_LIMITS.maxArchiveBytes) {
-		throw new ArchiveError("ZIP dosyası en fazla 20 MB olabilir.");
+		throw new ArchiveError("zipTooLarge");
 	}
 
 	let fileCount = 0;
@@ -94,26 +110,24 @@ export function readZip(
 				fileCount += 1;
 				declaredTotal += file.originalSize;
 				if (fileCount > ARCHIVE_LIMITS.maxFiles) {
-					throw new ArchiveError(
-						`ZIP en fazla ${ARCHIVE_LIMITS.maxFiles} dosya içerebilir.`,
-					);
+					throw new ArchiveError("archiveTooManyFiles", {
+						max: ARCHIVE_LIMITS.maxFiles,
+					});
 				}
 				if (file.originalSize > ARCHIVE_LIMITS.maxFileBytes) {
-					throw new ArchiveError(
-						`"${file.name}" 5 MB'tan büyük; ZIP içindeki her dosya en fazla 5 MB olabilir.`,
-					);
+					throw new ArchiveError("archiveFileTooLarge", {
+						name: file.name,
+					});
 				}
 				if (declaredTotal > ARCHIVE_LIMITS.maxTotalBytes) {
-					throw new ArchiveError(
-						"ZIP içindeki dosyaların toplam boyutu en fazla 25 MB olabilir.",
-					);
+					throw new ArchiveError("archiveTotalTooLarge");
 				}
 				return true;
 			},
 		});
 	} catch (error) {
 		if (error instanceof ArchiveError) throw error;
-		throw new ArchiveError("Dosya geçerli bir ZIP arşivi değil.");
+		throw new ArchiveError("archiveInvalid");
 	}
 
 	let actualTotal = 0;
@@ -123,9 +137,7 @@ export function readZip(
 			data.length > ARCHIVE_LIMITS.maxFileBytes ||
 			actualTotal > ARCHIVE_LIMITS.maxTotalBytes
 		) {
-			throw new ArchiveError(
-				"ZIP içindeki dosyalar izin verilen boyutu aşıyor.",
-			);
+			throw new ArchiveError("archiveContentTooLarge");
 		}
 		return { path, data };
 	});
@@ -163,9 +175,13 @@ export function detectMainFile(
 	)?.path;
 }
 
-/** Turns raw ZIP entries into the files of a new project. */
+/**
+ * Turns raw ZIP entries into the files of a new project. Warnings are
+ * written with `t` (the user's language; Turkish by default).
+ */
 export function planArchiveImport(
 	entries: { path: string; data: Uint8Array }[],
+	t: Translator = getTranslator(),
 ): ArchiveImportPlan {
 	const warnings: string[] = [];
 	const kept = entries
@@ -188,15 +204,11 @@ export function planArchiveImport(
 			.slice(0, MAX_PROJECT_PATH_LENGTH);
 
 		if (!isSafeProjectPath(cleaned) || seen.has(cleaned)) {
-			warnings.push(
-				`"${original}" atlandı (geçersiz veya yinelenen dosya adı).`,
-			);
+			warnings.push(t("archive.skipped", { name: original }));
 			continue;
 		}
 		if (cleaned !== original) {
-			warnings.push(
-				`"${original}" adı "${cleaned}" olarak değiştirildi; belgede bu dosyaya verdiğiniz yolları güncelleyin.`,
-			);
+			warnings.push(t("archive.renamed", { name: original, cleaned }));
 		}
 		seen.add(cleaned);
 
@@ -212,7 +224,7 @@ export function planArchiveImport(
 
 	const mainPath = detectMainFile(files);
 	if (!mainPath) {
-		throw new ArchiveError("ZIP içinde .tex dosyası bulunamadı.");
+		throw new ArchiveError("archiveNoTex");
 	}
 	for (const file of files) file.isMain = file.path === mainPath;
 

@@ -1,4 +1,4 @@
-import { toErrorResponse } from "@/lib/errors";
+import { toErrorResponse, unauthorizedResponse } from "@/lib/errors";
 import { getSessionFromHeaders } from "@/lib/session";
 import { deleteUserSnippet } from "@/server/services/snippets";
 
@@ -8,13 +8,7 @@ export async function DELETE(
 ) {
 	try {
 		const session = await getSessionFromHeaders(request.headers);
-		if (!session)
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+		if (!session) return unauthorizedResponse();
 
 		const { id } = await context.params;
 		await deleteUserSnippet(session.user.id, id);

@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 
 import { HelpShell } from "@/features/help/components/help-shell";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-	title: {
-		template: "%s · TikZ Studio Yardım",
-		default: "Yardım merkezi · TikZ Studio",
-	},
-	description:
-		"TikZ Studio yardım merkezi: başlarken, editör, derleme motorları, Türkçe belgeler, sorun giderme ve sıkça sorulan sorular.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const { t } = await getI18n();
+	return {
+		title: {
+			template: t("meta.helpTitleTemplate"),
+			default: t("meta.helpDefaultTitle"),
+		},
+		description: t("meta.helpDescription"),
+	};
+}
 
 export default function HelpLayout({
 	children,

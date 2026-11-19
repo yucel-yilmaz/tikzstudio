@@ -9,35 +9,36 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { HelpIconBadge } from "@/features/help/components/help-icon";
 import { StartTourButton } from "@/features/help/components/start-tour-button";
-import {
-	articleSearchText,
-	helpArticles,
-	helpSections,
-} from "@/features/help/content";
+import type { HelpIndexSection } from "@/features/help/content";
+import { useI18n } from "@/lib/i18n/client";
+import { foldCase } from "@/lib/i18n/format";
 
-export function HelpIndex() {
+/**
+ * Help-center index with client-side search. The server passes the sections
+ * (titles and summaries only) and a lowercased search text per article, in
+ * the current language.
+ */
+export function HelpIndex({
+	sections: allSections,
+	searchText,
+}: {
+	sections: HelpIndexSection[];
+	searchText: Record<string, string>;
+}) {
+	const { t, rich, locale } = useI18n();
 	const [query, setQuery] = useState("");
 	const deferredQuery = useDeferredValue(query);
 
 	const searchIndex = useMemo(
-		() =>
-			new Map(
-				helpArticles.map((article) => [
-					article.slug,
-					articleSearchText(article),
-				]),
-			),
-		[],
+		() => new Map(Object.entries(searchText)),
+		[searchText],
 	);
 
-	const terms = deferredQuery
-		.toLocaleLowerCase("tr-TR")
-		.split(/\s+/)
-		.filter(Boolean);
+	const terms = foldCase(locale, deferredQuery).split(/\s+/).filter(Boolean);
 	const matches = (slug: string) =>
 		terms.every((term) => searchIndex.get(slug)?.includes(term));
 
-	const sections = helpSections
+	const sections = allSections
 		.map((section) => ({
 			...section,
 			articles: section.articles.filter((article) => matches(article.slug)),
@@ -51,18 +52,16 @@ export function HelpIndex() {
 				<CardContent className="relative grid gap-6 p-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:p-10">
 					<div className="space-y-4">
 						<Badge variant="outline" className="normal-case tracking-normal">
-							Yardım merkezi
+							{t("help.indexBadge")}
 						</Badge>
 						<h1 className="text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
-							Size nasıl yardımcı olabiliriz?
+							{t("help.indexTitle")}
 						</h1>
 						<p className="max-w-2xl text-base leading-7 text-(--ink-1)">
-							TikZ Studio'yu adım adım öğrenin: ilk projeden derleme
-							motorlarına, Türkçe belgelerden sık görülen LaTeX hatalarına
-							kadar.
+							{t("help.indexIntro")}
 						</p>
 						<label className="relative block max-w-xl">
-							<span className="sr-only">Yardım makalelerinde ara</span>
+							<span className="sr-only">{t("help.searchLabel")}</span>
 							<Search
 								className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-(--ink-1)"
 								aria-hidden
@@ -71,17 +70,16 @@ export function HelpIndex() {
 								type="search"
 								value={query}
 								onChange={(event) => setQuery(event.target.value)}
-								placeholder="Ara: ör. babel, zaman aşımı, PNG"
+								placeholder={t("help.searchPlaceholder")}
 								className="h-11 rounded-2xl bg-white/80 pl-11 text-base"
 							/>
 						</label>
 					</div>
 
 					<div className="space-y-3 rounded-3xl border border-(--line) bg-white/65 p-5">
-						<p className="font-medium">TikZ Studio'da yeni misiniz?</p>
+						<p className="font-medium">{t("help.newHereTitle")}</p>
 						<p className="text-sm leading-6 text-(--ink-1)">
-							Kısa öğretici; bir şablondan proje oluşturmayı, derlemeyi ve
-							çıktıyı indirmeyi ekranın üzerinde gösterir.
+							{t("help.newHereBody")}
 						</p>
 						<div className="flex flex-wrap gap-2">
 							<StartTourButton />
@@ -93,16 +91,18 @@ export function HelpIndex() {
 			{sections.length === 0 ? (
 				<Card>
 					<CardContent className="space-y-2 p-8 text-center">
-						<p className="text-lg font-semibold">Sonuç bulunamadı</p>
+						<p className="text-lg font-semibold">{t("help.noResultsTitle")}</p>
 						<p className="text-sm text-(--ink-1)">
-							Farklı bir kelime deneyin ya da{" "}
-							<Link
-								href="/yardim/sss"
-								className="font-medium text-(--accent-strong) underline underline-offset-4"
-							>
-								sıkça sorulan sorulara
-							</Link>{" "}
-							göz atın.
+							{rich("help.noResultsBody", {
+								link: (chunks) => (
+									<Link
+										href="/yardim/sss"
+										className="font-medium text-(--accent-strong) underline underline-offset-4"
+									>
+										{chunks}
+									</Link>
+								),
+							})}
 						</p>
 					</CardContent>
 				</Card>
@@ -140,7 +140,7 @@ export function HelpIndex() {
 											</p>
 										</div>
 										<span className="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-(--accent-strong)">
-											Oku
+											{t("help.read")}
 											<ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
 										</span>
 									</CardContent>

@@ -1,6 +1,7 @@
 import { CompileStatus, type LatexEngine } from "@/generated/prisma";
 import { DEFAULT_MAIN_FILE_PATH } from "@/lib/defaults";
 import { AppError } from "@/lib/errors";
+import { isLocale } from "@/lib/i18n/config";
 import { COMPILE_QUEUE, type CompileJobPayload, getBoss } from "@/lib/pgboss";
 import { prisma } from "@/lib/prisma";
 import { DockerCompilerAdapter } from "@/server/compiler/docker-adapter";
@@ -27,7 +28,7 @@ async function enforceCompileRateLimit(ownerId: string) {
 	if (recentCount >= COMPILE_RATE_MAX) {
 		throw new AppError(
 			"RATE_LIMITED",
-			`Çok fazla derleme isteği. Dakikada en fazla ${COMPILE_RATE_MAX} derleme yapabilirsiniz.`,
+			["compileRateLimited", { max: COMPILE_RATE_MAX }],
 			429,
 			{ retryAfterSeconds: 60 },
 		);
@@ -48,7 +49,7 @@ export async function enqueueCompileForProject(input: {
 		project.files.find((file) => file.path === DEFAULT_MAIN_FILE_PATH);
 
 	if (!mainFile) {
-		throw new AppError("MISSING_FILE", "Ana dosya bulunamadı.", 400);
+		throw new AppError("MISSING_FILE", "mainFileNotFound", 400);
 	}
 
 	await enforceCompileRateLimit(input.ownerId);
@@ -75,19 +76,20 @@ export async function runCompileJob(jobId: string) {
 			project: {
 				include: {
 					files: true,
+					owner: { select: { locale: true } },
 				},
 			},
 		},
 	});
 
 	if (!job) {
-		throw new AppError("NOT_FOUND", "Derleme işi bulunamadı.", 404);
+		throw new AppError("NOT_FOUND", "compileJobNotFound", 404);
 	}
 
 	const mainFile =
 		job.project.files.find((file) => file.isMain) ?? job.project.files[0];
 	if (!mainFile) {
-		throw new AppError("MISSING_FILE", "Derlenecek dosya yok.", 400);
+		throw new AppError("MISSING_FILE", "noFilesToCompile", 400);
 	}
 
 	await prisma.compileJob.update({
@@ -107,6 +109,9 @@ export async function runCompileJob(jobId: string) {
 		projectId: job.projectId,
 		engine: job.engine,
 		mainFilePath: mainFile.path,
+		locale: isLocale(job.project.owner.locale)
+			? job.project.owner.locale
+			: undefined,
 		files: job.project.files.map((file) => ({
 			path: file.path,
 			content: file.content,
@@ -157,7 +162,7 @@ export async function getCompileJobForUser(ownerId: string, jobId: string) {
 	});
 
 	if (!job) {
-		throw new AppError("NOT_FOUND", "Derleme işi bulunamadı.", 404);
+		throw new AppError("NOT_FOUND", "compileJobNotFound", 404);
 	}
 
 	return job;

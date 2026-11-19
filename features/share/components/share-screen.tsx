@@ -35,23 +35,26 @@ import {
 	getLatestCompileOutput,
 	getPublicProject,
 } from "@/lib/client-api";
+import { useI18n, useT } from "@/lib/i18n/client";
+import type { MessageKey } from "@/lib/i18n/translate";
 import type { ProjectFileDto } from "@/lib/types";
-import { formatRelativeDate } from "@/lib/utils";
 
-const STATUS_LABELS: Record<string, string> = {
-	PENDING: "Sırada",
-	RUNNING: "Derleniyor…",
-	SUCCESS: "Başarılı",
-	FAILED: "Başarısız",
-	TIMEOUT: "Zaman aşımı",
+const STATUS_LABELS: Record<string, MessageKey> = {
+	PENDING: "compileStatus.pending",
+	RUNNING: "compileStatus.running",
+	SUCCESS: "compileStatus.success",
+	FAILED: "compileStatus.failed",
+	TIMEOUT: "compileStatus.timeout",
 };
 
 function StatusBadge({ status }: { status: string | undefined }) {
+	const t = useT();
+
 	if (!status) {
 		return (
 			<Badge variant="outline" className="gap-1.5 text-muted-foreground">
 				<Clock3 className="size-3" />
-				Henüz derlenmedi
+				{t("compileStatus.notCompiled")}
 			</Badge>
 		);
 	}
@@ -63,7 +66,7 @@ function StatusBadge({ status }: { status: string | undefined }) {
 				className="gap-1.5 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
 			>
 				<CheckCircle2 className="size-3" />
-				Başarılı
+				{t("compileStatus.success")}
 			</Badge>
 		);
 	}
@@ -75,7 +78,7 @@ function StatusBadge({ status }: { status: string | undefined }) {
 				className="gap-1.5 border-destructive/20 bg-destructive/10 text-destructive"
 			>
 				<XCircle className="size-3" />
-				Başarısız
+				{t("compileStatus.failed")}
 			</Badge>
 		);
 	}
@@ -83,12 +86,13 @@ function StatusBadge({ status }: { status: string | undefined }) {
 	return (
 		<Badge variant="outline" className="gap-1.5 text-muted-foreground">
 			<Clock3 className="size-3" />
-			{STATUS_LABELS[status] ?? status}
+			{STATUS_LABELS[status] ? t(STATUS_LABELS[status]) : status}
 		</Badge>
 	);
 }
 
 export function ShareScreen({ projectId }: { projectId: string }) {
+	const { t, formatDateTime } = useI18n();
 	const router = useRouter();
 	const [activeFileId, setActiveFileId] = useState<string | null>(null);
 	const [previewZoom, setPreviewZoom] = useState(1);
@@ -131,7 +135,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 			<div className="flex min-h-screen items-center justify-center">
 				<div className="flex items-center gap-2 text-muted-foreground">
 					<LoaderCircle className="size-4 animate-spin" />
-					<span className="text-sm">Yükleniyor…</span>
+					<span className="text-sm">{t("common.loading")}</span>
 				</div>
 			</div>
 		);
@@ -141,12 +145,12 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 		return (
 			<div className="flex min-h-screen items-center justify-center">
 				<div className="max-w-sm space-y-3 text-center">
-					<p className="text-base font-medium">Proje bulunamadı</p>
+					<p className="text-base font-medium">{t("share.notFoundTitle")}</p>
 					<p className="text-sm text-muted-foreground">
-						Bu proje herkese açık değil veya silinmiş olabilir.
+						{t("share.notFoundBody")}
 					</p>
 					<Button asChild variant="outline" size="sm">
-						<Link href="/">Ana sayfaya dön</Link>
+						<Link href="/">{t("common.backToHome")}</Link>
 					</Button>
 				</div>
 			</div>
@@ -175,7 +179,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 							<Button asChild variant="outline" size="sm">
 								<a href={`${compile.outputUrl}?download=1`}>
 									<Download className="size-4" />
-									PDF indir
+									{t("editor.downloadPdf")}
 								</a>
 							</Button>
 						) : null}
@@ -183,7 +187,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 							<Button asChild variant="outline" size="sm">
 								<a href={`${compile.svgOutputUrl}&download=1`}>
 									<Download className="size-4" />
-									SVG indir
+									{t("editor.downloadSvg")}
 								</a>
 							</Button>
 						) : null}
@@ -197,9 +201,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 							) : (
 								<GitFork className="size-4" />
 							)}
-							{forkMutation.isPending
-								? "Kopyalanıyor…"
-								: "Kendi projelerime kopyala"}
+							{forkMutation.isPending ? t("share.forking") : t("share.fork")}
 						</Button>
 					</div>
 				</div>
@@ -215,7 +217,9 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 					) : null}
 					{compile?.finishedAt ? (
 						<p className="text-xs text-muted-foreground">
-							Son derleme: {formatRelativeDate(compile.finishedAt)}
+							{t("share.lastCompile", {
+								date: formatDateTime(compile.finishedAt),
+							})}
 						</p>
 					) : null}
 				</div>
@@ -227,12 +231,12 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 								<div className="flex items-center gap-2">
 									<Code2 className="size-4 text-muted-foreground" />
 									<CardTitle className="text-sm font-medium">
-										Kaynak kod
+										{t("share.sourceCode")}
 									</CardTitle>
 								</div>
 								{files.length > 1 ? (
 									<span className="text-xs text-muted-foreground">
-										{files.length} dosya
+										{t("share.fileCount", { count: files.length })}
 									</span>
 								) : null}
 							</div>
@@ -259,7 +263,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 															variant="secondary"
 															className="ml-1 text-[10px]"
 														>
-															Ana dosya
+															{t("share.mainFile")}
 														</Badge>
 													) : null}
 												</TabsTrigger>
@@ -301,13 +305,13 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 							<CardHeader className="border-b py-3">
 								<div className="flex items-center justify-between gap-3">
 									<CardTitle className="text-sm font-medium">
-										PDF önizleme
+										{t("pdf.title")}
 									</CardTitle>
 									<StatusBadge status={compile?.status} />
 								</div>
 								{compile?.finishedAt ? (
 									<CardDescription className="text-xs">
-										{formatRelativeDate(compile.finishedAt)}
+										{formatDateTime(compile.finishedAt)}
 									</CardDescription>
 								) : null}
 							</CardHeader>
@@ -326,7 +330,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 							<Card className="shadow-none">
 								<CardHeader className="border-b py-3">
 									<CardTitle className="text-sm font-medium">
-										Derleme günlüğü
+										{t("editor.compileLog")}
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="p-0">

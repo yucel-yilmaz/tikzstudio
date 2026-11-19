@@ -5,14 +5,6 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export function formatRelativeDate(value: string | Date) {
-	const date = typeof value === "string" ? new Date(value) : value;
-	return new Intl.DateTimeFormat("tr-TR", {
-		dateStyle: "medium",
-		timeStyle: "short",
-	}).format(date);
-}
-
 const TRANSLITERATIONS: Record<string, string> = {
 	ç: "c",
 	ğ: "g",

@@ -46,13 +46,15 @@ import { TemplatesPanel } from "@/features/editor/components/panels/templates-pa
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
 import { getCompileHistory, getImg2LatexProviders } from "@/lib/client-api";
 import type { CompileDiagnostic } from "@/lib/compile-log";
+import { useI18n } from "@/lib/i18n/client";
+import type { MessageKey, Translator } from "@/lib/i18n/translate";
 import type {
 	CompileJobDto,
 	ProjectDetail,
 	ProjectFileDto,
 	SnippetDto,
 } from "@/lib/types";
-import { cn, formatRelativeDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 type SidebarTab = "files" | "templates" | "snippets" | "settings";
 
@@ -65,12 +67,12 @@ type PanelMeta = Record<
 	{ title: string; description: string; icon: LucideIcon }
 >;
 
-const compileStatusLabels: Record<string, string> = {
-	PENDING: "Sırada",
-	RUNNING: "Derleniyor…",
-	SUCCESS: "Başarılı",
-	FAILED: "Başarısız",
-	TIMEOUT: "Zaman aşımı",
+const compileStatusLabels: Record<string, MessageKey> = {
+	PENDING: "compileStatus.pending",
+	RUNNING: "compileStatus.running",
+	SUCCESS: "compileStatus.success",
+	FAILED: "compileStatus.failed",
+	TIMEOUT: "compileStatus.timeout",
 };
 
 const engineLabels: Record<string, string> = {
@@ -81,8 +83,8 @@ const engineLabels: Record<string, string> = {
 	PDFLATEX_BIBER: "pdfLaTeX + Biber",
 };
 
-function summarizeCompileLog(log: string | null) {
-	if (!log) return ["Henüz derleme çıktısı yok."];
+function summarizeCompileLog(log: string | null, t: Translator) {
+	if (!log) return [t("editor.noLogYet")];
 	const lines = log.split(/\r?\n/).map((l) => l.trim());
 	const important = lines.filter((line) =>
 		/^(error|fatal|!|l\.\d|warning:|Output written|Compilation timed out|Derleme zaman aşımına uğradı|Page count)/i.test(
@@ -157,8 +159,9 @@ export function DesktopEditorLayout({
 	onSetMainFile,
 	onUploadFile,
 }: DesktopEditorLayoutProps) {
+	const { t, formatDateTime } = useI18n();
 	const CompileIcon = compileMeta.icon;
-	const logSummary = summarizeCompileLog(currentCompile?.log ?? null);
+	const logSummary = summarizeCompileLog(currentCompile?.log ?? null, t);
 	const editorRef = useRef<TikzCodeEditorHandle>(null);
 
 	const [img2latexOpen, setImg2latexOpen] = useState(false);
@@ -209,7 +212,9 @@ export function DesktopEditorLayout({
 							size="icon"
 							onClick={onToggleProjectPanel}
 							aria-label={
-								projectPanelOpen ? "Proje panelini kapat" : "Proje panelini aç"
+								projectPanelOpen
+									? t("editor.closeProjectPanel")
+									: t("editor.openProjectPanel")
 							}
 						>
 							{projectPanelOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
@@ -217,10 +222,10 @@ export function DesktopEditorLayout({
 						<Separator className="h-px w-6 bg-sidebar-border" />
 						{(
 							[
-								["files", FileCode2, "Dosyalar"],
-								["templates", LayoutTemplate, "Şablonlar"],
-								["snippets", WandSparkles, "Kod parçacıkları"],
-								["settings", Settings2, "Ayarlar"],
+								["files", FileCode2, t("editor.panelFiles")],
+								["templates", LayoutTemplate, t("editor.panelTemplates")],
+								["snippets", WandSparkles, t("editor.panelSnippets")],
+								["settings", Settings2, t("editor.panelSettings")],
 							] as const
 						).map(([tab, Icon, label]) => {
 							const isActive = sidebarTab === tab;
@@ -266,9 +271,13 @@ export function DesktopEditorLayout({
 								<CardHeader className="border-b">
 									<div className="flex items-center justify-between gap-3">
 										<div>
-											<CardTitle className="text-base">Kod editörü</CardTitle>
+											<CardTitle className="text-base">
+												{t("editor.codeEditor")}
+											</CardTitle>
 											<CardDescription>
-												{activeFile ? activeFile.path : "Etkin dosya seçilmedi"}
+												{activeFile
+													? activeFile.path
+													: t("editor.noActiveFile")}
 											</CardDescription>
 										</div>
 										<div className="flex items-center gap-2">
@@ -277,8 +286,8 @@ export function DesktopEditorLayout({
 													type="button"
 													variant="ghost"
 													size="icon-sm"
-													title="Görselden LaTeX'e dönüştür"
-													aria-label="Görselden LaTeX'e dönüştür"
+													title={t("editor.img2latexOpen")}
+													aria-label={t("editor.img2latexOpen")}
 													onClick={() => setImg2latexOpen(true)}
 												>
 													<ScanLine />
@@ -323,9 +332,11 @@ export function DesktopEditorLayout({
 								<CardHeader className="gap-3 border-b">
 									<div className="flex items-start justify-between gap-3">
 										<div className="min-w-0">
-											<CardTitle className="text-base">Çıktı paneli</CardTitle>
+											<CardTitle className="text-base">
+												{t("editor.outputPanel")}
+											</CardTitle>
 											<CardDescription>
-												Derleme durumu ve PDF önizleme
+												{t("editor.outputPanelDescription")}
 											</CardDescription>
 										</div>
 										<Badge
@@ -353,10 +364,10 @@ export function DesktopEditorLayout({
 									>
 										<TabsList variant="line" className="h-8 gap-1">
 											<TabsTrigger value="preview" className="text-xs">
-												Önizleme
+												{t("editor.tabPreview")}
 											</TabsTrigger>
 											<TabsTrigger value="history" className="text-xs">
-												Geçmiş
+												{t("editor.tabHistory")}
 											</TabsTrigger>
 										</TabsList>
 									</Tabs>
@@ -368,13 +379,13 @@ export function DesktopEditorLayout({
 											<div className="flex min-w-0 flex-col gap-2 p-3">
 												{historyQuery.isLoading ? (
 													<p className="px-2 py-4 text-center text-xs text-muted-foreground">
-														Yükleniyor…
+														{t("common.loading")}
 													</p>
 												) : null}
 												{!historyQuery.isLoading &&
 												(historyQuery.data?.jobs.length ?? 0) === 0 ? (
 													<p className="px-2 py-4 text-center text-xs text-muted-foreground">
-														Henüz derleme yok.
+														{t("editor.noCompilesYet")}
 													</p>
 												) : null}
 												{historyQuery.data?.jobs.map((job) => (
@@ -395,10 +406,12 @@ export function DesktopEditorLayout({
 																		"border-amber-200 bg-amber-50 text-amber-700",
 																)}
 															>
-																{compileStatusLabels[job.status] ?? job.status}
+																{compileStatusLabels[job.status]
+																	? t(compileStatusLabels[job.status])
+																	: job.status}
 															</Badge>
 															<span className="text-muted-foreground">
-																{formatRelativeDate(
+																{formatDateTime(
 																	job.finishedAt ?? job.createdAt,
 																)}
 															</span>
@@ -462,7 +475,7 @@ export function DesktopEditorLayout({
 												>
 													<div className="flex items-center gap-1.5">
 														<span className="text-muted-foreground">
-															Motor:
+															{t("editor.engineLabel")}
 														</span>
 														<code className="rounded bg-background px-1.5 py-0.5 font-mono font-medium">
 															{currentCompile?.engine
@@ -474,12 +487,12 @@ export function DesktopEditorLayout({
 													<span className="text-muted-foreground/40">•</span>
 													<div className="flex items-center gap-1.5">
 														<span className="text-muted-foreground">
-															Son derleme:
+															{t("editor.lastCompileLabel")}
 														</span>
 														<span className="font-medium">
 															{currentCompile?.finishedAt
-																? formatRelativeDate(currentCompile.finishedAt)
-																: "Henüz yok"}
+																? formatDateTime(currentCompile.finishedAt)
+																: t("editor.notYet")}
 														</span>
 													</div>
 													{currentCompile?.outputUrl ? (
@@ -493,7 +506,7 @@ export function DesktopEditorLayout({
 																href={`${currentCompile.outputUrl}?download=1`}
 															>
 																<Download />
-																PDF indir
+																{t("editor.downloadPdf")}
 															</a>
 														</Button>
 													) : null}
@@ -503,7 +516,7 @@ export function DesktopEditorLayout({
 																href={`${currentCompile.svgOutputUrl}&download=1`}
 															>
 																<FileImage />
-																SVG indir
+																{t("editor.downloadSvg")}
 															</a>
 														</Button>
 													) : null}
@@ -513,7 +526,7 @@ export function DesktopEditorLayout({
 																href={`${currentCompile.pngOutputUrl}&download=1`}
 															>
 																<FileImage />
-																PNG indir
+																{t("editor.downloadPng")}
 															</a>
 														</Button>
 													) : null}
@@ -529,7 +542,7 @@ export function DesktopEditorLayout({
 												<div className="flex h-48 min-h-48 min-w-0 flex-col overflow-hidden rounded-xl border bg-background">
 													<div className="flex items-center gap-2 border-b px-3 py-2 text-sm font-medium">
 														<TerminalSquare className="size-4" />
-														Derleme günlüğü
+														{t("editor.compileLog")}
 													</div>
 													<ScrollArea className="min-h-0 flex-1">
 														<pre className="wrap-break-word whitespace-pre-wrap p-2 font-mono text-xs leading-5 text-muted-foreground">
@@ -549,9 +562,11 @@ export function DesktopEditorLayout({
 					{projectPanelOpen ? (
 						<div className="order-2 flex min-h-0 flex-col border-r border-sidebar-border bg-sidebar shadow-sm">
 							<div className="border-b border-sidebar-border p-4 pr-12">
-								<CardTitle className="text-base">Proje paneli</CardTitle>
+								<CardTitle className="text-base">
+									{t("editor.projectPanel")}
+								</CardTitle>
 								<CardDescription>
-									Dosyaları, şablonları ve proje ayarlarını yönetin.
+									{t("editor.projectPanelDescription")}
 								</CardDescription>
 							</div>
 

@@ -1,12 +1,15 @@
 import { AuthCard } from "@/features/auth/components/auth-card";
 import { ForgotPasswordForm } from "@/features/auth/components/forgot-password-form";
+import { getI18n } from "@/lib/i18n/server";
 
-export default function ForgotPasswordPage() {
+export default async function ForgotPasswordPage() {
+	const { t } = await getI18n();
+
 	return (
 		<AuthCard
-			badge="Şifremi unuttum"
-			title="Şifrenizi sıfırlayın"
-			description="Hesabınızın e-posta adresini girin; size yeni şifre belirlemeniz için bir bağlantı gönderelim."
+			badge={t("auth.forgotBadge")}
+			title={t("auth.forgotTitle")}
+			description={t("auth.forgotDescription")}
 		>
 			<ForgotPasswordForm />
 		</AuthCard>

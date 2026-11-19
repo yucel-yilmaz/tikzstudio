@@ -44,6 +44,3 @@ export function sanitizeUploadFileName(name: string): string {
 		.replace(/^[.-]+/, "");
 	return cleaned.slice(0, MAX_PROJECT_PATH_LENGTH);
 }
-
-export const UNSAFE_PATH_MESSAGE =
-	"Dosya yolu yalnızca harf (Türkçe harfler dahil), rakam, nokta, tire, alt çizgi ve klasör ayırıcı (/) içerebilir; boşluk ve '..' kullanılamaz.";

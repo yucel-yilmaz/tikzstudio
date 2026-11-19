@@ -1,5 +1,6 @@
 import type { LatexEngine } from "@/generated/prisma";
 import { AppError } from "@/lib/errors";
+import { getI18n } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import type { CreateTemplateInput, TemplateFileDto } from "@/lib/types";
 import {
@@ -49,7 +50,7 @@ export async function getTemplate(id: string) {
 		where: { id },
 		include: TEMPLATE_INCLUDE,
 	});
-	if (!template) throw new AppError("NOT_FOUND", "Şablon bulunamadı.", 404);
+	if (!template) throw new AppError("NOT_FOUND", "templateNotFound", 404);
 	return template;
 }
 
@@ -62,7 +63,7 @@ export async function getAccessibleTemplate(ownerId: string, id: string) {
 		where: { id, OR: [{ ownerId: null }, { ownerId }] },
 		include: TEMPLATE_INCLUDE,
 	});
-	if (!template) throw new AppError("NOT_FOUND", "Şablon bulunamadı.", 404);
+	if (!template) throw new AppError("NOT_FOUND", "templateNotFound", 404);
 	return template;
 }
 
@@ -84,7 +85,7 @@ export async function createUserTemplate(
 			: [];
 
 	if (!files.length) {
-		throw new AppError("VALIDATION_ERROR", "En az bir dosya gerekli.", 400);
+		throw new AppError("VALIDATION_ERROR", "templateNeedsFile", 400);
 	}
 
 	return prisma.template.create({
@@ -92,7 +93,8 @@ export async function createUserTemplate(
 		data: {
 			title: data.title.trim(),
 			description: data.description?.trim() || null,
-			category: data.category.trim() || "Kişisel",
+			category:
+				data.category.trim() || (await getI18n()).t("common.personalCategory"),
 			engine: (data.engine as LatexEngine) ?? "TECTONIC",
 			isOfficial: false,
 			ownerId,
@@ -122,14 +124,15 @@ export async function createTemplateFromProject(
 		where: { id: projectId, ownerId, deletedAt: null },
 		include: { files: true },
 	});
-	if (!project) throw new AppError("NOT_FOUND", "Proje bulunamadı.", 404);
+	if (!project) throw new AppError("NOT_FOUND", "projectNotFound", 404);
 
 	const template = await prisma.template.create({
 		include: TEMPLATE_INCLUDE,
 		data: {
 			title: meta.title.trim(),
 			description: meta.description?.trim() || null,
-			category: meta.category?.trim() || "Kişisel",
+			category:
+				meta.category?.trim() || (await getI18n()).t("common.personalCategory"),
 			engine: meta.engine ?? "TECTONIC",
 			isOfficial: false,
 			ownerId,
@@ -162,7 +165,7 @@ export async function deleteUserTemplate(ownerId: string, templateId: string) {
 		where: { id: templateId },
 	});
 	if (!template || template.ownerId !== ownerId)
-		throw new AppError("NOT_FOUND", "Şablon bulunamadı.", 404);
+		throw new AppError("NOT_FOUND", "templateNotFound", 404);
 	await prisma.template.delete({ where: { id: templateId } });
 	await removeUserTemplatePreview(templateId);
 }

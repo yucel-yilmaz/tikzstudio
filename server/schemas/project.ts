@@ -1,15 +1,17 @@
 import { z } from "zod";
 
+import { zodMessage } from "@/lib/errors";
 import {
 	isSafeProjectPath,
 	MAX_PROJECT_PATH_LENGTH,
 	normalizeProjectPath,
-	UNSAFE_PATH_MESSAGE,
 } from "@/lib/file-path";
 
-const TITLE_REQUIRED = "Proje adı boş olamaz.";
-const TITLE_TOO_LONG = "Proje adı en fazla 120 karakter olabilir.";
-const DESCRIPTION_TOO_LONG = "Açıklama en fazla 500 karakter olabilir.";
+// Messages are dictionary keys (`errors.*`), translated per request by
+// `toErrorResponse`.
+const TITLE_REQUIRED = zodMessage("projectTitleRequired");
+const TITLE_TOO_LONG = zodMessage("projectTitleTooLong");
+const DESCRIPTION_TOO_LONG = zodMessage("descriptionTooLong");
 
 export const projectPathSchema = z
 	.string()
@@ -17,12 +19,9 @@ export const projectPathSchema = z
 	.pipe(
 		z
 			.string()
-			.min(1, "Dosya yolu boş olamaz.")
-			.max(
-				MAX_PROJECT_PATH_LENGTH,
-				`Dosya yolu en fazla ${MAX_PROJECT_PATH_LENGTH} karakter olabilir.`,
-			)
-			.refine(isSafeProjectPath, { message: UNSAFE_PATH_MESSAGE }),
+			.min(1, zodMessage("pathRequired"))
+			.max(MAX_PROJECT_PATH_LENGTH, zodMessage("pathTooLong"))
+			.refine(isSafeProjectPath, { message: zodMessage("pathUnsafe") }),
 	);
 
 export const createProjectSchema = z.object({
@@ -72,17 +71,17 @@ export const saveAsTemplateSchema = z.object({
 	title: z
 		.string()
 		.trim()
-		.min(1, { message: "Şablon adı boş olamaz." })
-		.max(120, { message: "Şablon adı en fazla 120 karakter olabilir." }),
+		.min(1, { message: zodMessage("templateTitleRequired") })
+		.max(120, { message: zodMessage("templateTitleTooLong") }),
 	description: z
 		.string()
 		.trim()
-		.max(500, { message: "Açıklama en fazla 500 karakter olabilir." })
+		.max(500, { message: DESCRIPTION_TOO_LONG })
 		.optional(),
 	category: z
 		.string()
 		.trim()
-		.max(60, { message: "Kategori en fazla 60 karakter olabilir." })
+		.max(60, { message: zodMessage("categoryTooLong") })
 		.optional(),
 	engine: compileProjectSchema.shape.engine.optional(),
 });

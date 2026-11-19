@@ -4,24 +4,25 @@ import { CodeBlock } from "@/features/help/components/code-block";
 import { renderInline } from "@/features/help/components/inline-text";
 import { StartTourButton } from "@/features/help/components/start-tour-button";
 import type { HelpBlock } from "@/features/help/content/types";
+import { getI18n } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
 
 const CALLOUTS = {
 	tip: {
 		icon: Lightbulb,
-		label: "İpucu",
+		label: "help.calloutTip",
 		className: "border-emerald-200 bg-emerald-50/80 text-emerald-950",
 		iconClassName: "text-emerald-700",
 	},
 	warning: {
 		icon: AlertTriangle,
-		label: "Dikkat",
+		label: "help.calloutWarning",
 		className: "border-amber-200 bg-amber-50/80 text-amber-950",
 		iconClassName: "text-amber-700",
 	},
 	info: {
 		icon: Info,
-		label: "Bilgi",
+		label: "help.calloutInfo",
 		className: "border-(--line) bg-white/70 text-(--ink-0)",
 		iconClassName: "text-(--accent-strong)",
 	},
@@ -69,7 +70,15 @@ function TableView({ head, rows }: { head: string[]; rows: string[][] }) {
 	);
 }
 
-function Block({ block }: { block: HelpBlock }) {
+type CalloutLabels = Record<keyof typeof CALLOUTS, string>;
+
+function Block({
+	block,
+	calloutLabels,
+}: {
+	block: HelpBlock;
+	calloutLabels: CalloutLabels;
+}) {
 	switch (block.type) {
 		case "p":
 			return (
@@ -125,7 +134,9 @@ function Block({ block }: { block: HelpBlock }) {
 				>
 					<Icon className={cn("mt-1 size-4 shrink-0", meta.iconClassName)} />
 					<div className="min-w-0 space-y-1 text-sm leading-6">
-						<p className="font-semibold">{block.title ?? meta.label}</p>
+						<p className="font-semibold">
+							{block.title ?? calloutLabels[block.tone]}
+						</p>
 						<p>{renderInline(block.text)}</p>
 					</div>
 				</aside>
@@ -194,11 +205,18 @@ function Block({ block }: { block: HelpBlock }) {
 	}
 }
 
-export function ArticleBody({ blocks }: { blocks: HelpBlock[] }) {
+export async function ArticleBody({ blocks }: { blocks: HelpBlock[] }) {
+	const { t } = await getI18n();
+	const calloutLabels: CalloutLabels = {
+		tip: t(CALLOUTS.tip.label),
+		warning: t(CALLOUTS.warning.label),
+		info: t(CALLOUTS.info.label),
+	};
+
 	return (
 		<div className="space-y-5">
 			{blocks.map((block, index) => (
-				<Block key={index} block={block} />
+				<Block key={index} block={block} calloutLabels={calloutLabels} />
 			))}
 		</div>
 	);

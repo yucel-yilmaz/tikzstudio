@@ -13,6 +13,8 @@ model User {
   name          String
   emailVerified Boolean      @default(false)
   image         String?
+  /// UI language ("tr" | "en"); used for emails and compile messages.
+  locale        String       @default("tr")
   accounts      Account[]
   sessions      Session[]
   projects      Project[]

@@ -18,6 +18,7 @@ import {
 	TOUR_STEPS,
 	type TourPage,
 } from "@/features/help/tour/tour-steps";
+import { useT } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 type Rect = { top: number; left: number; width: number; height: number };
@@ -118,9 +119,10 @@ function placeCard(
  *   highlighted control (and everything else) stays clickable.
  * - A step whose element is missing or hidden falls back to a centred card.
  * - Progress lives in localStorage (see tour-state.ts); a brand-new visitor
- *   gets the tour automatically, everyone else only after "Öğreticiyi başlat".
+ *   gets the tour automatically, everyone else only after "Start the tour".
  */
 export function OnboardingTour({ page }: { page: TourPage }) {
+	const t = useT();
 	const state = useTourState();
 	const titleId = useId();
 	const cardRef = useRef<HTMLDivElement | null>(null);
@@ -236,11 +238,9 @@ export function OnboardingTour({ page }: { page: TourPage }) {
 					className="pointer-events-auto flex max-w-md items-center gap-3 rounded-2xl border border-(--line) bg-(--surface-1) px-4 py-3 text-sm shadow-[0_18px_40px_rgba(44,31,20,0.18)]"
 				>
 					<Compass className="size-4 shrink-0 text-(--accent-strong)" />
-					<p className="leading-5 text-(--ink-1)">
-						Öğretici, bir projeyi editörde açtığınızda devam edecek.
-					</p>
+					<p className="leading-5 text-(--ink-1)">{t("tour.resumeHint")}</p>
 					<Button type="button" variant="ghost" size="xs" onClick={dismissTour}>
-						Kapat
+						{t("common.close")}
 					</Button>
 				</div>
 			</div>
@@ -300,25 +300,28 @@ export function OnboardingTour({ page }: { page: TourPage }) {
 			>
 				<div className="flex items-start justify-between gap-3">
 					<p className="text-xs font-medium uppercase tracking-[0.14em] text-(--accent-strong)">
-						Öğretici · {stepIndex + 1} / {TOUR_STEPS.length}
+						{t("tour.progress", {
+							current: stepIndex + 1,
+							total: TOUR_STEPS.length,
+						})}
 					</p>
 					<Button
 						type="button"
 						variant="ghost"
 						size="icon-xs"
 						onClick={dismissTour}
-						aria-label="Öğreticiyi kapat"
-						title="Öğreticiyi kapat"
+						aria-label={t("tour.close")}
+						title={t("tour.close")}
 						className="-mr-1 -mt-1"
 					>
 						<X />
 					</Button>
 				</div>
 				<h2 id={titleId} className="mt-2 text-lg font-semibold leading-snug">
-					{stepOnThisPage.title}
+					{t(stepOnThisPage.title)}
 				</h2>
 				<p className="mt-2 text-sm leading-6 text-(--ink-1)">
-					{renderInline(stepOnThisPage.body)}
+					{renderInline(t(stepOnThisPage.body))}
 				</p>
 
 				<div className="mt-4 flex gap-1" aria-hidden>
@@ -343,7 +346,7 @@ export function OnboardingTour({ page }: { page: TourPage }) {
 						onClick={dismissTour}
 						className="text-(--ink-1)"
 					>
-						Atla
+						{t("tour.skip")}
 					</Button>
 					<div className="flex items-center gap-2">
 						{!isFirst ? (
@@ -354,13 +357,13 @@ export function OnboardingTour({ page }: { page: TourPage }) {
 								onClick={() => setTourStep(TOUR_STEPS[stepIndex - 1].id)}
 							>
 								<ArrowLeft />
-								Geri
+								{t("tour.back")}
 							</Button>
 						) : null}
 						{isLast ? (
 							<Button type="button" size="sm" onClick={finishTour}>
 								<Check />
-								Bitir
+								{t("tour.finish")}
 							</Button>
 						) : (
 							<Button
@@ -368,7 +371,7 @@ export function OnboardingTour({ page }: { page: TourPage }) {
 								size="sm"
 								onClick={() => setTourStep(nextStep.id)}
 							>
-								{nextStep.page !== page ? "Anladım" : "İleri"}
+								{nextStep.page !== page ? t("tour.gotIt") : t("tour.next")}
 								<ArrowRight />
 							</Button>
 						)}

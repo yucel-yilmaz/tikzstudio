@@ -1,4 +1,5 @@
 import type { CompileStatus, LatexEngine } from "@/generated/prisma";
+import type { Locale } from "@/lib/i18n/config";
 
 export type CompilerFile = {
 	path: string;
@@ -12,6 +13,8 @@ export type CompileInput = {
 	engine: LatexEngine;
 	mainFilePath: string;
 	files: CompilerFile[];
+	/** Language of the messages TikZ Studio adds to the compile log. */
+	locale?: Locale;
 };
 
 export type CompileResult = {

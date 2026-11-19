@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDeferredValue, useMemo, useState } from "react";
-
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -49,9 +49,11 @@ import {
 	getTemplates,
 } from "@/lib/client-api";
 import { DEFAULT_TEMPLATE_PREVIEW_URL } from "@/lib/defaults";
-import { formatRelativeDate } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/client";
+import { compareStrings } from "@/lib/i18n/format";
 
 export function DashboardScreen({ userName }: { userName: string }) {
+	const { t, rich, locale, formatDateTime } = useI18n();
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [search, setSearch] = useState("");
@@ -102,16 +104,18 @@ export function DashboardScreen({ userName }: { userName: string }) {
 	const [templateCategory, setTemplateCategory] = useState<string | null>(null);
 	const templateCategories = useMemo(
 		() =>
-			Array.from(new Set(groupedTemplates.map((t) => t.category))).sort(
-				(a, b) => a.localeCompare(b, "tr"),
-			),
-		[groupedTemplates],
+			Array.from(
+				new Set(groupedTemplates.map((template) => template.category)),
+			).sort((a, b) => compareStrings(locale, a, b)),
+		[groupedTemplates, locale],
 	);
 	const visibleTemplates = useMemo(
 		() =>
 			templateCategory === null
 				? groupedTemplates
-				: groupedTemplates.filter((t) => t.category === templateCategory),
+				: groupedTemplates.filter(
+						(template) => template.category === templateCategory,
+					),
 		[groupedTemplates, templateCategory],
 	);
 	const projectCount = projectsQuery.data?.projects.length ?? 0;
@@ -123,34 +127,33 @@ export function DashboardScreen({ userName }: { userName: string }) {
 					<div className="space-y-4">
 						<div className="flex flex-wrap items-center gap-2">
 							<Badge variant="outline" className="normal-case tracking-normal">
-								Panel
+								{t("dashboard.badge")}
 							</Badge>
 							<Badge
 								variant="secondary"
 								className="normal-case tracking-normal"
 							>
-								{projectCount} proje
+								{t("dashboard.projectCount", { count: projectCount })}
 							</Badge>
 						</div>
 						<div className="space-y-2">
 							<h1 className="text-4xl font-semibold tracking-tight">
-								Merhaba, {userName}
+								{t("dashboard.greeting", { name: userName })}
 							</h1>
 							<p className="max-w-3xl text-sm leading-6 text-(--ink-1) lg:text-base">
-								TikZ projelerinizi yönetin, yeni belgelere başlayın ve son
-								derleme çıktılarınızı tek yerden takip edin.
+								{t("dashboard.intro")}
 							</p>
 						</div>
 						<div className="grid gap-3 sm:grid-cols-3">
 							<div className="rounded-3xl border border-(--line) bg-white/70 px-4 py-4">
 								<p className="text-xs uppercase tracking-[0.14em] text-(--ink-1)">
-									Projeler
+									{t("dashboard.statProjects")}
 								</p>
 								<p className="mt-2 text-2xl font-semibold">{projectCount}</p>
 							</div>
 							<div className="rounded-3xl border border-(--line) bg-white/70 px-4 py-4">
 								<p className="text-xs uppercase tracking-[0.14em] text-(--ink-1)">
-									Şablonlar
+									{t("dashboard.statTemplates")}
 								</p>
 								<p className="mt-2 text-2xl font-semibold">
 									{groupedTemplates.length}
@@ -158,10 +161,10 @@ export function DashboardScreen({ userName }: { userName: string }) {
 							</div>
 							<div className="rounded-3xl border border-(--line) bg-white/70 px-4 py-4">
 								<p className="text-xs uppercase tracking-[0.14em] text-(--ink-1)">
-									Çalışma akışı
+									{t("dashboard.statWorkflow")}
 								</p>
 								<p className="mt-2 text-base font-semibold">
-									Editör + PDF + günlük
+									{t("dashboard.statWorkflowValue")}
 								</p>
 							</div>
 						</div>
@@ -170,14 +173,14 @@ export function DashboardScreen({ userName }: { userName: string }) {
 					<div className="flex flex-wrap items-center gap-3 lg:justify-end">
 						<Button onClick={() => setShowModal(true)} data-tour="new-project">
 							<Plus size={16} />
-							Yeni proje
+							{t("dashboard.newProject")}
 						</Button>
 						<ImportProjectButton />
 						<HelpMenu page="dashboard" />
 						<Button asChild variant="outline">
 							<Link href="/account">
 								<UserRound size={16} />
-								Hesabım
+								{t("dashboard.myAccount")}
 							</Link>
 						</Button>
 						<form
@@ -189,18 +192,19 @@ export function DashboardScreen({ userName }: { userName: string }) {
 						>
 							<Button type="submit" variant="outline">
 								<LogOut size={16} />
-								Çıkış yap
+								{t("dashboard.signOut")}
 							</Button>
 						</form>
+						<LocaleSwitcher />
 					</div>
 				</CardContent>
 			</Card>
 
 			<Card>
 				<CardHeader className="pb-4">
-					<CardTitle>Projeler</CardTitle>
+					<CardTitle>{t("dashboard.projectsTitle")}</CardTitle>
 					<CardDescription>
-						Projelerinizi arayın, açın veya kullanmadıklarınızı silin.
+						{t("dashboard.projectsDescription")}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-5">
@@ -212,7 +216,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 						<Input
 							value={search}
 							onChange={(event) => setSearch(event.target.value)}
-							placeholder="Ada veya açıklamaya göre ara"
+							placeholder={t("dashboard.searchPlaceholder")}
 							className="pl-11"
 						/>
 					</label>
@@ -240,7 +244,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 													</h2>
 												</div>
 												<p className="line-clamp-3 text-sm leading-6 text-(--ink-1)">
-													{project.description || "Açıklama eklenmemiş."}
+													{project.description || t("dashboard.noDescription")}
 												</p>
 											</div>
 											<Button
@@ -252,7 +256,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 														title: project.title,
 													})
 												}
-												aria-label="Projeyi sil"
+												aria-label={t("dashboard.deleteProject")}
 												className="text-(--danger)"
 											>
 												<Trash2 size={16} />
@@ -265,12 +269,12 @@ export function DashboardScreen({ userName }: { userName: string }) {
 													variant="outline"
 													className="normal-case tracking-normal"
 												>
-													{formatRelativeDate(project.updatedAt)}
+													{formatDateTime(project.updatedAt)}
 												</Badge>
 											</div>
 											<Button asChild variant="secondary">
 												<Link href={`/projects/${project.id}/editor`}>
-													Editörde aç
+													{t("dashboard.openInEditor")}
 												</Link>
 											</Button>
 										</div>
@@ -285,16 +289,17 @@ export function DashboardScreen({ userName }: { userName: string }) {
 									variant="outline"
 									className="normal-case tracking-normal"
 								>
-									Boş çalışma alanı
+									{t("dashboard.emptyBadge")}
 								</Badge>
-								<h2 className="text-2xl font-semibold">Henüz proje yok</h2>
+								<h2 className="text-2xl font-semibold">
+									{t("dashboard.emptyTitle")}
+								</h2>
 								<p className="text-sm leading-6 text-(--ink-1)">
-									İlk TikZ çiziminize varsayılan belgeyle veya hazır bir
-									şablonla başlayın.
+									{t("dashboard.emptyBody")}
 								</p>
 								<Button onClick={() => setShowModal(true)} className="mt-2">
 									<Sparkles size={16} />
-									İlk projenizi oluşturun
+									{t("dashboard.createFirst")}
 								</Button>
 							</div>
 						</div>
@@ -312,18 +317,17 @@ export function DashboardScreen({ userName }: { userName: string }) {
 										variant="default"
 										className="normal-case tracking-normal"
 									>
-										Yeni proje
+										{t("dashboard.newProject")}
 									</Badge>
 									<CardTitle className="text-2xl">
-										Yeni bir TikZ projesi oluşturun
+										{t("dashboard.modalTitle")}
 									</CardTitle>
 									<CardDescription>
-										Bir başlık ekleyin, kısa bir açıklama yazın ve başlangıç
-										şablonunu seçin.
+										{t("dashboard.modalDescription")}
 									</CardDescription>
 								</div>
 								<Button variant="ghost" onClick={() => setShowModal(false)}>
-									Kapat
+									{t("common.close")}
 								</Button>
 							</div>
 						</CardHeader>
@@ -341,32 +345,37 @@ export function DashboardScreen({ userName }: { userName: string }) {
 							>
 								<div className="grid gap-5 md:grid-cols-2">
 									<label className="block space-y-2">
-										<span className="text-sm font-medium">Başlık</span>
+										<span className="text-sm font-medium">
+											{t("common.title")}
+										</span>
 										<Input
 											value={title}
 											onChange={(event) => setTitle(event.target.value)}
 											required
-											placeholder="ör. Üçgenin iç açıları"
+											placeholder={t("dashboard.titlePlaceholder")}
 										/>
 									</label>
 
 									<label className="block space-y-2">
-										<span className="text-sm font-medium">Açıklama</span>
+										<span className="text-sm font-medium">
+											{t("common.description")}
+										</span>
 										<Textarea
 											value={description}
 											onChange={(event) => setDescription(event.target.value)}
 											rows={4}
-											placeholder="Bu projede ne hazırlayacaksınız?"
+											placeholder={t("dashboard.descriptionPlaceholder")}
 										/>
 									</label>
 								</div>
 
 								<div className="space-y-3">
 									<div>
-										<p className="text-sm font-medium">Başlangıç şablonu</p>
+										<p className="text-sm font-medium">
+											{t("dashboard.starterTemplate")}
+										</p>
 										<p className="mt-1 text-sm text-(--ink-1)">
-											Boş bir belgeyle başlayın veya hazır bir örnek seçip hemen
-											editöre geçin.
+											{t("dashboard.starterTemplateHint")}
 										</p>
 									</div>
 
@@ -375,7 +384,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 											htmlFor="template-category"
 											className="text-sm text-(--ink-1)"
 										>
-											Kategori
+											{t("common.category")}
 										</label>
 										<NativeSelect
 											id="template-category"
@@ -385,17 +394,18 @@ export function DashboardScreen({ userName }: { userName: string }) {
 											}
 										>
 											<NativeSelectOption value="">
-												Tümü ({groupedTemplates.length})
+												{t("common.allWithCount", {
+													count: groupedTemplates.length,
+												})}
 											</NativeSelectOption>
 											{templateCategories.map((category) => (
 												<NativeSelectOption key={category} value={category}>
-													{category} (
-													{
-														groupedTemplates.filter(
-															(t) => t.category === category,
-														).length
-													}
-													)
+													{t("common.optionWithCount", {
+														label: category,
+														count: groupedTemplates.filter(
+															(template) => template.category === category,
+														).length,
+													})}
 												</NativeSelectOption>
 											))}
 										</NativeSelect>
@@ -410,14 +420,14 @@ export function DashboardScreen({ userName }: { userName: string }) {
 											>
 												<TemplateThumbnail
 													src={DEFAULT_TEMPLATE_PREVIEW_URL}
-													title="Varsayılan TikZ"
+													title={t("dashboard.defaultTemplate")}
 												/>
 												<div className="px-1">
 													<div className="text-sm font-medium">
-														Varsayılan TikZ
+														{t("dashboard.defaultTemplate")}
 													</div>
 													<p className="text-xs text-(--ink-1)">
-														Basit bir "Merhaba TikZ" belgesi
+														{t("dashboard.defaultTemplateHint")}
 													</p>
 												</div>
 											</button>
@@ -453,15 +463,15 @@ export function DashboardScreen({ userName }: { userName: string }) {
 										variant="outline"
 										onClick={() => setShowModal(false)}
 									>
-										İptal
+										{t("common.cancel")}
 									</Button>
 									<Button
 										type="submit"
 										disabled={createMutation.isPending || !title.trim()}
 									>
 										{createMutation.isPending
-											? "Oluşturuluyor…"
-											: "Proje oluştur"}
+											? t("dashboard.creating")
+											: t("dashboard.createProject")}
 									</Button>
 								</div>
 							</form>
@@ -478,14 +488,16 @@ export function DashboardScreen({ userName }: { userName: string }) {
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Proje silinsin mi?</AlertDialogTitle>
+						<AlertDialogTitle>{t("dashboard.deleteTitle")}</AlertDialogTitle>
 						<AlertDialogDescription>
-							<strong>{projectToDelete?.title}</strong> projesi ve tüm dosyaları
-							silinecek. Bu işlem geri alınamaz.
+							{rich("dashboard.deleteBody", {
+								title: projectToDelete?.title ?? "",
+								b: (chunks) => <strong>{chunks}</strong>,
+							})}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel>Vazgeç</AlertDialogCancel>
+						<AlertDialogCancel>{t("common.dismiss")}</AlertDialogCancel>
 						<AlertDialogAction
 							variant="destructive"
 							disabled={deleteMutation.isPending}
@@ -495,7 +507,9 @@ export function DashboardScreen({ userName }: { userName: string }) {
 								if (projectToDelete) deleteMutation.mutate(projectToDelete.id);
 							}}
 						>
-							{deleteMutation.isPending ? "Siliniyor…" : "Projeyi sil"}
+							{deleteMutation.isPending
+								? t("common.deleting")
+								: t("dashboard.deleteProject")}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

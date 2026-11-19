@@ -1,10 +1,9 @@
 import { toProjectFileDto } from "@/lib/dto";
-import { AppError, toErrorResponse } from "@/lib/errors";
+import { AppError, toErrorResponse, unauthorizedResponse } from "@/lib/errors";
 import {
 	isSafeProjectPath,
 	normalizeProjectPath,
 	sanitizeUploadFileName,
-	UNSAFE_PATH_MESSAGE,
 } from "@/lib/file-path";
 import { getSessionFromHeaders } from "@/lib/session";
 import { uploadBinaryFileForUser } from "@/server/services/projects";
@@ -17,25 +16,19 @@ export async function POST(
 ) {
 	try {
 		const session = await getSessionFromHeaders(request.headers);
-		if (!session)
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+		if (!session) return unauthorizedResponse();
 
 		const { projectId } = await context.params;
 		const formData = await request.formData();
 		const fileEntry = formData.get("file");
 
 		if (!(fileEntry instanceof File))
-			throw new AppError("BAD_REQUEST", "Dosya alanı gerekli.", 400);
+			throw new AppError("BAD_REQUEST", "fileFieldRequired", 400);
 
 		if (fileEntry.size > MAX_UPLOAD_BYTES)
 			throw new AppError(
 				"BAD_REQUEST",
-				`Dosya 5 MB'dan büyük olamaz (${(fileEntry.size / 1024 / 1024).toFixed(1)} MB)`,
+				["uploadTooLarge", { size: (fileEntry.size / 1024 / 1024).toFixed(1) }],
 				400,
 			);
 
@@ -47,7 +40,7 @@ export async function POST(
 			: sanitizeUploadFileName(fileEntry.name);
 
 		if (!isSafeProjectPath(filePath))
-			throw new AppError("VALIDATION_ERROR", UNSAFE_PATH_MESSAGE, 400);
+			throw new AppError("VALIDATION_ERROR", "pathUnsafe", 400);
 
 		const buffer = new Uint8Array(
 			(await fileEntry.arrayBuffer()) as ArrayBuffer,

@@ -1,34 +1,37 @@
 /**
- * Client helpers for better-auth endpoints: Turkish messages for its error
- * codes (it returns English text) and a small typed POST wrapper.
+ * Helpers for better-auth endpoints: messages in the user's language for
+ * its error codes (it returns English text) and a small typed POST wrapper.
  */
-export const AUTH_ERROR_MESSAGES: Record<string, string> = {
-	INVALID_EMAIL_OR_PASSWORD: "E-posta veya şifre hatalı.",
-	USER_ALREADY_EXISTS: "Bu e-posta adresiyle zaten bir hesap var.",
-	USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
-		"Bu e-posta adresiyle zaten bir hesap var. Başka bir e-posta deneyin.",
-	PASSWORD_TOO_SHORT: "Şifre en az 8 karakter olmalı.",
-	PASSWORD_TOO_LONG: "Şifre çok uzun.",
-	INVALID_EMAIL: "Geçerli bir e-posta adresi girin.",
-	INVALID_PASSWORD: "Mevcut şifre hatalı.",
-	EMAIL_NOT_VERIFIED:
-		"E-posta adresiniz henüz doğrulanmadı. Gelen kutunuzdaki bağlantıya tıklayın.",
-	INVALID_TOKEN:
-		"Bağlantı geçersiz veya süresi dolmuş. Lütfen yeni bir bağlantı isteyin.",
-	TOKEN_EXPIRED: "Bağlantının süresi dolmuş. Lütfen yeni bir bağlantı isteyin.",
-	EMAIL_ALREADY_VERIFIED: "E-posta adresiniz zaten doğrulanmış.",
-	SESSION_EXPIRED:
-		"Güvenliğiniz için bu işlemden önce çıkış yapıp yeniden giriş yapın.",
-	CREDENTIAL_ACCOUNT_NOT_FOUND: "Bu hesapta şifre tanımlı değil.",
-	TOO_MANY_REQUESTS:
-		"Çok fazla deneme yapıldı. Lütfen biraz sonra tekrar deneyin.",
-};
+import type { KeysOf, Translator } from "@/lib/i18n/translate";
+
+type AuthErrorKey = KeysOf<"authErrors">;
+
+const AUTH_ERROR_CODES = new Set<string>([
+	"INVALID_EMAIL_OR_PASSWORD",
+	"USER_ALREADY_EXISTS",
+	"USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL",
+	"PASSWORD_TOO_SHORT",
+	"PASSWORD_TOO_LONG",
+	"INVALID_EMAIL",
+	"INVALID_PASSWORD",
+	"EMAIL_NOT_VERIFIED",
+	"INVALID_TOKEN",
+	"TOKEN_EXPIRED",
+	"EMAIL_ALREADY_VERIFIED",
+	"SESSION_EXPIRED",
+	"CREDENTIAL_ACCOUNT_NOT_FOUND",
+	"TOO_MANY_REQUESTS",
+] satisfies AuthErrorKey[]);
 
 export function authErrorMessage(
+	t: Translator,
 	code: string | undefined | null,
-	fallback = "İşlem başarısız oldu.",
+	fallback?: string,
 ) {
-	return (code && AUTH_ERROR_MESSAGES[code]) || fallback;
+	if (code && AUTH_ERROR_CODES.has(code)) {
+		return t(`authErrors.${code as AuthErrorKey}`);
+	}
+	return fallback ?? t("authErrors.fallback");
 }
 
 export type AuthResult<T> =
@@ -36,6 +39,7 @@ export type AuthResult<T> =
 	| { ok: false; code: string; message: string };
 
 export async function postAuth<T = unknown>(
+	t: Translator,
 	path: string,
 	body: Record<string, unknown>,
 	fallback?: string,
@@ -55,14 +59,18 @@ export async function postAuth<T = unknown>(
 				response.status === 429
 					? "TOO_MANY_REQUESTS"
 					: (payload?.code ?? "UNKNOWN");
-			return { ok: false, code, message: authErrorMessage(code, fallback) };
+			return {
+				ok: false,
+				code,
+				message: authErrorMessage(t, code, fallback),
+			};
 		}
 		return { ok: true, data: payload as T };
 	} catch {
 		return {
 			ok: false,
 			code: "NETWORK",
-			message: "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.",
+			message: t("common.networkError"),
 		};
 	}
 }

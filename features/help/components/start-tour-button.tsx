@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { startTour } from "@/features/help/tour/tour-state";
+import { useT } from "@/lib/i18n/client";
 
 /**
  * Restarts the onboarding tour from the help center and opens the dashboard,
@@ -12,12 +13,13 @@ import { startTour } from "@/features/help/tour/tour-state";
  * the tour waits for them on the dashboard).
  */
 export function StartTourButton({
-	label = "Öğreticiyi başlat",
+	label,
 	variant = "default",
 }: {
 	label?: string;
 	variant?: "default" | "outline" | "secondary";
 }) {
+	const t = useT();
 	const router = useRouter();
 
 	return (
@@ -31,7 +33,7 @@ export function StartTourButton({
 			}}
 		>
 			<Compass />
-			{label}
+			{label ?? t("tour.start")}
 		</Button>
 	);
 }

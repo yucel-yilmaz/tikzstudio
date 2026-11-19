@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useT } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 /** Pages rendered in the preview; longer documents show a notice instead. */
@@ -35,6 +36,11 @@ export function PdfPreview({
 	zoom: number;
 	onZoomChange(nextZoom: number): void;
 }) {
+	const t = useT();
+	// Effects read the latest translator without re-running on a language
+	// switch (which would reload the PDF).
+	const tRef = useRef(t);
+	tRef.current = t;
 	const pagesRef = useRef<HTMLDivElement | null>(null);
 	const previewFrameRef = useRef<HTMLDivElement | null>(null);
 	const [previewWidth, setPreviewWidth] = useState(0);
@@ -86,7 +92,9 @@ export function PdfPreview({
 				});
 				if (!response.ok) {
 					throw new Error(
-						`PDF yüklenemedi (${response.status} ${response.statusText}).`,
+						tRef.current("pdf.loadFailed", {
+							status: `${response.status} ${response.statusText}`.trim(),
+						}),
 					);
 				}
 				const document = (await pdfjs.getDocument({
@@ -103,7 +111,7 @@ export function PdfPreview({
 					setError(
 						loadError instanceof Error
 							? loadError.message
-							: "PDF görüntülenemedi.",
+							: tRef.current("pdf.renderFailed"),
 					);
 					setLoading(false);
 				}
@@ -148,7 +156,10 @@ export function PdfPreview({
 					canvas.style.height = `${baseViewport.height * cssScale}px`;
 					canvas.className =
 						"block max-w-full rounded-md border bg-white shadow-sm";
-					canvas.setAttribute("aria-label", `Sayfa ${pageNumber}`);
+					canvas.setAttribute(
+						"aria-label",
+						tRef.current("pdf.pageLabel", { page: pageNumber }),
+					);
 
 					const task = page.render({ canvas, viewport });
 					tasks.push(task);
@@ -170,7 +181,7 @@ export function PdfPreview({
 					setError(
 						renderError instanceof Error
 							? renderError.message
-							: "PDF görüntülenemedi.",
+							: tRef.current("pdf.renderFailed"),
 					);
 				}
 			} finally {
@@ -190,10 +201,8 @@ export function PdfPreview({
 		return (
 			<div className="flex h-full min-h-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 p-4 text-center">
 				<div className="max-w-xs space-y-2">
-					<p className="text-sm font-medium">Henüz önizleme yok</p>
-					<p className="text-sm text-muted-foreground">
-						Derleme tamamlandığında PDF burada görünecek.
-					</p>
+					<p className="text-sm font-medium">{t("pdf.emptyTitle")}</p>
+					<p className="text-sm text-muted-foreground">{t("pdf.emptyBody")}</p>
 				</div>
 			</div>
 		);
@@ -205,10 +214,10 @@ export function PdfPreview({
 		<div className="flex h-full min-w-0 flex-col gap-3 overflow-hidden">
 			<div className="flex items-center justify-between gap-3">
 				<div className="space-y-1">
-					<p className="text-sm font-medium">PDF önizleme</p>
+					<p className="text-sm font-medium">{t("pdf.title")}</p>
 					<p className="text-xs text-muted-foreground">
-						Yakınlaştırma %{Math.round(zoom * 100)}
-						{pageCount > 1 ? ` · ${pageCount} sayfa` : ""}
+						{t("pdf.zoom", { zoom: Math.round(zoom * 100) })}
+						{pageCount > 1 ? t("pdf.pageCount", { count: pageCount }) : ""}
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
@@ -217,8 +226,8 @@ export function PdfPreview({
 						variant="outline"
 						size="icon-sm"
 						onClick={() => onZoomChange(Math.max(0.6, zoom - 0.2))}
-						aria-label="Uzaklaştır"
-						title="Uzaklaştır"
+						aria-label={t("pdf.zoomOut")}
+						title={t("pdf.zoomOut")}
 					>
 						<Minus />
 					</Button>
@@ -227,8 +236,8 @@ export function PdfPreview({
 						variant="outline"
 						size="icon-sm"
 						onClick={() => onZoomChange(Math.min(2.4, zoom + 0.2))}
-						aria-label="Yakınlaştır"
-						title="Yakınlaştır"
+						aria-label={t("pdf.zoomIn")}
+						title={t("pdf.zoomIn")}
 					>
 						<Plus />
 					</Button>
@@ -246,7 +255,9 @@ export function PdfPreview({
 					)}
 				>
 					<LoaderCircle className="animate-spin" size={16} />
-					<span className="text-sm text-muted-foreground">PDF yükleniyor…</span>
+					<span className="text-sm text-muted-foreground">
+						{t("pdf.loading")}
+					</span>
 				</div>
 
 				{error ? (
@@ -264,8 +275,10 @@ export function PdfPreview({
 						/>
 						{pageCount > MAX_PREVIEW_PAGES ? (
 							<p className="text-center text-xs text-muted-foreground">
-								Önizlemede ilk {MAX_PREVIEW_PAGES} sayfa gösteriliyor; belgenin
-								tamamı ({pageCount} sayfa) için PDF'i indirin.
+								{t("pdf.truncated", {
+									max: MAX_PREVIEW_PAGES,
+									count: pageCount,
+								})}
 							</p>
 						) : null}
 					</div>

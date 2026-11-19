@@ -11,6 +11,7 @@ import {
 	getLatestCompileOutput,
 } from "@/lib/client-api";
 import { COMPILE_TERMINAL_STATUSES } from "@/lib/defaults";
+import { useT } from "@/lib/i18n/client";
 import type { CompileJobDto } from "@/lib/types";
 
 type LatexEngine =
@@ -22,15 +23,16 @@ type LatexEngine =
 
 const terminalStatuses = new Set<string>(COMPILE_TERMINAL_STATUSES);
 
-/** Compiles the project's main file (see "Ana dosya yap" in the file tree). */
+/** Compiles the project's main file (see "Set as main file" in the file tree). */
 export function useCompile(projectId: string, engine: LatexEngine) {
+	const t = useT();
 	const queryClient = useQueryClient();
 	const [compileJobId, setCompileJobId] = useState<string | null>(null);
 
 	const compileQuery = useQuery({
 		queryKey: ["compile-job", compileJobId],
 		queryFn: () => {
-			if (!compileJobId) throw new Error("Derleme işi kimliği gerekli.");
+			if (!compileJobId) throw new Error(t("compile.jobIdRequired"));
 			return getCompileJob(compileJobId);
 		},
 		enabled: Boolean(compileJobId),
@@ -61,7 +63,7 @@ export function useCompile(projectId: string, engine: LatexEngine) {
 				return;
 			}
 			toast.error(
-				error instanceof Error ? error.message : "Derleme başlatılamadı.",
+				error instanceof Error ? error.message : t("compile.startFailed"),
 			);
 		},
 	});

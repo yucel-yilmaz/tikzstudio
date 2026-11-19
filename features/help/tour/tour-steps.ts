@@ -1,3 +1,5 @@
+import type { MessageKey } from "@/lib/i18n/translate";
+
 export type TourPage = "dashboard" | "editor";
 
 export type TourStep = {
@@ -9,9 +11,10 @@ export type TourStep = {
 	 * the middle of the screen instead, so the tour never gets stuck.
 	 */
 	target?: string;
-	title: string;
-	/** Supports the help-center inline syntax (`code`, **bold**). */
-	body: string;
+	/** Dictionary key of the card title. */
+	title: MessageKey;
+	/** Dictionary key of the body; supports the help-center inline syntax (`code`, **bold**). */
+	body: MessageKey;
 };
 
 /**
@@ -33,71 +36,71 @@ export const TOUR_STEPS: TourStep[] = [
 	{
 		id: "hos-geldiniz",
 		page: "dashboard",
-		title: "TikZ Studio'ya hoş geldiniz!",
-		body: "Bu kısa öğretici; bir şablondan proje oluşturmayı, kodu derlemeyi ve çıktıyı indirmeyi gösterir. İstediğiniz an kapatabilir, **Yardım** menüsünden yeniden başlatabilirsiniz.",
+		title: "tour.steps.welcomeTitle",
+		body: "tour.steps.welcomeBody",
 	},
 	{
 		id: "yardim-menusu",
 		page: "dashboard",
 		target: TOUR_TARGETS.helpMenu,
-		title: "Yardım her zaman burada",
-		body: "**Yardım merkezi**nde motorlar, Türkçe belgeler ve sık görülen hatalar için rehberler var. Bu öğreticiyi de buradan yeniden başlatabilirsiniz.",
+		title: "tour.steps.helpMenuTitle",
+		body: "tour.steps.helpMenuBody",
 	},
 	{
 		id: "yeni-proje",
 		page: "dashboard",
 		target: TOUR_TARGETS.newProject,
-		title: "Şablondan bir proje oluşturun",
-		body: "**Yeni proje**'ye tıklayın, bir başlık yazın ve **Öğretici: İlk TikZ çiziminiz** şablonunu seçin (listede yoksa başka bir şablon da olur). **Proje oluştur**'a bastığınızda editör açılır ve öğretici orada devam eder.",
+		title: "tour.steps.newProjectTitle",
+		body: "tour.steps.newProjectBody",
 	},
 	{
 		id: "kod-editoru",
 		page: "editor",
 		target: TOUR_TARGETS.editorPane,
-		title: "Kod editörü",
-		body: "LaTeX ve TikZ kodunuzu buraya yazın. Yazmayı bıraktıktan yaklaşık bir saniye sonra otomatik kaydedilir. `\\` yazıp birkaç harf eklerseniz kod parçacıkları önerilir.",
+		title: "tour.steps.codeEditorTitle",
+		body: "tour.steps.codeEditorBody",
 	},
 	{
 		id: "motor",
 		page: "editor",
 		target: TOUR_TARGETS.engineSelect,
-		title: "Motoru seçin",
-		body: "**Tectonic** hızlı varsayılandır ama yalnızca hazır paketleri bilir. Bir paket bulunamazsa **pdfLaTeX**'e, kaynakça için **pdfLaTeX + Biber**'e geçin.",
+		title: "tour.steps.engineTitle",
+		body: "tour.steps.engineBody",
 	},
 	{
 		id: "derle",
 		page: "editor",
 		target: TOUR_TARGETS.compileButton,
-		title: "Derleyin",
-		body: "Kodunuzu PDF'e dönüştürmek için **Derle**'ye basın. Dakikada en fazla 5 derleme yapılabilir ve her derleme yaklaşık 12 saniyeyle sınırlıdır.",
+		title: "tour.steps.compileTitle",
+		body: "tour.steps.compileBody",
 	},
 	{
 		id: "onizleme",
 		page: "editor",
 		target: TOUR_TARGETS.outputPanel,
-		title: "Önizleme ve Derleme günlüğü",
-		body: "Derlenen PDF burada görünür; **–** ve **+** ile yakınlaştırabilirsiniz. Hata olursa **Derleme günlüğü** nedenini gösterir ve ilgili satır editörde işaretlenir. Önceki derlemeler **Geçmiş** sekmesindedir.",
+		title: "tour.steps.previewTitle",
+		body: "tour.steps.previewBody",
 	},
 	{
 		id: "indir",
 		page: "editor",
 		target: TOUR_TARGETS.outputToolbar,
-		title: "PDF, SVG ve PNG indirin",
-		body: "Başarılı bir derlemeden sonra bu çubukta **PDF indir**, **SVG indir** ve **PNG indir** düğmeleri belirir. PNG 300 DPI'dır; çalışma kâğıtları ve sunumlar için idealdir.",
+		title: "tour.steps.downloadTitle",
+		body: "tour.steps.downloadBody",
 	},
 	{
 		id: "paneller",
 		page: "editor",
 		target: TOUR_TARGETS.sidebarNav,
-		title: "Dosyalar, Şablonlar ve Kod parçacıkları",
-		body: "Bu simgeler **Dosyalar**, **Şablonlar**, **Kod parçacıkları** ve **Ayarlar** panellerini açar. Bir şablona tıklamak kodunu imlecin olduğu yere ekler. **Ayarlar**'dan projeyi paylaşabilir veya şablon olarak kaydedebilirsiniz.",
+		title: "tour.steps.panelsTitle",
+		body: "tour.steps.panelsBody",
 	},
 	{
 		id: "bitti",
 		page: "editor",
 		target: TOUR_TARGETS.helpMenu,
-		title: "Hazırsınız!",
-		body: "Takıldığınızda **Yardım** menüsünden yardım merkezine ulaşabilir ya da bu öğreticiyi yeniden başlatabilirsiniz. İyi çizimler!",
+		title: "tour.steps.doneTitle",
+		body: "tour.steps.doneBody",
 	},
 ];
 

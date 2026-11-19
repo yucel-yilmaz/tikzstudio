@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AuthCard, Notice } from "@/features/auth/components/auth-card";
 import { authErrorMessage } from "@/lib/auth-errors";
+import { getI18n } from "@/lib/i18n/server";
 import { getServerSession } from "@/lib/session";
 
 /** Landing page of the email verification link (better-auth redirects here). */
@@ -14,29 +15,33 @@ export default async function EmailVerifiedPage({
 	const params = await searchParams;
 	const error = typeof params.error === "string" ? params.error : null;
 	const session = await getServerSession();
+	const { t } = await getI18n();
 
 	if (error) {
 		return (
-			<AuthCard badge="E-posta doğrulama" title="Doğrulama tamamlanamadı">
+			<AuthCard
+				badge={t("auth.emailVerificationBadge")}
+				title={t("auth.verificationFailedTitle")}
+			>
 				<Notice tone="error">
-					{authErrorMessage(
-						error,
-						"Doğrulama bağlantısı geçersiz. Giriş yapmayı deneyin; gerekirse yeni bir bağlantı gönderebilirsiniz.",
-					)}
+					{authErrorMessage(t, error, t("auth.verificationFailedFallback"))}
 				</Notice>
 				<Button asChild className="w-full">
-					<Link href="/login">Giriş yap</Link>
+					<Link href="/login">{t("common.signIn")}</Link>
 				</Button>
 			</AuthCard>
 		);
 	}
 
 	return (
-		<AuthCard badge="E-posta doğrulama" title="E-posta adresiniz doğrulandı">
-			<Notice tone="success">Teşekkürler! Hesabınız etkinleştirildi.</Notice>
+		<AuthCard
+			badge={t("auth.emailVerificationBadge")}
+			title={t("auth.verifiedTitle")}
+		>
+			<Notice tone="success">{t("auth.verifiedBody")}</Notice>
 			<Button asChild className="w-full">
 				<Link href={session ? "/dashboard" : "/login"}>
-					{session ? "Panele git" : "Giriş yap"}
+					{session ? t("common.goToDashboard") : t("common.signIn")}
 				</Link>
 			</Button>
 		</AuthCard>

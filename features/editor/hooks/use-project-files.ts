@@ -9,9 +9,11 @@ import {
 	updateFile,
 	uploadFile,
 } from "@/lib/client-api";
+import { useT } from "@/lib/i18n/client";
 import type { ProjectFileDto } from "@/lib/types";
 
 export function useProjectFiles(projectId: string) {
+	const t = useT();
 	const queryClient = useQueryClient();
 	const setActiveFile = useEditorStore((s) => s.setActiveFile);
 
@@ -24,11 +26,11 @@ export function useProjectFiles(projectId: string) {
 					current ? { files: [...current.files, file] } : { files: [file] },
 			);
 			setActiveFile(file.id);
-			toast.success(`"${file.path}" oluşturuldu`);
+			toast.success(t("fileTree.created", { path: file.path }));
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : "Dosya oluşturulamadı.",
+				error instanceof Error ? error.message : t("fileTree.createFailed"),
 			);
 		},
 	});
@@ -52,10 +54,12 @@ export function useProjectFiles(projectId: string) {
 			if (activeFileId === fileId) {
 				setActiveFile(remaining[0]?.id ?? null);
 			}
-			toast.success("Dosya silindi");
+			toast.success(t("fileTree.deleted"));
 		},
 		onError: (error) => {
-			toast.error(error instanceof Error ? error.message : "Dosya silinemedi.");
+			toast.error(
+				error instanceof Error ? error.message : t("fileTree.deleteFailed"),
+			);
 		},
 	});
 
@@ -72,13 +76,11 @@ export function useProjectFiles(projectId: string) {
 							}
 						: current,
 			);
-			toast.success(`Yeni ad: "${file.path}"`);
+			toast.success(t("fileTree.renamed", { path: file.path }));
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error
-					? error.message
-					: "Dosya yeniden adlandırılamadı.",
+				error instanceof Error ? error.message : t("fileTree.renameFailed"),
 			);
 		},
 	});
@@ -99,11 +101,11 @@ export function useProjectFiles(projectId: string) {
 							}
 						: current,
 			);
-			toast.success(`"${file.path}" ana dosya yapıldı`);
+			toast.success(t("fileTree.mainSet", { path: file.path }));
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : "Ana dosya değiştirilemedi.",
+				error instanceof Error ? error.message : t("fileTree.mainSetFailed"),
 			);
 		},
 	});
@@ -117,11 +119,11 @@ export function useProjectFiles(projectId: string) {
 					current ? { files: [...current.files, file] } : { files: [file] },
 			);
 			setActiveFile(file.id);
-			toast.success(`"${file.path}" yüklendi`);
+			toast.success(t("fileTree.uploaded", { path: file.path }));
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : "Dosya yüklenemedi.",
+				error instanceof Error ? error.message : t("fileTree.uploadFailed"),
 			);
 		},
 	});

@@ -1,5 +1,5 @@
 import { env } from "@/lib/env";
-import { AppError, toErrorResponse } from "@/lib/errors";
+import { AppError, toErrorResponse, unauthorizedResponse } from "@/lib/errors";
 import { getSessionFromHeaders } from "@/lib/session";
 import {
 	type Img2LatexProvider,
@@ -34,7 +34,7 @@ async function reach(label: string, url: string, init: RequestInit) {
 	} catch {
 		throw new AppError(
 			"UNKNOWN_ERROR",
-			`${label} hizmetine şu anda ulaşılamıyor. Biraz sonra yeniden deneyin.`,
+			["img2latexUnreachable", { service: label }],
 			503,
 		);
 	}
@@ -68,7 +68,14 @@ async function callDockerModel(dataUri: string): Promise<string> {
 		const text = await res.text().catch(() => "");
 		throw new AppError(
 			"UNKNOWN_ERROR",
-			`Docker Model Runner hatası (${res.status}): ${text.slice(0, 200)}`,
+			[
+				"img2latexServiceError",
+				{
+					service: "Docker Model Runner",
+					status: res.status,
+					detail: text.slice(0, 200),
+				},
+			],
 			502,
 		);
 	}
@@ -78,7 +85,7 @@ async function callDockerModel(dataUri: string): Promise<string> {
 	if (data.error) {
 		throw new AppError(
 			"UNKNOWN_ERROR",
-			`Model hatası: ${data.error.message}`,
+			["img2latexModelError", { detail: data.error.message }],
 			502,
 		);
 	}
@@ -102,7 +109,10 @@ async function callPix2tex(
 		const text = await res.text().catch(() => "");
 		throw new AppError(
 			"UNKNOWN_ERROR",
-			`pix2tex hatası (${res.status}): ${text.slice(0, 200)}`,
+			[
+				"img2latexServiceError",
+				{ service: "pix2tex", status: res.status, detail: text.slice(0, 200) },
+			],
 			502,
 		);
 	}
@@ -113,11 +123,7 @@ async function callPix2tex(
 
 async function callMathpix(dataUri: string): Promise<string> {
 	if (!env.MATHPIX_APP_ID || !env.MATHPIX_APP_KEY) {
-		throw new AppError(
-			"VALIDATION_ERROR",
-			"Mathpix yapılandırılmamış. MATHPIX_APP_ID ve MATHPIX_APP_KEY gerekli.",
-			503,
-		);
+		throw new AppError("VALIDATION_ERROR", "mathpixNotConfigured", 503);
 	}
 
 	const res = await reach("Mathpix", "https://api.mathpix.com/v3/text", {
@@ -138,7 +144,14 @@ async function callMathpix(dataUri: string): Promise<string> {
 		const text = await res.text().catch(() => "");
 		throw new AppError(
 			"UNKNOWN_ERROR",
-			`Mathpix API hatası (${res.status}): ${text.slice(0, 200)}`,
+			[
+				"img2latexServiceError",
+				{
+					service: "Mathpix API",
+					status: res.status,
+					detail: text.slice(0, 200),
+				},
+			],
 			502,
 		);
 	}
@@ -148,7 +161,10 @@ async function callMathpix(dataUri: string): Promise<string> {
 	if (data.error) {
 		throw new AppError(
 			"UNKNOWN_ERROR",
-			`Mathpix: ${data.error_info?.message ?? data.error}`,
+			[
+				"img2latexMathpixError",
+				{ detail: data.error_info?.message ?? data.error },
+			],
 			502,
 		);
 	}
@@ -159,10 +175,7 @@ async function callMathpix(dataUri: string): Promise<string> {
 export async function GET(request: Request) {
 	const session = await getSessionFromHeaders(request.headers);
 	if (!session) {
-		return Response.json(
-			{ error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." } },
-			{ status: 401 },
-		);
+		return unauthorizedResponse();
 	}
 	return Response.json({ providers: listImg2LatexProviders() });
 }
@@ -171,12 +184,7 @@ export async function POST(request: Request) {
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+			return unauthorizedResponse();
 		}
 
 		const formData = await request.formData();
@@ -187,30 +195,22 @@ export async function POST(request: Request) {
 			!isImg2LatexProvider(providerEntry) ||
 			!isImg2LatexProviderConfigured(providerEntry)
 		) {
-			throw new AppError(
-				"VALIDATION_ERROR",
-				"Görselden LaTeX'e dönüştürme bu sunucuda yapılandırılmamış.",
-				503,
-			);
+			throw new AppError("VALIDATION_ERROR", "img2latexNotConfigured", 503);
 		}
 		const provider: Img2LatexProvider = providerEntry;
 
 		if (!(fileEntry instanceof File)) {
-			throw new AppError("BAD_REQUEST", "image alanı gerekli.", 400);
+			throw new AppError("BAD_REQUEST", "imageFieldRequired", 400);
 		}
 
 		if (!ALLOWED_MIME.has(fileEntry.type)) {
-			throw new AppError(
-				"BAD_REQUEST",
-				"Desteklenen formatlar: PNG, JPEG, WebP.",
-				400,
-			);
+			throw new AppError("BAD_REQUEST", "imageFormatUnsupported", 400);
 		}
 
 		if (fileEntry.size > MAX_IMAGE_BYTES) {
 			throw new AppError(
 				"BAD_REQUEST",
-				`Görüntü 4 MB'dan büyük olamaz (${(fileEntry.size / 1024 / 1024).toFixed(1)} MB).`,
+				["imageTooLarge", { size: (fileEntry.size / 1024 / 1024).toFixed(1) }],
 				400,
 			);
 		}
@@ -226,11 +226,7 @@ export async function POST(request: Request) {
 					: await callDockerModel(dataUri);
 
 		if (!latex) {
-			throw new AppError(
-				"UNKNOWN_ERROR",
-				"Görüntüden LaTeX çıkarılamadı. Daha net bir görüntü deneyin.",
-				422,
-			);
+			throw new AppError("UNKNOWN_ERROR", "img2latexEmpty", 422);
 		}
 
 		return Response.json({ latex });

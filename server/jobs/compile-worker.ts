@@ -1,9 +1,24 @@
 import { CompileStatus } from "@/generated/prisma";
+import { AppError } from "@/lib/errors";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n/config";
+import { getTranslator } from "@/lib/i18n/messages";
 import { COMPILE_QUEUE, type CompileJobPayload, getBoss } from "@/lib/pgboss";
 import { prisma } from "@/lib/prisma";
 import { runCompileJob } from "@/server/services/compile";
 
 let workerStarted = false;
+
+/** Language of the project owner, for messages stored in the compile log. */
+async function ownerLocale(jobId: string): Promise<Locale> {
+	const job = await prisma.compileJob
+		.findUnique({
+			where: { id: jobId },
+			select: { project: { select: { owner: { select: { locale: true } } } } },
+		})
+		.catch(() => null);
+	const locale = job?.project.owner.locale;
+	return isLocale(locale) ? locale : DEFAULT_LOCALE;
+}
 
 /**
  * Register the pg-boss worker that processes queued compile jobs.
@@ -27,10 +42,13 @@ export async function startCompileWorker(): Promise<void> {
 					await runCompileJob(jobId);
 				} catch (error) {
 					console.error("[compile-worker] job failed:", jobId, error);
+					const locale = await ownerLocale(jobId);
 					const message =
-						error instanceof Error
-							? error.message
-							: "Derleme işi başarısız oldu.";
+						error instanceof AppError
+							? error.localizedMessage(locale)
+							: error instanceof Error
+								? error.message
+								: getTranslator(locale)("compileLog.jobFailed");
 					await prisma.compileJob
 						.update({
 							where: { id: jobId },

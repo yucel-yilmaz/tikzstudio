@@ -17,6 +17,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { TemplateThumbnail } from "@/features/templates/components/template-thumbnail";
 import { createTemplate, deleteTemplate, getTemplates } from "@/lib/client-api";
+import { useI18n } from "@/lib/i18n/client";
+import { compareStrings, foldCase } from "@/lib/i18n/format";
 import type { CreateTemplateInput } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +27,7 @@ type TemplatesPanelProps = {
 };
 
 export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
+	const { t, locale } = useI18n();
 	const queryClient = useQueryClient();
 	const [search, setSearch] = useState("");
 	const [category, setCategory] = useState<string | null>(null);
@@ -60,24 +63,26 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 
 	const categories = useMemo(() => {
 		const set = new Set<string>();
-		for (const t of templates) {
-			if (t.category) set.add(t.category);
+		for (const template of templates) {
+			if (template.category) set.add(template.category);
 		}
-		return Array.from(set).sort();
-	}, [templates]);
+		return Array.from(set).sort((a, b) => compareStrings(locale, a, b));
+	}, [templates, locale]);
 
 	const filtered = useMemo(() => {
-		const q = search.trim().toLowerCase();
-		return templates.filter((t) => {
-			if (category && t.category !== category) return false;
+		const q = foldCase(locale, search.trim());
+		return templates.filter((template) => {
+			if (category && template.category !== category) return false;
 			if (!q) return true;
 			return (
-				t.title.toLowerCase().includes(q) ||
-				(t.description?.toLowerCase().includes(q) ?? false) ||
-				t.category.toLowerCase().includes(q)
+				foldCase(locale, template.title).includes(q) ||
+				(template.description
+					? foldCase(locale, template.description).includes(q)
+					: false) ||
+				foldCase(locale, template.category).includes(q)
 			);
 		});
-	}, [templates, search, category]);
+	}, [templates, search, category, locale]);
 
 	return (
 		<>
@@ -88,7 +93,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 						<Input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
-							placeholder="Şablonlarda ara…"
+							placeholder={t("templates.searchPlaceholder")}
 							className="h-8 pl-8 text-sm"
 						/>
 					</div>
@@ -99,7 +104,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 						onClick={() => setIsCreating((v) => !v)}
 					>
 						<Plus className="size-3" />
-						Yeni
+						{t("common.new")}
 					</Button>
 				</div>
 				{categories.length > 0 ? (
@@ -114,7 +119,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 									: "border-border text-muted-foreground hover:bg-muted",
 							)}
 						>
-							Tümü
+							{t("common.all")}
 						</button>
 						{categories.map((cat) => (
 							<button
@@ -145,7 +150,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 				<DialogContent className="flex max-h-[80vh] flex-col gap-0 p-0 sm:max-w-lg">
 					<DialogHeader className="border-b px-4 py-3">
 						<DialogTitle className="text-sm font-medium">
-							Yeni şablon
+							{t("templates.newTemplate")}
 						</DialogTitle>
 					</DialogHeader>
 					<form
@@ -157,7 +162,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 					>
 						<div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
 							<Input
-								placeholder="Başlık"
+								placeholder={t("common.title")}
 								value={form.title}
 								onChange={(e) =>
 									setForm((f) => ({ ...f, title: e.target.value }))
@@ -166,14 +171,14 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 								autoFocus
 							/>
 							<Input
-								placeholder="Kategori"
+								placeholder={t("common.category")}
 								value={form.category}
 								onChange={(e) =>
 									setForm((f) => ({ ...f, category: e.target.value }))
 								}
 							/>
 							<Textarea
-								placeholder="İçerik"
+								placeholder={t("common.content")}
 								className="min-h-60 flex-1 font-mono text-xs"
 								value={form.content ?? ""}
 								onChange={(e) =>
@@ -188,10 +193,10 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 								variant="ghost"
 								onClick={() => setIsCreating(false)}
 							>
-								İptal
+								{t("common.cancel")}
 							</Button>
 							<Button type="submit" disabled={createMutation.isPending}>
-								Kaydet
+								{t("common.save")}
 							</Button>
 						</div>
 					</form>
@@ -202,7 +207,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 				<div className="grid grid-cols-1 gap-2 px-4 py-4 xl:grid-cols-2">
 					{filtered.length === 0 ? (
 						<p className="col-span-full text-center text-xs text-muted-foreground">
-							Eşleşen şablon bulunamadı.
+							{t("templates.noMatches")}
 						</p>
 					) : null}
 					{filtered.map((template) => {
@@ -250,7 +255,7 @@ export function TemplatesPanel({ onInsert }: TemplatesPanelProps) {
 										type="button"
 										className="absolute right-2 top-2 hidden rounded p-0.5 text-muted-foreground hover:text-destructive group-hover:flex"
 										onClick={() => deleteMutation.mutate(template.id)}
-										aria-label="Sil"
+										aria-label={t("common.delete")}
 									>
 										<Trash2 className="size-3" />
 									</button>

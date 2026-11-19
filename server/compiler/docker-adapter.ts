@@ -13,6 +13,8 @@ import path from "node:path";
 import { env } from "@/lib/env";
 import { AppError } from "@/lib/errors";
 import { isSafeProjectPath } from "@/lib/file-path";
+import { DEFAULT_LOCALE } from "@/lib/i18n/config";
+import { getTranslator } from "@/lib/i18n/messages";
 import { inferCompileErrorCode } from "@/server/compiler/parser";
 import type {
 	CompileInput,
@@ -23,6 +25,7 @@ import type {
 export class DockerCompilerAdapter implements CompilerAdapter {
 	async compile(input: CompileInput): Promise<CompileResult> {
 		const startedAt = new Date();
+		const t = getTranslator(input.locale);
 		const sourceBytes = input.files.reduce((sum, file) => {
 			return (
 				sum +
@@ -33,14 +36,9 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 		}, 0);
 
 		if (sourceBytes > env.MAX_SOURCE_SIZE_KB * 1024) {
-			throw new AppError(
-				"VALIDATION_ERROR",
-				"Kaynak dosyalar izin verilen boyutu aşıyor.",
-				400,
-				{
-					limitKb: env.MAX_SOURCE_SIZE_KB,
-				},
-			);
+			throw new AppError("VALIDATION_ERROR", "sourceTooLarge", 400, {
+				limitKb: env.MAX_SOURCE_SIZE_KB,
+			});
 		}
 
 		const workRoot = env.COMPILE_WORK_DIR
@@ -63,7 +61,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 				) {
 					throw new AppError(
 						"SECURITY_BLOCKED",
-						`Güvenli olmayan dosya yolu reddedildi: ${file.path}`,
+						["unsafePathRejected", { path: file.path }],
 						400,
 					);
 				}
@@ -108,7 +106,11 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 					? env.COMPILE_TIMEOUT_SECONDS * 1000 * 10
 					: env.COMPILE_TIMEOUT_SECONDS * 1000;
 
-			const { code, log, timedOut } = await this.runDocker(args, timeoutMs);
+			const { code, log, timedOut } = await this.runDocker(
+				args,
+				timeoutMs,
+				t("compileLog.timedOut"),
+			);
 			const finishedAt = new Date();
 			const pdfPath = path.join(outputDir, "output.pdf");
 			const svgPath = path.join(outputDir, "output.svg");
@@ -144,7 +146,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 			if (fileInfo.size > env.MAX_OUTPUT_SIZE_MB * 1024 * 1024) {
 				return {
 					status: "FAILED",
-					log: `${log}\nÇıktı izin verilen en büyük boyutu aştı.`,
+					log: `${log}\n${t("compileLog.outputTooLarge")}`,
 					errorCode: "SECURITY_BLOCKED",
 					pdfOutput: null,
 					svgOutput: null,
@@ -160,7 +162,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 				if (svgInfo.size > env.MAX_OUTPUT_SIZE_MB * 1024 * 1024) {
 					return {
 						status: "FAILED",
-						log: `${log}\nSVG çıktısı izin verilen en büyük boyutu aştı.`,
+						log: `${log}\n${t("compileLog.svgTooLarge")}`,
 						errorCode: "SECURITY_BLOCKED",
 						pdfOutput: null,
 						svgOutput: null,
@@ -191,7 +193,11 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 		} catch (error) {
 			const finishedAt = new Date();
 			const message =
-				error instanceof Error ? error.message : "Derleme başarısız oldu.";
+				error instanceof AppError
+					? error.localizedMessage(input.locale ?? DEFAULT_LOCALE)
+					: error instanceof Error
+						? error.message
+						: t("compileLog.failed");
 			return {
 				status: "FAILED",
 				log: message,
@@ -209,7 +215,8 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 
 	private async runDocker(
 		args: string[],
-		timeoutMs = env.COMPILE_TIMEOUT_SECONDS * 1000,
+		timeoutMs: number,
+		timeoutMessage: string,
 	) {
 		return new Promise<{ code: number | null; log: string; timedOut: boolean }>(
 			(resolve) => {
@@ -226,7 +233,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 					child.kill("SIGKILL");
 					resolve({
 						code: null,
-						log: `${log}\nDerleme zaman aşımına uğradı.`,
+						log: `${log}\n${timeoutMessage}`,
 						timedOut: true,
 					});
 				}, timeoutMs);

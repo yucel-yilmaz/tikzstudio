@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Notice } from "@/features/auth/components/auth-card";
 import { postAuth } from "@/lib/auth-errors";
+import { useT } from "@/lib/i18n/client";
 
 export function ResetPasswordForm({ token }: { token: string }) {
+	const t = useT();
 	const [password, setPassword] = useState("");
 	const [confirm, setConfirm] = useState("");
 	const [state, setState] = useState<"idle" | "saving" | "done">("idle");
@@ -17,12 +19,9 @@ export function ResetPasswordForm({ token }: { token: string }) {
 	if (state === "done") {
 		return (
 			<div className="space-y-4">
-				<Notice tone="success">
-					Şifreniz güncellendi. Güvenliğiniz için diğer cihazlardaki
-					oturumlarınız kapatıldı.
-				</Notice>
+				<Notice tone="success">{t("auth.resetDone")}</Notice>
 				<Button asChild className="w-full">
-					<Link href="/login">Yeni şifrenizle giriş yapın</Link>
+					<Link href="/login">{t("auth.signInWithNewPassword")}</Link>
 				</Button>
 			</div>
 		);
@@ -35,11 +34,11 @@ export function ResetPasswordForm({ token }: { token: string }) {
 				event.preventDefault();
 				setError(null);
 				if (password !== confirm) {
-					setError("Şifreler eşleşmiyor.");
+					setError(t("auth.passwordsDoNotMatch"));
 					return;
 				}
 				setState("saving");
-				const result = await postAuth("/reset-password", {
+				const result = await postAuth(t, "/reset-password", {
 					newPassword: password,
 					token,
 				});
@@ -52,7 +51,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
 			}}
 		>
 			<label className="block space-y-2">
-				<span className="text-sm font-medium">Yeni şifre</span>
+				<span className="text-sm font-medium">{t("auth.newPassword")}</span>
 				<Input
 					type="password"
 					required
@@ -60,11 +59,13 @@ export function ResetPasswordForm({ token }: { token: string }) {
 					autoComplete="new-password"
 					value={password}
 					onChange={(event) => setPassword(event.target.value)}
-					placeholder="En az 8 karakter"
+					placeholder={t("common.passwordPlaceholder")}
 				/>
 			</label>
 			<label className="block space-y-2">
-				<span className="text-sm font-medium">Yeni şifre (tekrar)</span>
+				<span className="text-sm font-medium">
+					{t("auth.newPasswordRepeat")}
+				</span>
 				<Input
 					type="password"
 					required
@@ -76,7 +77,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
 			</label>
 			{error ? <Notice tone="error">{error}</Notice> : null}
 			<Button type="submit" className="w-full" disabled={state === "saving"}>
-				{state === "saving" ? "Kaydediliyor…" : "Şifreyi güncelle"}
+				{state === "saving" ? t("common.saving") : t("auth.updatePassword")}
 			</Button>
 		</form>
 	);

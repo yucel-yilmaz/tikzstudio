@@ -1,4 +1,8 @@
-import { toErrorResponse } from "@/lib/errors";
+import {
+	notFoundResponse,
+	toErrorResponse,
+	unauthorizedResponse,
+} from "@/lib/errors";
 import { getSessionFromHeaders } from "@/lib/session";
 import { readUserTemplatePreview } from "@/server/services/template-previews";
 import { getAccessibleTemplate } from "@/server/services/templates";
@@ -11,22 +15,14 @@ export async function GET(
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+			return unauthorizedResponse();
 		}
 
 		const { id } = await context.params;
 		await getAccessibleTemplate(session.user.id, id);
 		const image = await readUserTemplatePreview(id).catch(() => null);
 		if (!image) {
-			return Response.json(
-				{ error: { code: "NOT_FOUND", message: "Önizleme bulunamadı." } },
-				{ status: 404 },
-			);
+			return notFoundResponse("previewNotFound");
 		}
 
 		return new Response(new Uint8Array(image), {

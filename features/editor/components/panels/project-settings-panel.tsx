@@ -12,6 +12,7 @@ import {
 	type SaveAsTemplatePayload,
 } from "@/features/editor/components/panels/save-as-template-form";
 import { ExportProjectButton } from "@/features/projects/components/export-project-button";
+import { useT } from "@/lib/i18n/client";
 import type { ProjectDetail } from "@/lib/types";
 
 type ProjectSettingsPanelProps = {
@@ -29,6 +30,8 @@ export function ProjectSettingsPanel({
 	onSubmit,
 	onSaveAsTemplate,
 }: ProjectSettingsPanelProps) {
+	const t = useT();
+
 	return (
 		<ScrollArea className="h-full px-4 py-4">
 			<form
@@ -44,7 +47,7 @@ export function ProjectSettingsPanel({
 			>
 				<div className="space-y-2">
 					<label htmlFor="project-panel-title" className="text-sm font-medium">
-						Proje adı
+						{t("editor.projectName")}
 					</label>
 					<Input
 						id="project-panel-title"
@@ -57,7 +60,7 @@ export function ProjectSettingsPanel({
 						htmlFor="project-panel-description"
 						className="text-sm font-medium"
 					>
-						Açıklama
+						{t("common.description")}
 					</label>
 					<Textarea
 						id="project-panel-description"
@@ -70,18 +73,17 @@ export function ProjectSettingsPanel({
 					<div className="space-y-1">
 						<div className="inline-flex items-center gap-2 text-sm font-medium">
 							<Settings2 className="size-4" />
-							Herkese açık
+							{t("editor.public")}
 						</div>
 						<p className="text-xs text-muted-foreground">
-							Açarsanız paylaşım bağlantısına sahip herkes projeyi
-							görüntüleyebilir.
+							{t("editor.publicHint")}
 						</p>
 					</div>
 					<Switch name="isPublic" defaultChecked={project?.isPublic} />
 				</div>
 				<Button type="submit" size="sm" className="w-full">
 					<Settings2 />
-					Ayarları kaydet
+					{t("editor.saveSettings")}
 				</Button>
 			</form>
 			{project ? (

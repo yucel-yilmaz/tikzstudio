@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useT } from "@/lib/i18n/client";
 
 export type SaveAsTemplatePayload = {
 	title: string;
@@ -28,8 +29,9 @@ export function SaveAsTemplateForm({
 	defaultDescription,
 	onSave,
 }: SaveAsTemplateFormProps) {
+	const t = useT();
 	const [title, setTitle] = useState(defaultTitle);
-	const [category, setCategory] = useState("Kişisel");
+	const [category, setCategory] = useState(() => t("common.personalCategory"));
 	const [description, setDescription] = useState(defaultDescription ?? "");
 	const [saving, setSaving] = useState(false);
 
@@ -49,17 +51,15 @@ export function SaveAsTemplateForm({
 			<div className="space-y-1">
 				<div className="inline-flex items-center gap-2 text-sm font-medium">
 					<BookmarkPlus className="size-4" />
-					Şablon olarak kaydet
+					{t("templates.saveAsTemplate")}
 				</div>
 				<p className="text-xs text-muted-foreground">
-					Projedeki tüm dosyalar (şekiller, görseller, stil dosyaları) yeni
-					projelerde kullanabileceğiniz kişisel bir şablona kopyalanır.
-					Kaydedilmemiş değişiklikler önce kaydedilir.
+					{t("templates.saveAsTemplateHint")}
 				</p>
 			</div>
 			<div className="space-y-1.5">
 				<label htmlFor="save-template-title" className="text-xs font-medium">
-					Şablon adı
+					{t("templates.templateName")}
 				</label>
 				<Input
 					id="save-template-title"
@@ -71,13 +71,13 @@ export function SaveAsTemplateForm({
 			</div>
 			<div className="space-y-1.5">
 				<label htmlFor="save-template-category" className="text-xs font-medium">
-					Kategori
+					{t("common.category")}
 				</label>
 				<Input
 					id="save-template-category"
 					value={category}
 					onChange={(event) => setCategory(event.target.value)}
-					placeholder="ör. Ödev, Makale şekilleri"
+					placeholder={t("templates.categoryPlaceholder")}
 					maxLength={60}
 				/>
 			</div>
@@ -86,7 +86,7 @@ export function SaveAsTemplateForm({
 					htmlFor="save-template-description"
 					className="text-xs font-medium"
 				>
-					Açıklama
+					{t("common.description")}
 				</label>
 				<Textarea
 					id="save-template-description"
@@ -104,7 +104,7 @@ export function SaveAsTemplateForm({
 				disabled={saving || !title.trim()}
 			>
 				<BookmarkPlus />
-				{saving ? "Kaydediliyor…" : "Şablon olarak kaydet"}
+				{saving ? t("common.saving") : t("templates.saveAsTemplate")}
 			</Button>
 		</form>
 	);

@@ -24,8 +24,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useI18n } from "@/lib/i18n/client";
 import type { ProjectFileDto } from "@/lib/types";
-import { cn, formatRelativeDate, normalizeProjectFilePath } from "@/lib/utils";
+import { cn, normalizeProjectFilePath } from "@/lib/utils";
 
 type FileTreePanelProps = {
 	files: ProjectFileDto[];
@@ -48,6 +49,7 @@ export function FileTreePanel({
 	onSetMainFile,
 	onUploadFile,
 }: FileTreePanelProps) {
+	const { t, formatDateTime } = useI18n();
 	const [isCreating, setIsCreating] = useState(false);
 	const [newFilePath, setNewFilePath] = useState("");
 	const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export function FileTreePanel({
 						<Input
 							autoFocus
 							value={newFilePath}
-							placeholder="ornek.tex"
+							placeholder={t("fileTree.newFilePlaceholder")}
 							onChange={(e) => setNewFilePath(e.target.value)}
 							onKeyDown={(e) => {
 								if (e.key === "Enter") {
@@ -113,7 +115,7 @@ export function FileTreePanel({
 							size="icon-sm"
 							variant="ghost"
 							onClick={() => void submitNewFile()}
-							aria-label="Oluştur"
+							aria-label={t("common.create")}
 						>
 							<Check className="size-4" />
 						</Button>
@@ -125,7 +127,7 @@ export function FileTreePanel({
 								setIsCreating(false);
 								setNewFilePath("");
 							}}
-							aria-label="İptal"
+							aria-label={t("common.cancel")}
 						>
 							<X className="size-4" />
 						</Button>
@@ -149,7 +151,7 @@ export function FileTreePanel({
 							onClick={() => setIsCreating(true)}
 						>
 							<FilePlus className="size-4" />
-							Yeni dosya
+							{t("fileTree.newFile")}
 						</Button>
 						<Button
 							type="button"
@@ -157,7 +159,8 @@ export function FileTreePanel({
 							size="sm"
 							className="shrink-0 border-dashed px-2"
 							onClick={() => fileInputRef.current?.click()}
-							title="Dosya yükle"
+							title={t("fileTree.uploadFile")}
+							aria-label={t("fileTree.uploadFile")}
 						>
 							<Upload className="size-4" />
 						</Button>
@@ -204,7 +207,7 @@ export function FileTreePanel({
 									size="icon-sm"
 									variant="ghost"
 									onClick={() => void submitRename()}
-									aria-label="Kaydet"
+									aria-label={t("common.save")}
 								>
 									<Check className="size-4" />
 								</Button>
@@ -213,7 +216,7 @@ export function FileTreePanel({
 									size="icon-sm"
 									variant="ghost"
 									onClick={() => setRenamingFileId(null)}
-									aria-label="İptal"
+									aria-label={t("common.cancel")}
 								>
 									<X className="size-4" />
 								</Button>
@@ -252,12 +255,12 @@ export function FileTreePanel({
 											{file.path}
 										</div>
 										<p className="text-xs text-muted-foreground">
-											{formatRelativeDate(file.updatedAt)}
+											{formatDateTime(file.updatedAt)}
 										</p>
 									</div>
 									{file.isMain ? (
 										<Badge variant="secondary" className="shrink-0">
-											Ana
+											{t("fileTree.main")}
 										</Badge>
 									) : null}
 								</div>
@@ -269,7 +272,7 @@ export function FileTreePanel({
 										size="icon-sm"
 										variant="ghost"
 										className="shrink-0 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
-										aria-label="Dosya işlemleri"
+										aria-label={t("fileTree.fileActions")}
 									>
 										<MoreVertical className="size-4" />
 									</Button>
@@ -279,7 +282,7 @@ export function FileTreePanel({
 										onSelect={() => startRename(file.id, file.path)}
 									>
 										<Pencil />
-										Yeniden adlandır
+										{t("fileTree.rename")}
 									</DropdownMenuItem>
 									{!file.isMain ? (
 										<DropdownMenuItem
@@ -288,7 +291,7 @@ export function FileTreePanel({
 											}}
 										>
 											<Star />
-											Ana dosya yap
+											{t("fileTree.makeMain")}
 										</DropdownMenuItem>
 									) : null}
 									<DropdownMenuSeparator />
@@ -299,7 +302,9 @@ export function FileTreePanel({
 											if (file.isMain) return;
 											if (
 												typeof window !== "undefined" &&
-												!window.confirm(`"${file.path}" silinsin mi?`)
+												!window.confirm(
+													t("fileTree.confirmDelete", { path: file.path }),
+												)
 											) {
 												return;
 											}
@@ -307,7 +312,7 @@ export function FileTreePanel({
 										}}
 									>
 										<Trash2 />
-										Sil
+										{t("common.delete")}
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
