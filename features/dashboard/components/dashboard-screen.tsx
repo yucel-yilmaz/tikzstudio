@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { HelpMenu } from "@/features/help/components/help-menu";
 import {
 	createProject,
 	deleteProject,
@@ -129,10 +130,11 @@ export function DashboardScreen({ userName }: { userName: string }) {
 					</div>
 
 					<div className="flex flex-wrap items-center gap-3 lg:justify-end">
-						<Button onClick={() => setShowModal(true)}>
+						<Button onClick={() => setShowModal(true)} data-tour="new-project">
 							<Plus size={16} />
 							Yeni proje
 						</Button>
+						<HelpMenu page="dashboard" />
 						<form
 							action={async () => {
 								await fetch("/api/auth/sign-out", { method: "POST" });
