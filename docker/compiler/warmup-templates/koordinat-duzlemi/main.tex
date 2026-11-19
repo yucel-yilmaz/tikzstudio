@@ -1,0 +1,9 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[scale=0.8]
+  \draw[->] (-3,0) -- (3,0) node[right] {$x$};
+  \draw[->] (0,-3) -- (0,3) node[above] {$y$};
+  \draw[step=1, gray!30] (-3,-3) grid (3,3);
+\end{tikzpicture}
+\end{document}

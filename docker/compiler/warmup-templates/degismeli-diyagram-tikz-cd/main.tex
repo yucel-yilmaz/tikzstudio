@@ -1,0 +1,15 @@
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz-cd}
+\begin{document}
+\begin{tikzcd}[column sep=large, row sep=large]
+  G \arrow[r, "\varphi"] \arrow[d, "\pi"', two heads]
+    & H \\
+  G/\ker\varphi \arrow[ur, "\bar{\varphi}"', hook, dashed]
+\end{tikzcd}
+\qquad
+\begin{tikzcd}
+  A \arrow[r, "f"] \arrow[d, "g"'] & B \arrow[d, "h"] \\
+  C \arrow[r, "k"'] & D
+\end{tikzcd}
+\end{document}

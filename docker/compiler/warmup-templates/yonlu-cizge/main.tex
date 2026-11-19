@@ -1,0 +1,12 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}
+  \node[draw, circle] (a) at (0,0) {A};
+  \node[draw, circle] (b) at (2,1.5) {B};
+  \node[draw, circle] (c) at (4,0) {C};
+  \draw[->] (a) -- (b);
+  \draw[->] (b) -- (c);
+  \draw[->, bend right=25] (c) to (a);
+\end{tikzpicture}
+\end{document}

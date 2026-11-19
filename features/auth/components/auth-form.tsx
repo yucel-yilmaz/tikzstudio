@@ -132,12 +132,13 @@ export function AuthForm({
 						</Badge>
 						<div className="space-y-3">
 							<h1 className="max-w-lg text-4xl font-semibold tracking-tight lg:text-5xl">
-								Matematik şekilleriniz için tarayıcıda çalışan TikZ editörü.
+								Şekilleriniz ve belgeleriniz için tarayıcıda çalışan TikZ
+								editörü.
 							</h1>
 							<p className="max-w-xl text-base leading-7 text-(--ink-1)">
 								Kod editörü, güvenli derleme, PDF önizleme ve derleme günlüğü
-								aynı ekranda. Geometri çizimleri, grafikler ve sınav kâğıtları
-								için kurulum gerektirmeyen hızlı bir çalışma ortamı.
+								aynı ekranda. Ödevden makaleye, sınav kâğıdından sunuma kadar
+								kurulum gerektirmeyen hızlı bir çalışma ortamı.
 							</p>
 						</div>
 					</div>
@@ -225,7 +226,7 @@ export function AuthForm({
 									name="email"
 									required
 									className="pl-11"
-									placeholder="ornek@okul.k12.tr"
+									placeholder="ornek@eposta.com"
 								/>
 							</div>
 						</label>

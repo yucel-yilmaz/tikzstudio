@@ -1,0 +1,15 @@
+\begin{tikzpicture}
+  \begin{axis}[
+    width=0.75\linewidth, height=5.5cm,
+    xlabel={$x$}, ylabel={$y$},
+    grid=major, grid style={gray!20},
+    legend pos=north west, legend cell align=left,
+  ]
+    \addplot[only marks, mark=*, blue] coordinates {
+      (1,2.3) (2,2.9) (3,3.8) (4,4.1) (5,5.2) (6,5.6) (7,6.7)
+    };
+    \addlegendentry{Veri}
+    \addplot[thick, red, domain=0.5:7.5] {1.6 + 0.71*x};
+    \addlegendentry{Model}
+  \end{axis}
+\end{tikzpicture}

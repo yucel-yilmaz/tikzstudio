@@ -1,0 +1,11 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}
+  \node[draw, rounded corners] (start) at (0,0) {Başla};
+  \node[draw, rounded corners] (process) at (0,-1.7) {İşlem};
+  \node[draw, rounded corners] (end) at (0,-3.4) {Bitir};
+  \draw[->] (start) -- (process);
+  \draw[->] (process) -- (end);
+\end{tikzpicture}
+\end{document}

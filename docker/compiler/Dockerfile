@@ -44,6 +44,13 @@ RUN mkdir -p "$XDG_CACHE_HOME" \
  && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-sizes-10pt.tex \
  && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-sizes-12pt.tex
 
+# Compile every official template (written by `npm run warmup:sync`) so all
+# packages they use are cached. Each template's main file is main.tex.
+COPY docker/compiler/warmup-templates /warmup/templates
+RUN for dir in /warmup/templates/*/; do \
+      (cd "$dir" && tectonic --bundle "$TECTONIC_BUNDLE" main.tex) || exit 1; \
+    done
+
 FROM debian:bookworm-slim
 
 RUN apt-get update \

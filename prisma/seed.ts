@@ -1,11 +1,6 @@
 import { prisma } from "../lib/prisma";
-import { basicSnippets, basicTemplates } from "./basic-templates";
-import {
-	mathSnippets,
-	mathTemplates,
-	type SeedSnippet,
-	type SeedTemplate,
-} from "./math-templates";
+import type { SeedSnippet, SeedTemplate } from "./math-templates";
+import { officialSnippets, officialTemplates } from "./official-templates";
 
 /**
  * Idempotent seed: official (owner-less) templates and snippets are matched by
@@ -70,11 +65,11 @@ async function upsertOfficialSnippet(snippet: SeedSnippet) {
 }
 
 async function main() {
-	for (const template of [...basicTemplates, ...mathTemplates]) {
+	for (const template of officialTemplates) {
 		await upsertOfficialTemplate(template);
 	}
 
-	for (const snippet of [...basicSnippets, ...mathSnippets]) {
+	for (const snippet of officialSnippets) {
 		await upsertOfficialSnippet(snippet);
 	}
 

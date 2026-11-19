@@ -1,6 +1,6 @@
 # TikZ Studio
 
-**TikZ** diyagramlarına ve çok dosyalı LaTeX belgelerine odaklanmış, modern, tarayıcı tabanlı bir LaTeX editörü. React 19 ile Next.js 16 üzerine inşa edilmiş olup CodeMirror editörü ile izole Docker derleme ortamını ve canlı PDF önizlemesini bir araya getirir.
+**TikZ** diyagramlarına ve çok dosyalı LaTeX belgelerine odaklanmış, modern, tarayıcı tabanlı bir LaTeX editörü. React 19 ile Next.js 16 üzerine inşa edilmiş olup CodeMirror editörü ile izole Docker derleme ortamını ve canlı PDF önizlemesini bir araya getirir. TikZ/LaTeX ile çalışan herkes için tasarlanmıştır: lise ve üniversite öğrencileri, öğretmenler ve akademisyenler.
 
 > Durum: aktif geliştirme aşamasında. API'ler ve arayüz değişebilir.
 
@@ -18,7 +18,11 @@
 - 📚 **Derleme geçmişi** — geçmiş işlere göz at, arşivlenmiş PDF/SVG/PNG çıktılarını indir
 - 🔁 **Proje çatallama** — herhangi bir genel projeyi kendi çalışma alanına kopyala
 - 🧩 **Çok dosyalı şablonlar** — yeni proje, şablonun tüm dosyalarını (görseller ve `.sty` dahil) kopyalar; editörden kendi şablonlarınızı oluşturabilirsiniz
-- 📐 **Lise matematik paketi** — 13 hazır Türkçe şablon (üçgen, çember, tkz-euclide, doğru/parabol/parçalı fonksiyon grafikleri, birim çember, sayı doğrusu, Venn, olasılık ağacı, katı cisimler, iki eğri arası alan, çok dosyalı A–E şıklı sınav kâğıdı) ve matematik snippet'leri; hepsi Tectonic ve pdfLaTeX ile doğrulanmıştır
+- 📚 **Şablon kütüphanesi (33 şablon)** — Türkçe etiketli, gerektiğinde çok dosyalı ve Tectonic ile pdfLaTeX'te doğrulanmış:
+  - **Temel:** şekiller, düğümler, akış şemaları, ağaçlar, çizgeler
+  - **Lise matematiği:** üçgen, çember, tkz-euclide, doğru/parabol/parçalı fonksiyon grafikleri, birim çember, sayı doğrusu, Venn, olasılık ağacı, katı cisimler, iki eğri arası alan, A–E şıklı sınav kâğıdı
+  - **Üniversite ve akademik:** hata çubuklu veri grafiği ve uyum doğrusu, gruplandırılmış çubuk grafik, normal dağılım, 3B yüzey, vektörler/izdüşüm, değişmeli diyagramlar (tikz-cd), sonlu durum otomatı, kontrol sistemi blok diyagramı, Beamer sunumu, çok dosyalı makale iskeleti
+- 💾 **Şablon olarak kaydet** — herhangi bir projeyi (tüm dosyalarıyla) proje ayarları panelinden kişisel şablona dönüştürün
 - 🔐 **Kimlik doğrulama** — [better-auth](https://www.better-auth.com/) ile e-posta + şifre; GitHub ve Google OAuth, istemci kimliği/sırrı tanımlandığında otomatik etkinleşir
 - 🚦 **Hız sınırlaması** — kullanıcı başına dakikada 5 derleme (veritabanı destekli, ek bağımlılık yok)
 - 💾 **Otomatik kaydetme** — geri çekilme ve görünür kayıt durumu ile
@@ -185,7 +189,8 @@ npm run dev
 | `npm run db:migrate` | Prisma migration'larını uygula |
 | `npm run db:seed` | Veritabanını şablon ve snippet'lerle doldur |
 | `npm run compiler:build` | Docker derleyici imajını oluştur |
-| `npm run templates:verify` | Tüm matematik şablonlarını sandbox'ta derle (Tectonic + pdfLaTeX) |
+| `npm run templates:verify` | Tüm resmi şablonları sandbox'ta derle (Tectonic + pdfLaTeX) |
+| `npm run warmup:sync` | Resmi şablonları `docker/compiler/warmup-templates/` altına yazar; derleyici imajı paketlerini önbelleğe alır (sonra imajı yeniden inşa edin) |
 
 ---
 
@@ -296,7 +301,7 @@ npm run db:migrate
 - [x] OAuth sağlayıcıları (GitHub, Google) — ortam değişkeniyle isteğe bağlı
 - [x] Tek komutla yerel kurulum için docker-compose.yml
 - [x] Çok dosyalı şablon sistemi
-- [x] Lise matematik şablon paketi (Türkçe)
+- [x] Şablon kütüphanesi: lise matematiği ve üniversite/akademik paketleri (Türkçe)
 - [ ] Şablon ZIP içe/dışa aktarma ve otomatik şablon önizlemesi
 - [x] Projeyi şablon olarak kaydet (proje ayarları paneli; kaydedilmemiş değişiklikler önce kaydedilir)
 - [x] Türkçe arayüz

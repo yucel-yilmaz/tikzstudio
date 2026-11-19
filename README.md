@@ -1,6 +1,6 @@
 # TikZ Studio — Browser-based TikZ/LaTeX Diagram Editor
 
-A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file LaTeX documents. Built on Next.js 16 with React 19, it pairs a CodeMirror editor with sandboxed Docker compilation and live PDF preview — so you can edit, compile, and download high-quality figures from any browser.
+A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file LaTeX documents. Built on Next.js 16 with React 19, it pairs a CodeMirror editor with sandboxed Docker compilation and live PDF preview — so you can edit, compile, and download high-quality figures from any browser. It is built for anyone who writes TikZ/LaTeX: high-school and university students, teachers, and academics.
 
 > Status: under active development. APIs and UI may change.
 
@@ -18,7 +18,11 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file
 - 📚 **Compile history** — browse past jobs, download archived PDF/SVG/PNG outputs
 - 🔁 **Project forking** — copy any public project into your own workspace
 - 🧩 **Multi-file templates** — new projects copy every file of a template (including images and `.sty` files); create your own templates from the editor
-- 📐 **High-school math pack** — 13 ready Turkish templates (triangles, circles, tkz-euclide, line/parabola/piecewise graphs, unit circle, number line, Venn, probability tree, solids, area between curves, a multi-file A–E exam sheet) plus math snippets; all verified against Tectonic and pdfLaTeX
+- 📚 **Template library (33 templates)** — all Turkish-labelled, multi-file where useful, and verified against Tectonic and pdfLaTeX:
+  - **Basics:** shapes, nodes, flowcharts, trees, graphs
+  - **High-school math:** triangles, circles, tkz-euclide, line/parabola/piecewise graphs, unit circle, number line, Venn, probability tree, solids, area between curves, A–E exam sheet
+  - **University & academic:** data plot with error bars and fit, grouped bar chart, normal distribution, 3D surface, vectors/projection, commutative diagrams (tikz-cd), finite automaton, control-system block diagram, Beamer slides, multi-file article skeleton
+- 💾 **Save as template** — turn any project (all files) into a personal template from the project settings panel
 - 🔐 **Authentication** via [better-auth](https://www.better-auth.com/) — email + password; GitHub and Google OAuth are enabled automatically when their client id/secret are set
 - 🚦 **Rate limiting** — 5 compiles per minute per user (database-backed, no extra dependencies)
 - 💾 **Auto-save** with debounce and visible save state
@@ -187,7 +191,8 @@ Open [http://localhost:3000](http://localhost:3000) and sign up.
 | `npm run db:migrate`      | Apply Prisma migrations (`prisma migrate dev`)     |
 | `npm run db:seed`         | Seed the database with templates and snippets      |
 | `npm run compiler:build`  | Build the Docker compiler image                    |
-| `npm run templates:verify` | Compile every math template in the sandbox (Tectonic + pdfLaTeX) |
+| `npm run templates:verify` | Compile every official template in the sandbox (Tectonic + pdfLaTeX) |
+| `npm run warmup:sync` | Write official templates to `docker/compiler/warmup-templates/` so the compiler image caches their packages (rebuild the image afterwards) |
 
 ---
 
@@ -308,7 +313,7 @@ npm run db:migrate
 - [x] OAuth providers (GitHub, Google) — opt-in via env
 - [x] docker-compose.yml for one-command local setup
 - [x] Multi-file template system
-- [x] High-school math template pack (Turkish)
+- [x] Template library: high-school math and university/academic packs (Turkish)
 - [ ] Template ZIP import/export and auto-generated template previews
 - [x] Save project as template (project settings panel; unsaved edits are saved first)
 - [x] Turkish UI

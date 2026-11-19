@@ -1,0 +1,18 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{axis}[
+    width=10cm, height=8cm,
+    view={50}{30},
+    xlabel={$x$}, ylabel={$y$}, zlabel={$z$},
+    colormap/viridis, colorbar,
+    domain=-3:3, y domain=-3:3, samples=30,
+  ]
+    \addplot3[surf, shader=interp] {sin(deg(x))*cos(deg(y))};
+  \end{axis}
+\end{tikzpicture}
+\end{document}

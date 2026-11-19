@@ -25,19 +25,19 @@ export default function LandingPage() {
 								TikZ Studio
 							</Badge>
 							<Badge variant="default" className="normal-case tracking-normal">
-								Matematik öğretmenleri için TikZ çalışma alanı
+								TikZ ve LaTeX için tarayıcı tabanlı çalışma alanı
 							</Badge>
 						</div>
 
 						<div className="space-y-4">
 							<h1 className="max-w-4xl text-5xl font-semibold leading-tight tracking-tight md:text-6xl">
-								Geometri çizimlerini, fonksiyon grafiklerini ve sınav
-								kâğıtlarını TikZ ile tarayıcıda hazırlayın.
+								Şekillerinizi, grafiklerinizi ve belgelerinizi TikZ ile
+								tarayıcıda hazırlayın.
 							</h1>
 							<p className="max-w-2xl text-base leading-7 text-(--ink-1) md:text-lg">
 								Kurulum gerektirmeyen bir LaTeX editörü: kodunuzu yazın, tek
-								tıkla derleyin, sonucu anında PDF olarak görün. Ders notu ve
-								yazılı sınav hazırlarken tüm işinizi tek ekranda yapın.
+								tıkla derleyin, sonucu anında PDF olarak görün. Ödev, ders notu,
+								sınav, makale, tez ve sunum için tüm işinizi tek ekranda yapın.
 							</p>
 						</div>
 
@@ -57,7 +57,7 @@ export default function LandingPage() {
 							{[
 								[
 									"Hazır şablonlar",
-									"Lise matematik paketi dahil 20'den fazla hazır şablonla başlayın.",
+									"Lise matematiğinden makale şekillerine 30'u aşkın hazır şablonla başlayın.",
 								],
 								[
 									"Güvenli derleme",
@@ -155,9 +155,9 @@ export default function LandingPage() {
 					},
 					{
 						icon: Layers3,
-						title: "Matematik şablonları",
+						title: "Her seviyeye şablon",
 						description:
-							"Geometri, fonksiyon grafikleri, olasılık ve yazılı sınav kâğıtları için hazır lise matematik şablonları; şekil, stil ve görsel içeren çok dosyalı başlangıç projeleri.",
+							"Lise geometrisi ve fonksiyon grafiklerinden 3B yüzeylere, değişmeli diyagramlara, otomatlara, makale grafiklerine ve Beamer sunumlarına; kendi projenizi de şablon olarak kaydedin.",
 					},
 				].map(({ icon: Icon, title, description }) => (
 					<Card key={title}>
@@ -184,13 +184,14 @@ export default function LandingPage() {
 						</Badge>
 						<div className="space-y-3">
 							<h2 className="text-3xl font-semibold">
-								Karmaşık programlarla uğraşmadan kaliteli şekiller hazırlamak
-								isteyen öğretmenler için.
+								Karmaşık kurulumlarla uğraşmadan kaliteli şekiller ve belgeler
+								hazırlamak isteyen herkes için.
 							</h2>
 							<p className="text-sm leading-7 text-(--ink-1)">
-								Çalışma kâğıdı, yazılı sınav, ders notu ve deneme sınavı için
-								geometri şekilleri, koordinat düzlemleri ve grafikler üreten
-								matematik öğretmenlerine sade ve odaklı bir TikZ ortamı.
+								Ödev ve proje hazırlayan lise ve üniversite öğrencileri, çalışma
+								kâğıdı ve sınav hazırlayan öğretmenler, makale, tez ve sunumları
+								için yayın kalitesinde şekil üreten akademisyenler — hepsi için
+								sade ve odaklı bir TikZ ortamı.
 							</p>
 						</div>
 					</CardContent>

@@ -11,7 +11,7 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
 	title: "TikZ Studio",
 	description:
-		"Geometri çizimleri, grafikler ve sınav kâğıtları için tarayıcıda çalışan modern TikZ ve LaTeX editörü.",
+		"Ödevden makaleye, ders notundan sunuma: şekil, grafik ve belgeleriniz için tarayıcıda çalışan modern TikZ ve LaTeX editörü.",
 };
 
 export default function RootLayout({

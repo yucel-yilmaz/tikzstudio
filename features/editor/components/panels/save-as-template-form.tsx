@@ -77,7 +77,7 @@ export function SaveAsTemplateForm({
 					id="save-template-category"
 					value={category}
 					onChange={(event) => setCategory(event.target.value)}
-					placeholder="ör. Geometri, Yazılı sınav"
+					placeholder="ör. Ödev, Makale şekilleri"
 					maxLength={60}
 				/>
 			</div>
