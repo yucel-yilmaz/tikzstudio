@@ -71,7 +71,7 @@ Uygulama her derleme için sunucunun Docker'ı üzerinden kısa ömürlü, **ağ
 
 Hedef: `master`'a merge → imajlar yayınlanır → Coolify yeni imajları çekip yeniden başlatır.
 
-1. Coolify'da kaynağın **Webhooks** bölümünden **Deploy Webhook** adresini kopyalayın.
+1. Coolify'da kaynağın **Webhooks** bölümünden **Deploy Webhook** adresini kopyalayın. Adres `https://<coolify-paneli>/api/v1/deploy?uuid=<kaynak-uuid>&force=false` biçimindedir; iş akışı bu adresi POST ile çağırır.
 2. **Keys & Tokens → API tokens** altında *deploy* yetkili bir token oluşturun.
 3. GitHub deposunda **Settings → Secrets and variables → Actions** sayfasına şu iki secret'ı ekleyin:
    - `COOLIFY_WEBHOOK_URL`: webhook adresi
