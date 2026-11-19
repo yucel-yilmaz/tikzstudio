@@ -13,7 +13,8 @@ import { readCompilePngOutput } from "@/server/compiler/storage";
  */
 function previewPath(templateId: string) {
 	return path.join(
-		path.resolve(process.cwd(), env.TEMPLATE_PREVIEW_DIR),
+		// Relative paths resolve against the working directory.
+		path.resolve(env.TEMPLATE_PREVIEW_DIR),
 		`${templateId}.png`,
 	);
 }
