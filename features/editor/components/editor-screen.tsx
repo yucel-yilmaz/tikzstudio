@@ -58,6 +58,7 @@ import { useAutoSave } from "@/features/editor/hooks/use-auto-save";
 import { useCompile } from "@/features/editor/hooks/use-compile";
 import { useProjectFiles } from "@/features/editor/hooks/use-project-files";
 import { useEditorStore } from "@/features/editor/store/use-editor-store";
+import { HelpMenu } from "@/features/help/components/help-menu";
 import {
 	getProject,
 	getProjectFiles,
@@ -359,6 +360,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										Paylaş
 									</Button>
 								) : null}
+								<HelpMenu page="editor" size="sm" />
 								<Button asChild variant="outline" size="sm">
 									<Link href="/dashboard">Panele dön</Link>
 								</Button>
@@ -377,7 +379,11 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									value={engine}
 									onValueChange={(v) => setEngine(v as typeof engine)}
 								>
-									<SelectTrigger size="sm" className="w-36">
+									<SelectTrigger
+										size="sm"
+										className="w-36"
+										data-tour="engine-select"
+									>
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
@@ -395,6 +401,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									className="shadow-sm"
 									disabled={isCompiling || isSaving || !activeFile}
 									onClick={compile}
+									data-tour="compile-button"
 								>
 									<Play />
 									{isCompiling ? "Başlatılıyor…" : "Derle"}
@@ -439,7 +446,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 
 				{/* Mobile layout */}
 				<div className="space-y-4 lg:hidden">
-					<Card>
+					<Card data-tour="editor-pane">
 						<CardHeader>
 							<CardTitle className="text-base">Kod editörü</CardTitle>
 							<CardDescription>
@@ -480,6 +487,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									<TabsList
 										variant="line"
 										className="grid h-auto w-full grid-cols-4 gap-1 rounded-xl bg-muted/40 p-1"
+										data-tour="sidebar-nav"
 									>
 										<TabsTrigger
 											value="files"
@@ -620,7 +628,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 						</CardContent>
 					</Card>
 
-					<Card>
+					<Card data-tour="output-panel">
 						<CardHeader>
 							<CardTitle className="text-base">Çıktı paneli</CardTitle>
 							<CardDescription>
