@@ -57,7 +57,7 @@ export default function LandingPage() {
 							{[
 								[
 									"Multi-file templates",
-									"Import ZIP bundles or build your own starter.",
+									"Start from 20+ ready templates, including a high-school math pack.",
 								],
 								[
 									"Sandboxed compilation",
@@ -157,7 +157,7 @@ export default function LandingPage() {
 						icon: Layers3,
 						title: "Multi-file templates",
 						description:
-							"Import ZIP bundles, auto-generate previews, and save any project as a reusable template in one click.",
+							"Multi-file starters with figures, styles and images — plus Turkish high-school math templates for geometry, graphs, probability and exam sheets.",
 					},
 				].map(({ icon: Icon, title, description }) => (
 					<Card key={title}>

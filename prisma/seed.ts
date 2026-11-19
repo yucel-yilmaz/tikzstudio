@@ -1,4 +1,10 @@
 import { prisma } from "../lib/prisma";
+import {
+	mathSnippets,
+	mathTemplates,
+	type SeedSnippet,
+	type SeedTemplate,
+} from "./math-templates";
 
 const defaultDocument = String.raw`\documentclass[tikz,border=10pt]{standalone}
 \usepackage{tikz}
@@ -13,7 +19,7 @@ const defaultDocument = String.raw`\documentclass[tikz,border=10pt]{standalone}
 \end{document}
 `;
 
-const templates = [
+const templates: SeedTemplate[] = [
 	{
 		title: "Basic Line and Arrow",
 		category: "Basic Shapes",
@@ -168,7 +174,7 @@ const templates = [
 	},
 ];
 
-const snippets = [
+const snippets: SeedSnippet[] = [
 	{
 		title: "Basic Arrow",
 		category: "Arrows",
@@ -231,16 +237,79 @@ const snippets = [
 	},
 ];
 
-async function main() {
-	await prisma.template.createMany({
-		data: templates,
-		skipDuplicates: true,
+/**
+ * Idempotent seed: official (owner-less) templates and snippets are matched by
+ * title / trigger and updated in place, so the script can be re-run safely
+ * after adding or editing seed content.
+ */
+async function upsertOfficialTemplate(template: SeedTemplate) {
+	const files = template.files ?? [];
+	const data = {
+		title: template.title,
+		category: template.category,
+		description: template.description,
+		content: template.content ?? null,
+		isOfficial: true,
+	};
+
+	const existing = await prisma.template.findFirst({
+		where: { title: template.title, ownerId: null },
 	});
 
-	await prisma.snippet.createMany({
-		data: snippets,
-		skipDuplicates: true,
+	await prisma.$transaction(async (tx) => {
+		const saved = existing
+			? await tx.template.update({ where: { id: existing.id }, data })
+			: await tx.template.create({ data });
+
+		await tx.templateFile.deleteMany({ where: { templateId: saved.id } });
+		if (files.length) {
+			await tx.templateFile.createMany({
+				data: files.map((file, index) => ({
+					templateId: saved.id,
+					path: file.path,
+					content: file.content,
+					isMain: file.isMain ?? index === 0,
+				})),
+			});
+		}
 	});
+}
+
+async function upsertOfficialSnippet(snippet: SeedSnippet) {
+	const existing = await prisma.snippet.findFirst({
+		where: { trigger: snippet.trigger, ownerId: null },
+	});
+	const data = {
+		title: snippet.title,
+		category: snippet.category,
+		trigger: snippet.trigger,
+		description: snippet.description ?? null,
+		content: snippet.content,
+	};
+
+	if (existing) {
+		await prisma.snippet.update({ where: { id: existing.id }, data });
+	} else {
+		await prisma.snippet.create({ data });
+	}
+}
+
+async function main() {
+	for (const template of [...templates, ...mathTemplates]) {
+		await upsertOfficialTemplate(template);
+	}
+
+	for (const snippet of [...snippets, ...mathSnippets]) {
+		await upsertOfficialSnippet(snippet);
+	}
+
+	const [templateCount, snippetCount] = await Promise.all([
+		prisma.template.count({ where: { ownerId: null } }),
+		prisma.snippet.count({ where: { ownerId: null } }),
+	]);
+	console.log(
+		`Seed complete: ${templateCount} official templates, ${snippetCount} official snippets.`,
+	);
 }
 
 main()

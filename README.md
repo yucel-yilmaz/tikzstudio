@@ -12,17 +12,18 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file
 - 🛡️ **Sandboxed compilation** in a hardened Docker container (`--network none`, `--read-only`, capability drops, memory/CPU/timeout caps, process-level timeout)
 - ⚙️ **Five LaTeX engines** selectable per compile: Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX + Biber
 - 📄 **Live PDF preview** rendered with PDF.js, DPR-aware for high-DPI displays
-- 🎨 **SVG + PNG export** alongside PDF — SVG is DOMPurify-sanitised; PNG rendered at 150 DPI via `pdftoppm`
+- 🎨 **SVG + PNG export** alongside PDF — SVG is DOMPurify-sanitised; PNG rendered at 300 DPI via `pdftoppm` (print-ready for worksheets)
 - 🖼️ **Image to LaTeX** (img2latex) — convert math/formula images to LaTeX via Docker Model Runner (`ai/qwen3-vl`), pix2tex (local Docker API), or Mathpix
 - 🗂️ **Multi-file projects** — create, rename, delete, upload binaries (images, fonts, `.cls`, `.sty`), mark as main
 - 📚 **Compile history** — browse past jobs, download archived PDF/SVG/PNG outputs
 - 🔁 **Project forking** — copy any public project into your own workspace
-- 🧩 **Multi-file templates** — create, import and export ZIP template bundles; auto-generate PNG preview on save; save any project as a template
-- 🔐 **Authentication** via [better-auth](https://www.better-auth.com/) — email + password, GitHub OAuth, Google OAuth
+- 🧩 **Multi-file templates** — new projects copy every file of a template (including images and `.sty` files); create your own templates from the editor
+- 📐 **High-school math pack** — 13 ready Turkish templates (triangles, circles, tkz-euclide, line/parabola/piecewise graphs, unit circle, number line, Venn, probability tree, solids, area between curves, a multi-file A–E exam sheet) plus math snippets; all verified against Tectonic and pdfLaTeX
+- 🔐 **Authentication** via [better-auth](https://www.better-auth.com/) — email + password; GitHub and Google OAuth are enabled automatically when their client id/secret are set
 - 🚦 **Rate limiting** — 5 compiles per minute per user (database-backed, no extra dependencies)
 - 💾 **Auto-save** with debounce and visible save state
 - 🌗 **Light/dark theme** support (Tailwind v4)
-- 🇹🇷 **Turkish UI** out of the box
+- 🇹🇷 **Turkish content** — Turkish babel and fonts work in every engine; math templates and server messages are Turkish (the editor UI itself is still English)
 
 ---
 
@@ -41,7 +42,7 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file
 | LaTeX engines | Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX+Biber |
 | PDF render | PDF.js (legacy build) |
 | PDF → SVG | `pdf2svg` (DOMPurify-sanitised) |
-| PDF → PNG | `pdftoppm` (poppler-utils, 150 DPI) |
+| PDF → PNG | `pdftoppm` (poppler-utils, 300 DPI) |
 | SVG sanitiser | DOMPurify + jsdom (server-side) |
 | Template bundles | JSZip |
 | Tests | Vitest |
@@ -99,11 +100,14 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file
 
 ```bash
 cp .env.example .env
-# Edit .env: set BETTER_AUTH_SECRET and any OAuth keys
-docker compose up --build
+# Edit .env: set BETTER_AUTH_SECRET (and optionally OAuth keys)
+docker compose build compiler   # LaTeX sandbox image, 10–20 min the first time
+docker compose up --build -d
 ```
 
-This starts PostgreSQL, runs migrations automatically, and serves the app at [http://localhost:3000](http://localhost:3000). Build the compiler image separately (step 5 below) before compiling documents.
+This starts PostgreSQL, applies migrations, seeds the official templates (idempotent) and serves the app at [http://localhost:3000](http://localhost:3000).
+
+The app container starts compile containers through the host Docker daemon (`/var/run/docker.sock` is mounted). Because bind-mount paths are resolved on the host, the compile scratch directory `COMPILE_WORK_DIR` (default `/tmp/tikzstudio-work`) is mounted at the same path inside the container — keep the two in sync if you change it.
 
 ### Option B — Manual setup
 
@@ -183,6 +187,7 @@ Open [http://localhost:3000](http://localhost:3000) and sign up.
 | `npm run db:migrate`      | Apply Prisma migrations (`prisma migrate dev`)     |
 | `npm run db:seed`         | Seed the database with templates and snippets      |
 | `npm run compiler:build`  | Build the Docker compiler image                    |
+| `npm run templates:verify` | Compile every math template in the sandbox (Tectonic + pdfLaTeX) |
 
 ---
 
@@ -300,9 +305,13 @@ npm run db:migrate
 
 - [x] Multi-engine UI (pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX+Biber selectable per compile)
 - [x] PNG export
-- [x] OAuth providers (GitHub, Google)
+- [x] OAuth providers (GitHub, Google) — opt-in via env
 - [x] docker-compose.yml for one-command local setup
-- [x] Multi-file template system with ZIP import/export
+- [x] Multi-file template system
+- [x] High-school math template pack (Turkish)
+- [ ] Template ZIP import/export and auto-generated template previews
+- [ ] "Save project as template" button (service exists, not yet wired to the UI)
+- [ ] Full Turkish UI (i18n)
 - [x] Image to LaTeX (img2latex) with multiple provider support
 - [ ] Real-time collaboration (Y.js)
 - [ ] Mobile-first editor improvements
@@ -340,5 +349,4 @@ If you want to use this code, get in touch.
 - [pg-boss](https://github.com/timgit/pg-boss) — PostgreSQL-backed job queue
 - [DOMPurify](https://github.com/cure53/DOMPurify) — SVG/HTML sanitisation
 - [pix2tex](https://github.com/lukas-blecher/LaTeX-OCR) — image to LaTeX OCR
-- [JSZip](https://stuk.github.io/jszip/) — template bundle ZIP handling
 - [poppler-utils](https://poppler.freedesktop.org/) — PDF → PNG conversion

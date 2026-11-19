@@ -58,7 +58,7 @@ fi
 
 if [ -f /output/output.pdf ]; then
   pdf2svg /output/output.pdf /output/output.svg || true
-  pdftoppm -r 150 -png -f 1 -l 1 -singlefile /output/output.pdf /output/output || true
+  pdftoppm -r 300 -png -f 1 -l 1 -singlefile /output/output.pdf /output/output || true
 fi
 
 if [ -f "/output/${BASE_NAME}.log" ] && [ "/output/${BASE_NAME}.log" != "/output/compile.log" ]; then

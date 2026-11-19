@@ -1,0 +1,56 @@
+# One-command local / single-server setup.
+#
+#   cp .env.example .env            # set BETTER_AUTH_SECRET
+#   docker compose build compiler   # LaTeX sandbox image (10–20 min, once)
+#   docker compose up --build -d
+#
+# The app starts compile containers through the host Docker daemon (mounted
+# socket). Bind-mount paths are resolved on the host, so the compile scratch
+# directory is mounted at the *same* path inside the app container.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tikzlab
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tikzlab"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/tikzlab
+      COMPILE_WORK_DIR: ${COMPILE_WORK_DIR:-/tmp/tikzstudio-work}
+      COMPILE_STORAGE_DIR: /app/.data/compile-artifacts
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${COMPILE_WORK_DIR:-/tmp/tikzstudio-work}:${COMPILE_WORK_DIR:-/tmp/tikzstudio-work}
+      - artifacts:/app/.data/compile-artifacts
+
+  # Build-only service for the LaTeX sandbox image used by the app.
+  # `docker compose build compiler` tags it as tikzlab-compiler:latest.
+  compiler:
+    image: tikzlab-compiler:latest
+    build:
+      context: .
+      dockerfile: docker/compiler/Dockerfile
+    profiles: ["build"]
+
+volumes:
+  pgdata:
+  artifacts:
