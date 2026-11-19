@@ -1,0 +1,151 @@
+name: Release images
+
+# Publishes the app image (every push to master) and the LaTeX compiler image
+# (only when its sources change, or on demand) to GitHub Container Registry,
+# then optionally triggers a Coolify deployment. See docs/deploy-coolify.md.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      build_compiler:
+        description: "Also rebuild the LaTeX compiler image"
+        type: boolean
+        default: false
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  APP_IMAGE: ghcr.io/${{ github.repository }}
+  COMPILER_IMAGE: ghcr.io/${{ github.repository }}-compiler
+
+jobs:
+  changes:
+    name: Detect compiler changes
+    runs-on: ubuntu-latest
+    outputs:
+      compiler: ${{ steps.diff.outputs.compiler }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: diff
+        name: Did docker/compiler change?
+        env:
+          BEFORE: ${{ github.event.before }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.build_compiler }}
+        run: |
+          if [ "$FORCE" = "true" ]; then
+            echo "compiler=true" >> "$GITHUB_OUTPUT"
+          elif [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+            || ! git cat-file -e "$BEFORE" 2>/dev/null; then
+            echo "compiler=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$BEFORE" "$GITHUB_SHA" -- docker/compiler | grep -q .; then
+            echo "compiler=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "compiler=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  compiler:
+    name: Compiler image
+    needs: changes
+    if: needs.changes.outputs.compiler == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.COMPILER_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+          labels: |
+            org.opencontainers.image.title=TikZ Studio compiler
+            org.opencontainers.image.description=Sandboxed LaTeX/TikZ compiler (Tectonic, TeX Live)
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/compiler/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=compiler
+          cache-to: type=gha,scope=compiler,mode=max
+
+  app:
+    name: App image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.APP_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+          labels: |
+            org.opencontainers.image.title=TikZ Studio
+            org.opencontainers.image.description=Browser-based TikZ/LaTeX editor
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,scope=app,mode=max
+
+  deploy:
+    name: Trigger Coolify deployment
+    needs: [app, compiler]
+    # Run after the app image is published, whether or not the compiler image
+    # had to be rebuilt.
+    if: ${{ !cancelled() && needs.app.result == 'success' && needs.compiler.result != 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the Coolify deploy webhook (skipped when not configured)
+        env:
+          COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+        run: |
+          if [ -z "$COOLIFY_WEBHOOK_URL" ] || [ -z "$COOLIFY_API_TOKEN" ]; then
+            echo "COOLIFY_WEBHOOK_URL / COOLIFY_API_TOKEN secrets are not set; skipping deployment."
+            exit 0
+          fi
+          curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer $COOLIFY_API_TOKEN" \
+            "$COOLIFY_WEBHOOK_URL"

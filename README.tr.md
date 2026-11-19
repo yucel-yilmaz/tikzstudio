@@ -116,6 +116,10 @@ PostgreSQL'i başlatır, migration'ları uygular, resmi şablonları yükler (te
 
 Uygulama konteyneri derleme konteynerlerini host'un Docker daemon'u üzerinden başlatır (`/var/run/docker.sock` bağlanır). Bağlama yolları host'ta çözüldüğü için derleme çalışma dizini `COMPILE_WORK_DIR` (varsayılan `/tmp/tikzstudio-work`) konteyner içinde aynı yola bağlanır — değiştirirseniz ikisini birlikte değiştirin.
 
+### Yayın — Coolify
+
+Her `master` merge'ünde hazır imajlar ghcr.io'ya yayınlanır (`.github/workflows/release.yml`); `docker-compose.coolify.yml` bunları Coolify'da (ör. Hostinger VPS) çalıştırır. Adım adım rehber: [docs/deploy-coolify.md](docs/deploy-coolify.md).
+
 ### Seçenek B — Manuel kurulum
 
 #### 1. Bağımlılıkları yükle
