@@ -191,7 +191,10 @@ export function DesktopEditorLayout({
 					)}
 				>
 					{/* Icon sidebar */}
-					<aside className="order-1 flex min-h-0 flex-col items-center gap-3 border-r border-sidebar-border bg-sidebar px-2.5 py-4">
+					<aside
+						className="order-1 flex min-h-0 flex-col items-center gap-3 border-r border-sidebar-border bg-sidebar px-2.5 py-4"
+						data-tour="sidebar-nav"
+					>
 						<Button
 							type="button"
 							variant="ghost"
@@ -248,7 +251,10 @@ export function DesktopEditorLayout({
 						className="order-3 h-full min-h-0"
 					>
 						<ResizablePanel defaultSize={68} minSize={32}>
-							<Card className="flex h-full min-h-0 flex-col rounded-none border-0 shadow-none">
+							<Card
+								className="flex h-full min-h-0 flex-col rounded-none border-0 shadow-none"
+								data-tour="editor-pane"
+							>
 								<CardHeader className="border-b">
 									<div className="flex items-center justify-between gap-3">
 										<div>
@@ -300,7 +306,10 @@ export function DesktopEditorLayout({
 							maxSize="600px"
 							className="min-w-80"
 						>
-							<Card className="flex h-full min-h-0 min-w-80 flex-col rounded-none border-0 shadow-none">
+							<Card
+								className="flex h-full min-h-0 min-w-80 flex-col rounded-none border-0 shadow-none"
+								data-tour="output-panel"
+							>
 								<CardHeader className="gap-3 border-b">
 									<div className="flex items-start justify-between gap-3">
 										<div className="min-w-0">
@@ -437,7 +446,10 @@ export function DesktopEditorLayout({
 									<CardContent className="min-h-0 flex-1 overflow-hidden p-0">
 										<ScrollArea className="h-full">
 											<div className="flex min-w-0 flex-col gap-3 p-3">
-												<div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs">
+												<div
+													className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs"
+													data-tour="output-toolbar"
+												>
 													<div className="flex items-center gap-1.5">
 														<span className="text-muted-foreground">
 															Motor:

@@ -22,11 +22,8 @@ type LatexEngine =
 
 const terminalStatuses = new Set<string>(COMPILE_TERMINAL_STATUSES);
 
-export function useCompile(
-	projectId: string,
-	activeFileId: string | null,
-	engine: LatexEngine,
-) {
+/** Compiles the project's main file (see "Ana dosya yap" in the file tree). */
+export function useCompile(projectId: string, engine: LatexEngine) {
 	const queryClient = useQueryClient();
 	const [compileJobId, setCompileJobId] = useState<string | null>(null);
 
@@ -51,11 +48,7 @@ export function useCompile(
 	});
 
 	const compileMutation = useMutation({
-		mutationFn: () =>
-			compileProject(projectId, {
-				engine,
-				mainFileId: activeFileId ?? undefined,
-			}),
+		mutationFn: () => compileProject(projectId, { engine }),
 		onSuccess: (job) => {
 			setCompileJobId(job.id);
 			queryClient.setQueryData(["latest-compile-output", projectId], {
