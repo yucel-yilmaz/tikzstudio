@@ -77,6 +77,8 @@ model Project {
   files       ProjectFile[]
   compiles    CompileJob[]
   isPublic    Boolean       @default(false)
+  /// Last compile engine chosen in the editor (or the template's engine).
+  engine      LatexEngine   @default(TECTONIC)
   deletedAt   DateTime?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt

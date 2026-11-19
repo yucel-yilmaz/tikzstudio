@@ -22,6 +22,7 @@ export type ProjectFileDto = {
 export type ProjectDetail = ProjectSummary & {
 	ownerId: string;
 	isPublic: boolean;
+	engine: string;
 	files: ProjectFileDto[];
 };
 

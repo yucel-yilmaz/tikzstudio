@@ -72,7 +72,7 @@ export const compilingAndEngines: HelpArticle = {
 		},
 		{
 			type: "p",
-			text: "Motor seçimi editörü her açışınızda **Tectonic**'e döner. Farklı bir motor kullanan bir projeyi açtığınızda derlemeden önce motoru yeniden seçin.",
+			text: "Seçtiğiniz motor projeyle birlikte kaydedilir; projeyi bir sonraki açışınızda (başka bir cihazda da) aynı motorla devam edersiniz. Bir şablondan oluşturulan proje, şablonun motoruyla başlar.",
 		},
 		{ type: "h2", id: "biber", text: "Kaynakça örneği (pdfLaTeX + Biber)" },
 		{
@@ -163,7 +163,7 @@ export const outputsAndExport: HelpArticle = {
 			items: [
 				"Başarılı bir derlemeden sonra PDF, **Çıktı paneli**ndeki **Önizleme** sekmesinde görünür.",
 				"**–** ve **+** düğmeleri yakınlaştırmayı %60 ile %240 arasında değiştirir.",
-				"Önizleme yalnızca **ilk sayfayı** gösterir. Çok sayfalı belgelerin tamamını görmek için PDF'i indirin.",
+				"Çok sayfalı belgelerde bütün sayfalar alt alta gösterilir (ilk 30 sayfa); sayfa sayısı yakınlaştırma bilgisinin yanında yazar. Daha uzun belgelerin tamamı için PDF'i indirin.",
 			],
 		},
 		{ type: "h2", id: "gunluk", text: "Derleme günlüğü" },

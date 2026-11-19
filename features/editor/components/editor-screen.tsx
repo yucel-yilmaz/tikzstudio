@@ -57,7 +57,10 @@ import { PdfPreview } from "@/features/editor/components/pdf-preview";
 import { useAutoSave } from "@/features/editor/hooks/use-auto-save";
 import { useCompile } from "@/features/editor/hooks/use-compile";
 import { useProjectFiles } from "@/features/editor/hooks/use-project-files";
-import { useEditorStore } from "@/features/editor/store/use-editor-store";
+import {
+	defaultActiveFile,
+	useEditorStore,
+} from "@/features/editor/store/use-editor-store";
 import { HelpMenu } from "@/features/help/components/help-menu";
 import {
 	getProject,
@@ -154,6 +157,25 @@ function compileBadge(job: CompileJobDto | null) {
 	}
 }
 
+type Engine =
+	| "TECTONIC"
+	| "PDFLATEX"
+	| "XELATEX"
+	| "LUALATEX"
+	| "PDFLATEX_BIBER";
+
+const ENGINES: readonly Engine[] = [
+	"TECTONIC",
+	"PDFLATEX",
+	"XELATEX",
+	"LUALATEX",
+	"PDFLATEX_BIBER",
+];
+
+function toEngine(value: string | undefined): Engine | undefined {
+	return ENGINES.find((engine) => engine === value);
+}
+
 export function EditorScreen({ projectId }: { projectId: string }) {
 	const queryClient = useQueryClient();
 
@@ -206,9 +228,21 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 		},
 	});
 
-	const [engine, setEngine] = useState<
-		"TECTONIC" | "PDFLATEX" | "XELATEX" | "LUALATEX" | "PDFLATEX_BIBER"
-	>("TECTONIC");
+	// The engine is stored on the project: it starts from the project's saved
+	// engine (or its template's) and every change is persisted.
+	const [engineOverride, setEngineOverride] = useState<Engine | null>(null);
+	const engine: Engine =
+		engineOverride ?? toEngine(projectQuery.data?.engine) ?? "TECTONIC";
+	function setEngine(next: Engine) {
+		setEngineOverride(next);
+		void updateProject(projectId, { engine: next })
+			.then((project) => {
+				queryClient.setQueryData(["project", projectId], project);
+			})
+			.catch(() => {
+				toast.error("Motor seçimi kaydedilemedi.");
+			});
+	}
 
 	const { compile, isCompiling, currentCompile } = useCompile(
 		projectId,
@@ -217,8 +251,6 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 
 	const fileOps = useProjectFiles(projectId);
 
-	// The template is built from what is stored on the server, so persist every
-	// unsaved buffer first (auto-save only covers the active file).
 	// Compiling and saving as a template both read the files stored on the
 	// server, so persist every unsaved buffer first (auto-save only covers the
 	// active file, and only ~1 s after typing stops).
@@ -311,7 +343,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 	const activeFile = useMemo(
 		() =>
 			filesQuery.data?.files.find((file) => file.id === activeFileId) ??
-			filesQuery.data?.files[0] ??
+			defaultActiveFile(filesQuery.data?.files ?? []) ??
 			null,
 		[activeFileId, filesQuery.data?.files],
 	);

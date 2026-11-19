@@ -53,6 +53,7 @@ export async function POST(request: Request) {
 			title: body.title,
 			description: body.description,
 			files: buildProjectSeedFiles(template),
+			engine: template?.engine,
 		});
 
 		return Response.json(toProjectDetail(project), { status: 201 });

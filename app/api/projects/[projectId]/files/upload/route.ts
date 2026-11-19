@@ -1,6 +1,11 @@
 import { toProjectFileDto } from "@/lib/dto";
 import { AppError, toErrorResponse } from "@/lib/errors";
-import { isSafeProjectPath, UNSAFE_PATH_MESSAGE } from "@/lib/file-path";
+import {
+	isSafeProjectPath,
+	normalizeProjectPath,
+	sanitizeUploadFileName,
+	UNSAFE_PATH_MESSAGE,
+} from "@/lib/file-path";
 import { getSessionFromHeaders } from "@/lib/session";
 import { uploadBinaryFileForUser } from "@/server/services/projects";
 
@@ -34,9 +39,12 @@ export async function POST(
 				400,
 			);
 
-		const filePath = (
-			(formData.get("path") as string | null) ?? fileEntry.name
-		).trim();
+		// An explicit path must already be valid; the browser's file name is
+		// cleaned up instead ("Ekran görüntüsü.png" -> "Ekran-görüntüsü.png").
+		const explicitPath = formData.get("path") as string | null;
+		const filePath = explicitPath
+			? normalizeProjectPath(explicitPath)
+			: sanitizeUploadFileName(fileEntry.name);
 
 		if (!isSafeProjectPath(filePath))
 			throw new AppError("VALIDATION_ERROR", UNSAFE_PATH_MESSAGE, 400);

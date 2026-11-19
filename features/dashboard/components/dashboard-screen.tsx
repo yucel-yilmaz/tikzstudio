@@ -14,6 +14,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDeferredValue, useMemo, useState } from "react";
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,10 +82,15 @@ export function DashboardScreen({ userName }: { userName: string }) {
 		},
 	});
 
+	const [projectToDelete, setProjectToDelete] = useState<{
+		id: string;
+		title: string;
+	} | null>(null);
 	const deleteMutation = useMutation({
 		mutationFn: deleteProject,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["projects"] });
+			setProjectToDelete(null);
 		},
 	});
 
@@ -229,7 +244,12 @@ export function DashboardScreen({ userName }: { userName: string }) {
 											<Button
 												variant="ghost"
 												size="icon"
-												onClick={() => deleteMutation.mutate(project.id)}
+												onClick={() =>
+													setProjectToDelete({
+														id: project.id,
+														title: project.title,
+													})
+												}
 												aria-label="Projeyi sil"
 												className="text-(--danger)"
 											>
@@ -447,6 +467,37 @@ export function DashboardScreen({ userName }: { userName: string }) {
 					</Card>
 				</div>
 			) : null}
+
+			<AlertDialog
+				open={projectToDelete !== null}
+				onOpenChange={(open) => {
+					if (!open) setProjectToDelete(null);
+				}}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Proje silinsin mi?</AlertDialogTitle>
+						<AlertDialogDescription>
+							<strong>{projectToDelete?.title}</strong> projesi ve tüm dosyaları
+							silinecek. Bu işlem geri alınamaz.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Vazgeç</AlertDialogCancel>
+						<AlertDialogAction
+							variant="destructive"
+							disabled={deleteMutation.isPending}
+							onClick={(event) => {
+								// Keep the dialog open until the request finishes.
+								event.preventDefault();
+								if (projectToDelete) deleteMutation.mutate(projectToDelete.id);
+							}}
+						>
+							{deleteMutation.isPending ? "Siliniyor…" : "Projeyi sil"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }

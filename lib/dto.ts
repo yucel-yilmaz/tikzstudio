@@ -47,6 +47,7 @@ export function toProjectDetail(
 		...toProjectSummary(project),
 		ownerId: project.ownerId,
 		isPublic: project.isPublic,
+		engine: project.engine,
 		files: project.files.map(toProjectFileDto),
 	};
 }

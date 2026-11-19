@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
 	isSafeProjectPath,
 	MAX_PROJECT_PATH_LENGTH,
+	normalizeProjectPath,
 	UNSAFE_PATH_MESSAGE,
 } from "@/lib/file-path";
 
@@ -12,13 +13,17 @@ const DESCRIPTION_TOO_LONG = "Açıklama en fazla 500 karakter olabilir.";
 
 export const projectPathSchema = z
 	.string()
-	.trim()
-	.min(1, "Dosya yolu boş olamaz.")
-	.max(
-		MAX_PROJECT_PATH_LENGTH,
-		`Dosya yolu en fazla ${MAX_PROJECT_PATH_LENGTH} karakter olabilir.`,
-	)
-	.refine(isSafeProjectPath, { message: UNSAFE_PATH_MESSAGE });
+	.transform(normalizeProjectPath)
+	.pipe(
+		z
+			.string()
+			.min(1, "Dosya yolu boş olamaz.")
+			.max(
+				MAX_PROJECT_PATH_LENGTH,
+				`Dosya yolu en fazla ${MAX_PROJECT_PATH_LENGTH} karakter olabilir.`,
+			)
+			.refine(isSafeProjectPath, { message: UNSAFE_PATH_MESSAGE }),
+	);
 
 export const createProjectSchema = z.object({
 	title: z.string().trim().min(1, TITLE_REQUIRED).max(120, TITLE_TOO_LONG),
@@ -40,6 +45,9 @@ export const updateProjectSchema = z.object({
 		.optional(),
 	description: z.string().trim().max(500, DESCRIPTION_TOO_LONG).optional(),
 	isPublic: z.boolean().optional(),
+	engine: z
+		.enum(["TECTONIC", "PDFLATEX", "XELATEX", "LUALATEX", "PDFLATEX_BIBER"])
+		.optional(),
 });
 
 export const updateFileSchema = z.object({

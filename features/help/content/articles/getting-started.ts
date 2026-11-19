@@ -26,7 +26,9 @@ export const gettingStarted: HelpArticle = {
 			items: [
 				"Ana sayfada **Hemen başla** ya da **Hesap oluştur** bağlantısına tıklayın.",
 				"Ad soyad, e-posta ve en az 8 karakterlik bir şifre girin.",
-				"Zaten hesabınız varsa **Giriş yap** sayfasını kullanın.",
+				"E-posta doğrulaması açıksa gelen kutunuza bir bağlantı gönderilir; hesabınızı etkinleştirmek için tıklayın (spam klasörüne de bakın).",
+				"Zaten hesabınız varsa **Giriş yap** sayfasını kullanın. Şifrenizi unuttuysanız **Şifremi unuttum** bağlantısıyla sıfırlayabilirsiniz.",
+				"Panelin üstündeki **Hesabım** sayfasından şifrenizi değiştirebilir ve ortak bir bilgisayarda açık kalan oturumlarınızı kapatabilirsiniz.",
 			],
 		},
 		{
@@ -214,7 +216,7 @@ export const projectsAndFiles: HelpArticle = {
 		{
 			type: "callout",
 			tone: "warning",
-			text: "Proje silme işlemi onay istemez ve geri alınamaz. Emin değilseniz önce PDF'i indirin veya projeyi şablon olarak kaydedin.",
+			text: "Proje silinmeden önce onay istenir, ancak silme işlemi geri alınamaz. Emin değilseniz önce PDF'i indirin veya projeyi şablon olarak kaydedin.",
 		},
 		{ type: "h2", id: "dosyalar", text: "Dosyalar paneli" },
 		{
@@ -279,7 +281,7 @@ export const projectsAndFiles: HelpArticle = {
 			items: [
 				"Yüklenen dosya başına en fazla 5 MB.",
 				"Derlemeye gönderilen projenin toplam boyutu ve oluşan çıktının boyutu sunucu tarafından sınırlandırılır. Varsayılan sınırlar kaynaklar için 512 KB, çıktı için 10 MB'tır.",
-				"Dosya ve klasör adlarında yalnızca İngilizce harfler, rakamlar, nokta (`.`), tire (`-`) ve alt çizgi (`_`) kullanılabilir. Türkçe karakterler (ç, ğ, ı, ö, ş, ü) ve boşluk kabul edilmez; `..` ve `/` ile başlayan yollar da reddedilir.",
+				"Dosya ve klasör adlarında harfler (Türkçe harfler dahil: ç, ğ, ı, ö, ş, ü), rakamlar, nokta (`.`), tire (`-`) ve alt çizgi (`_`) kullanılabilir. Boşluk kabul edilmez (yüklenen dosyalarda otomatik olarak tireye çevrilir); `..` ve `/` ile başlayan yollar reddedilir.",
 			],
 		},
 		{
