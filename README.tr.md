@@ -23,6 +23,7 @@
   - **Lise matematiği:** üçgen, çember, tkz-euclide, doğru/parabol/parçalı fonksiyon grafikleri, birim çember, sayı doğrusu, Venn, olasılık ağacı, katı cisimler, iki eğri arası alan, A–E şıklı sınav kâğıdı
   - **Üniversite ve akademik:** hata çubuklu veri grafiği ve uyum doğrusu, gruplandırılmış çubuk grafik, normal dağılım, 3B yüzey, vektörler/izdüşüm, değişmeli diyagramlar (tikz-cd), sonlu durum otomatı, kontrol sistemi blok diyagramı, Beamer sunumu, çok dosyalı makale iskeleti
 - 💾 **Şablon olarak kaydet** — herhangi bir projeyi (tüm dosyalarıyla) proje ayarları panelinden kişisel şablona dönüştürün
+- 🛡️ **Hesap güvenliği** — e-postayla şifre sıfırlama (1 saat geçerli, tek kullanımlık bağlantı; diğer oturumlar kapatılır, bildirim gönderilir), e-posta doğrulama (SMTP yapılandırılınca otomatik zorunlu), Hesabım sayfası (şifre değiştirme, diğer oturumları kapatma) ve giriş/kayıt/e-posta uç noktalarında IP başına istek sınırı. SMTP `SMTP_*`/`MAIL_FROM` ile ayarlanır; ayarlanmazsa e-postalar sunucu günlüğüne yazılır
 - 🔐 **Kimlik doğrulama** — [better-auth](https://www.better-auth.com/) ile e-posta + şifre; GitHub ve Google OAuth, istemci kimliği/sırrı tanımlandığında otomatik etkinleşir
 - 🚦 **Hız sınırlaması** — kullanıcı başına dakikada 5 derleme (veritabanı destekli, ek bağımlılık yok)
 - 💾 **Otomatik kaydetme** — geri çekilme ve görünür kayıt durumu ile

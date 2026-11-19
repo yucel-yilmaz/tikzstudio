@@ -8,6 +8,7 @@ import {
 	Search,
 	Sparkles,
 	Trash2,
+	UserRound,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -132,6 +133,12 @@ export function DashboardScreen({ userName }: { userName: string }) {
 						<Button onClick={() => setShowModal(true)}>
 							<Plus size={16} />
 							Yeni proje
+						</Button>
+						<Button asChild variant="outline">
+							<Link href="/account">
+								<UserRound size={16} />
+								Hesabım
+							</Link>
 						</Button>
 						<form
 							action={async () => {

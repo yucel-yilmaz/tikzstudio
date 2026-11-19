@@ -24,6 +24,7 @@ A modern, browser-based LaTeX editor focused on **TikZ** diagrams and multi-file
   - **University & academic:** data plot with error bars and fit, grouped bar chart, normal distribution, 3D surface, vectors/projection, commutative diagrams (tikz-cd), finite automaton, control-system block diagram, Beamer slides, multi-file article skeleton
 - 💾 **Save as template** — turn any project (all files) into a personal template from the project settings panel
 - 🔐 **Authentication** via [better-auth](https://www.better-auth.com/) — email + password; GitHub and Google OAuth are enabled automatically when their client id/secret are set
+- 🛡️ **Account security** — password reset by email (1-hour single-use links, other sessions revoked, change notice), email verification (required automatically once SMTP is configured), an account page (change password, sign out other sessions) and per-IP rate limits on sign-in/sign-up/email endpoints. Configure SMTP via `SMTP_*`/`MAIL_FROM`; without it emails are logged to the server console
 - 🚦 **Rate limiting** — 5 compiles per minute per user (database-backed, no extra dependencies)
 - 💾 **Auto-save** with debounce and visible save state
 - 🌗 **Light/dark theme** support (Tailwind v4)

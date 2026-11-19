@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, LockKeyhole, Mail, User2 } from "lucide-react";
+import { ArrowLeft, LockKeyhole, Mail, MailCheck, User2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getAuthClient } from "@/lib/auth-client";
+import { authErrorMessage, postAuth } from "@/lib/auth-errors";
 import type { SocialProviderId } from "@/lib/auth-providers";
 
 const SOCIAL_LABELS: Record<SocialProviderId, string> = {
@@ -25,28 +26,9 @@ const SOCIAL_LABELS: Record<SocialProviderId, string> = {
 
 type AuthMode = "login" | "signup";
 
-// better-auth returns English messages; show Turkish ones for known codes.
-const AUTH_ERROR_MESSAGES: Record<string, string> = {
-	INVALID_EMAIL_OR_PASSWORD: "E-posta veya şifre hatalı.",
-	USER_ALREADY_EXISTS: "Bu e-posta adresiyle zaten bir hesap var.",
-	USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
-		"Bu e-posta adresiyle zaten bir hesap var. Başka bir e-posta deneyin.",
-	PASSWORD_TOO_SHORT: "Şifre en az 8 karakter olmalı.",
-	PASSWORD_TOO_LONG: "Şifre çok uzun.",
-	INVALID_EMAIL: "Geçerli bir e-posta adresi girin.",
-	TOO_MANY_REQUESTS:
-		"Çok fazla deneme yapıldı. Lütfen biraz sonra tekrar deneyin.",
-};
-
-function authErrorMessage(error?: { code?: string } | null) {
-	return (
-		(error?.code && AUTH_ERROR_MESSAGES[error.code]) || "Giriş başarısız oldu."
-	);
-}
-
 const endpointByMode: Record<AuthMode, string> = {
-	login: "/api/auth/sign-in/email",
-	signup: "/api/auth/sign-up/email",
+	login: "/sign-in/email",
+	signup: "/sign-up/email",
 };
 
 export function AuthForm({
@@ -60,6 +42,21 @@ export function AuthForm({
 	const [navigating, startTransition] = useTransition();
 	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+	const [checkEmailFor, setCheckEmailFor] = useState<string | null>(null);
+	const [resendState, setResendState] = useState<
+		"idle" | "sending" | "sent" | "error"
+	>("idle");
+
+	async function resendVerification(email: string) {
+		setResendState("sending");
+		const result = await postAuth("/send-verification-email", {
+			email,
+			callbackURL: "/email-verified",
+		});
+		setResendState(result.ok ? "sent" : "error");
+		if (!result.ok) setError(result.message);
+	}
 	const pending = submitting || navigating;
 
 	async function handleSocial(provider: SocialProviderId) {
@@ -70,12 +67,14 @@ export function AuthForm({
 			.catch(() => null);
 		if (!result || result.error) {
 			setSubmitting(false);
-			setError(authErrorMessage(result?.error));
+			setError(authErrorMessage(result?.error?.code, "Giriş başarısız oldu."));
 		}
 	}
 
 	async function handleSubmit(formData: FormData) {
 		setError(null);
+		setUnverifiedEmail(null);
+		setResendState("idle");
 		setSubmitting(true);
 		try {
 			await submitCredentials(formData);
@@ -97,21 +96,25 @@ export function AuthForm({
 						password: String(formData.get("password") ?? ""),
 					};
 
-		const response = await fetch(endpointByMode[mode], {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload),
-		});
+		const result = await postAuth<{ token: string | null }>(
+			endpointByMode[mode],
+			mode === "signup"
+				? { ...payload, callbackURL: "/email-verified" }
+				: payload,
+			"Giriş başarısız oldu.",
+		);
 
-		if (!response.ok) {
-			const body = (await response.json().catch(() => null)) as {
-				code?: string;
-			} | null;
-			setError(
-				response.status === 429
-					? AUTH_ERROR_MESSAGES.TOO_MANY_REQUESTS
-					: authErrorMessage(body),
-			);
+		if (!result.ok) {
+			setError(result.message);
+			if (result.code === "EMAIL_NOT_VERIFIED") {
+				setUnverifiedEmail(payload.email);
+			}
+			return;
+		}
+
+		// With email verification required, sign-up returns no session token.
+		if (mode === "signup" && !result.data?.token) {
+			setCheckEmailFor(payload.email);
 			return;
 		}
 
@@ -187,7 +190,33 @@ export function AuthForm({
 				</CardHeader>
 
 				<CardContent className="space-y-5">
+					{checkEmailFor ? (
+						<div className="space-y-4 rounded-2xl border border-(--line) bg-white/75 p-5 text-sm leading-6">
+							<div className="flex items-center gap-2 font-medium">
+								<MailCheck className="size-5 text-(--accent-strong)" />
+								Gelen kutunuzu kontrol edin
+							</div>
+							<p className="text-(--ink-1)">
+								<strong>{checkEmailFor}</strong> adresine bir doğrulama
+								bağlantısı gönderdik. Hesabınızı etkinleştirmek için bağlantıya
+								tıklayın. E-posta birkaç dakika içinde gelmezse istenmeyen
+								(spam) klasörüne bakın.
+							</p>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								disabled={resendState === "sending" || resendState === "sent"}
+								onClick={() => resendVerification(checkEmailFor)}
+							>
+								{resendState === "sent"
+									? "Yeniden gönderildi"
+									: "Bağlantıyı yeniden gönder"}
+							</Button>
+						</div>
+					) : null}
 					<form
+						hidden={Boolean(checkEmailFor)}
 						// onSubmit instead of `action`: React resets uncontrolled inputs
 						// after a form action, which wiped the email on a failed sign-in.
 						onSubmit={(event) => {
@@ -232,7 +261,17 @@ export function AuthForm({
 						</label>
 
 						<label className="block space-y-2">
-							<span className="text-sm font-medium">Şifre</span>
+							<span className="flex items-center justify-between text-sm font-medium">
+								Şifre
+								{mode === "login" ? (
+									<Link
+										href="/forgot-password"
+										className="text-xs font-normal text-(--accent-strong) hover:underline"
+									>
+										Şifremi unuttum
+									</Link>
+								) : null}
+							</span>
 							<div className="relative">
 								<LockKeyhole
 									className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--ink-1)"
@@ -250,8 +289,22 @@ export function AuthForm({
 						</label>
 
 						{error ? (
-							<div className="rounded-2xl border border-[rgba(180,35,24,0.18)] bg-[rgba(180,35,24,0.08)] px-4 py-3 text-sm text-(--danger)">
-								{error}
+							<div className="space-y-2 rounded-2xl border border-[rgba(180,35,24,0.18)] bg-[rgba(180,35,24,0.08)] px-4 py-3 text-sm text-(--danger)">
+								<p>{error}</p>
+								{unverifiedEmail ? (
+									<button
+										type="button"
+										className="font-medium underline disabled:no-underline disabled:opacity-60"
+										disabled={
+											resendState === "sending" || resendState === "sent"
+										}
+										onClick={() => resendVerification(unverifiedEmail)}
+									>
+										{resendState === "sent"
+											? "Doğrulama bağlantısı yeniden gönderildi."
+											: "Doğrulama bağlantısını yeniden gönder"}
+									</button>
+								) : null}
 							</div>
 						) : null}
 

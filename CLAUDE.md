@@ -55,7 +55,7 @@ The pg-boss worker runs **inside** the Next.js server process via `instrumentati
 | Background jobs | `server/jobs/` | `compile-worker.ts`, `cleanup-worker.ts` |
 | Validation schemas | `server/schemas/` | Zod, used at API boundary |
 | Client API | `lib/client-api.ts` | Typed `fetch` wrappers for all endpoints |
-| Auth | `lib/auth.ts` + `lib/session.ts` | better-auth; `getSessionFromHeaders` for API routes, `requireServerSession` for server components |
+| Auth | `lib/auth.ts` + `lib/session.ts` | better-auth; `getSessionFromHeaders` for API routes, `requireServerSession` for server components. Emails: `lib/mailer.ts` (SMTP or console), Turkish templates in `lib/emails.ts`; client calls go through `postAuth` in `lib/auth-errors.ts` |
 | Env | `lib/env.ts` | Zod-validated; all env access goes through `env.*` |
 | Types/DTOs | `lib/types.ts`, `lib/dto.ts` | Shared between client and server |
 | Feature UI | `features/` | Self-contained feature modules (auth, dashboard, editor, share) |
