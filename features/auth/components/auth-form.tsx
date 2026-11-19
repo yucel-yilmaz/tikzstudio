@@ -15,6 +15,13 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { getAuthClient } from "@/lib/auth-client";
+import type { SocialProviderId } from "@/lib/auth-providers";
+
+const SOCIAL_LABELS: Record<SocialProviderId, string> = {
+	github: "GitHub",
+	google: "Google",
+};
 
 type AuthMode = "login" | "signup";
 
@@ -23,14 +30,42 @@ const endpointByMode: Record<AuthMode, string> = {
 	signup: "/api/auth/sign-up/email",
 };
 
-export function AuthForm({ mode }: { mode: AuthMode }) {
+export function AuthForm({
+	mode,
+	socialProviders = [],
+}: {
+	mode: AuthMode;
+	socialProviders?: SocialProviderId[];
+}) {
 	const router = useRouter();
-	const [pending, startTransition] = useTransition();
+	const [navigating, startTransition] = useTransition();
+	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const pending = submitting || navigating;
+
+	async function handleSocial(provider: SocialProviderId) {
+		setError(null);
+		setSubmitting(true);
+		const result = await getAuthClient()
+			.signIn.social({ provider, callbackURL: "/dashboard" })
+			.catch(() => null);
+		if (!result || result.error) {
+			setSubmitting(false);
+			setError(result?.error?.message ?? "Authentication failed.");
+		}
+	}
 
 	async function handleSubmit(formData: FormData) {
 		setError(null);
+		setSubmitting(true);
+		try {
+			await submitCredentials(formData);
+		} finally {
+			setSubmitting(false);
+		}
+	}
 
+	async function submitCredentials(formData: FormData) {
 		const payload =
 			mode === "signup"
 				? {
@@ -195,6 +230,29 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 									: "Sign in"}
 						</Button>
 					</form>
+
+					{socialProviders.length > 0 ? (
+						<div className="space-y-3">
+							<div className="flex items-center gap-3 text-xs text-(--ink-1)">
+								<span className="h-px flex-1 bg-(--line)" />
+								or
+								<span className="h-px flex-1 bg-(--line)" />
+							</div>
+							<div className="grid gap-2 sm:grid-cols-2">
+								{socialProviders.map((provider) => (
+									<Button
+										key={provider}
+										type="button"
+										variant="outline"
+										disabled={pending}
+										onClick={() => handleSocial(provider)}
+									>
+										Continue with {SOCIAL_LABELS[provider]}
+									</Button>
+								))}
+							</div>
+						</div>
+					) : null}
 
 					<div className="rounded-3xl border border-(--line) bg-white/75 p-4 text-sm leading-6 text-(--ink-1)">
 						{mode === "signup" ? "Already have an account?" : "New here?"}{" "}
