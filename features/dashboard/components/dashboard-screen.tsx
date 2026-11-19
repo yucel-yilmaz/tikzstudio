@@ -8,6 +8,7 @@ import {
 	Search,
 	Sparkles,
 	Trash2,
+	UserRound,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -156,6 +157,12 @@ export function DashboardScreen({ userName }: { userName: string }) {
 							Yeni proje
 						</Button>
 						<HelpMenu page="dashboard" />
+						<Button asChild variant="outline">
+							<Link href="/account">
+								<UserRound size={16} />
+								Hesabım
+							</Link>
+						</Button>
 						<form
 							action={async () => {
 								await fetch("/api/auth/sign-out", { method: "POST" });

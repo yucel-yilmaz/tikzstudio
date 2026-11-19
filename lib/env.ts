@@ -25,6 +25,16 @@ const envSchema = z.object({
 	GITHUB_CLIENT_SECRET: z.string().optional(),
 	GOOGLE_CLIENT_ID: z.string().optional(),
 	GOOGLE_CLIENT_SECRET: z.string().optional(),
+	SMTP_HOST: z.string().optional(),
+	SMTP_PORT: z.coerce.number().default(587),
+	SMTP_SECURE: z
+		.enum(["true", "false"])
+		.default("false")
+		.transform((value) => value === "true"),
+	SMTP_USER: z.string().optional(),
+	SMTP_PASS: z.string().optional(),
+	MAIL_FROM: z.string().default("TikZ Studio <no-reply@localhost>"),
+	REQUIRE_EMAIL_VERIFICATION: z.enum(["auto", "true", "false"]).default("auto"),
 });
 
 export const env = envSchema.parse({
@@ -49,4 +59,12 @@ export const env = envSchema.parse({
 	GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET || undefined,
 	GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || undefined,
 	GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || undefined,
+	SMTP_HOST: process.env.SMTP_HOST || undefined,
+	SMTP_PORT: process.env.SMTP_PORT || undefined,
+	SMTP_SECURE: process.env.SMTP_SECURE || undefined,
+	SMTP_USER: process.env.SMTP_USER || undefined,
+	SMTP_PASS: process.env.SMTP_PASS || undefined,
+	MAIL_FROM: process.env.MAIL_FROM || undefined,
+	REQUIRE_EMAIL_VERIFICATION:
+		process.env.REQUIRE_EMAIL_VERIFICATION || undefined,
 });
