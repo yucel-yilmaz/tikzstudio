@@ -11,8 +11,10 @@ import {
 	type SeedSnippet,
 	type SeedTemplate,
 } from "./math-templates";
+import { tutorialTemplates } from "./tutorial-templates";
 
 export const officialTemplates: SeedTemplate[] = [
+	...tutorialTemplates,
 	...basicTemplates,
 	...mathTemplates,
 	...academicTemplates,
