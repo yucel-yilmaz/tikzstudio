@@ -1,0 +1,96 @@
+# TikZ Studio on Coolify (Docker Compose build pack).
+#
+# Uses the images that .github/workflows/release.yml publishes to ghcr.io,
+# so the server never builds anything (the LaTeX image takes 10–20 min).
+# Step-by-step guide (Turkish): docs/deploy-coolify.md
+#
+# Coolify fills the SERVICE_* "magic" variables: a public URL for the app,
+# the database password and the auth secret are generated once and kept.
+# Variables written as ${NAME:?} must be set in Coolify before deploying.
+
+services:
+  app:
+    image: ${APP_IMAGE:-ghcr.io/yucel-yilmaz/tikzstudio:latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      compiler-image:
+        condition: service_started
+    environment:
+      SERVICE_URL_APP_3000: /
+      BETTER_AUTH_URL: ${SERVICE_URL_APP_3000}
+      BETTER_AUTH_SECRET: ${SERVICE_BASE64_64_AUTHSECRET}
+      DATABASE_URL: postgresql://postgres:${SERVICE_PASSWORD_POSTGRES}@db:5432/tikzlab
+      DOCKER_COMPILER_IMAGE: ${COMPILER_IMAGE:-ghcr.io/yucel-yilmaz/tikzstudio-compiler:latest}
+      # Bind-mount paths are resolved by the host Docker daemon, so the compile
+      # scratch directory must exist at the same path on the host and here.
+      COMPILE_WORK_DIR: /tmp/tikzstudio-work
+      COMPILE_STORAGE_DIR: /app/.data/compile-artifacts
+      TEMPLATE_PREVIEW_DIR: /app/.data/template-previews
+      COMPILE_TIMEOUT_SECONDS: ${COMPILE_TIMEOUT_SECONDS:-15}
+      COMPILE_MEMORY_LIMIT_MB: ${COMPILE_MEMORY_LIMIT_MB:-256}
+      COMPILE_CPU_LIMIT: ${COMPILE_CPU_LIMIT:-0.5}
+      # Email (password reset, verification). Leave SMTP_HOST empty to log
+      # emails instead; verification is then not required.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-TikZ Studio <no-reply@example.com>}
+      REQUIRE_EMAIL_VERIFICATION: ${REQUIRE_EMAIL_VERIFICATION:-auto}
+      # Optional OAuth (enabled when both values are set).
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/tikzstudio-work:/tmp/tikzstudio-work
+      - compile-artifacts:/app/.data/compile-artifacts
+      - template-previews:/app/.data/template-previews
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+      POSTGRES_DB: tikzlab
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tikzlab"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Keeps the LaTeX sandbox image pulled on every deploy, so the first compile
+  # does not have to download ~400 MB (it would hit the compile timeout). The
+  # app starts its own short-lived compile containers from this image; this
+  # container only idles (no network, read-only, no capabilities, 16 MB).
+  compiler-image:
+    image: ${COMPILER_IMAGE:-ghcr.io/yucel-yilmaz/tikzstudio-compiler:latest}
+    entrypoint: ["sleep", "infinity"]
+    restart: unless-stopped
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 16m
+
+volumes:
+  pgdata:
+  compile-artifacts:
+  template-previews:

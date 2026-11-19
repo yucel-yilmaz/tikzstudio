@@ -3,7 +3,13 @@ import { z } from "zod";
 const envSchema = z.object({
 	DATABASE_URL: z.string().min(1),
 	BETTER_AUTH_SECRET: z.string().min(1),
-	BETTER_AUTH_URL: z.string().url().default("http://localhost:3000"),
+	// Coolify's generated URL may end with "/"; better-auth expects no trailing
+	// slash when it builds callback and email links.
+	BETTER_AUTH_URL: z
+		.string()
+		.url()
+		.default("http://localhost:3000")
+		.transform((url) => url.replace(/\/+$/, "")),
 	COMPILE_TIMEOUT_SECONDS: z.coerce.number().default(15),
 	COMPILE_MEMORY_LIMIT_MB: z.coerce.number().default(256),
 	COMPILE_CPU_LIMIT: z.coerce.number().default(0.5),

@@ -115,6 +115,10 @@ This starts PostgreSQL, applies migrations, seeds the official templates (idempo
 
 The app container starts compile containers through the host Docker daemon (`/var/run/docker.sock` is mounted). Because bind-mount paths are resolved on the host, the compile scratch directory `COMPILE_WORK_DIR` (default `/tmp/tikzstudio-work`) is mounted at the same path inside the container — keep the two in sync if you change it.
 
+### Production — Coolify
+
+Prebuilt images are published to ghcr.io on every merge to `master` (`.github/workflows/release.yml`), and `docker-compose.coolify.yml` deploys them on Coolify (e.g. a Hostinger VPS). Step-by-step guide (Turkish): [docs/deploy-coolify.md](docs/deploy-coolify.md).
+
 ### Option B — Manual setup
 
 #### 1. Install dependencies
