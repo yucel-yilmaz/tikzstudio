@@ -26,6 +26,20 @@ type EditorState = {
 	markSaved(fileId: string, content: string): void;
 };
 
+/**
+ * The file a project opens with: its main file, otherwise the first text
+ * file (never an image or other binary file), otherwise the first file.
+ */
+export function defaultActiveFile<
+	T extends { isMain: boolean; isBinary: boolean },
+>(files: T[]): T | undefined {
+	return (
+		files.find((file) => file.isMain) ??
+		files.find((file) => !file.isBinary) ??
+		files[0]
+	);
+}
+
 export const useEditorStore = create<EditorState>((set, get) => ({
 	activeFileId: null,
 	sidebarTab: "files",
@@ -43,7 +57,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 			}
 
 			return {
-				activeFileId: state.activeFileId ?? files[0]?.id ?? null,
+				// Keep the open file only if it belongs to this project (the store
+				// outlives a single editor page); otherwise open the main file.
+				activeFileId: files.some((file) => file.id === state.activeFileId)
+					? state.activeFileId
+					: (defaultActiveFile(files)?.id ?? null),
 				buffers: nextBuffers,
 			};
 		});

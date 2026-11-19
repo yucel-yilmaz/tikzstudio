@@ -7,6 +7,25 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
+/** Pages rendered in the preview; longer documents show a notice instead. */
+export const MAX_PREVIEW_PAGES = 30;
+
+// Minimal structural types for the parts of PDF.js used here.
+type PdfViewport = { width: number; height: number };
+type PdfRenderTask = { promise: Promise<void>; cancel(): void };
+type PdfPage = {
+	getViewport(options: { scale: number }): PdfViewport;
+	render(options: {
+		canvas: HTMLCanvasElement;
+		viewport: PdfViewport;
+	}): PdfRenderTask;
+};
+type PdfDocument = {
+	numPages: number;
+	getPage(pageNumber: number): Promise<PdfPage>;
+	destroy(): Promise<void>;
+};
+
 export function PdfPreview({
 	src,
 	zoom,
@@ -16,9 +35,10 @@ export function PdfPreview({
 	zoom: number;
 	onZoomChange(nextZoom: number): void;
 }) {
-	const canvasRef = useRef<HTMLCanvasElement | null>(null);
+	const pagesRef = useRef<HTMLDivElement | null>(null);
 	const previewFrameRef = useRef<HTMLDivElement | null>(null);
 	const [previewWidth, setPreviewWidth] = useState(0);
+	const [pdfDocument, setPdfDocument] = useState<PdfDocument | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -42,68 +62,103 @@ export function PdfPreview({
 		return () => observer.disconnect();
 	}, [src]);
 
+	// Download and parse the PDF once per output; zooming and resizing only
+	// re-render the already loaded document.
 	useEffect(() => {
 		let active = true;
-		let renderTask: { cancel(): void } | null = null;
+		let loaded: PdfDocument | null = null;
+		setPdfDocument(null);
+		if (!src) return;
 
-		async function renderPreview() {
-			const canvas = canvasRef.current;
-			if (!src || !canvas || !previewWidth) {
-				return;
-			}
-
+		async function load(url: string) {
 			setLoading(true);
 			setError(null);
-
 			try {
 				const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 				pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 					"pdfjs-dist/legacy/build/pdf.worker.mjs",
 					import.meta.url,
 				).toString();
-				const pdfUrl = `${src}${src.includes("?") ? "&" : "?"}ts=${Date.now()}`;
+				const pdfUrl = `${url}${url.includes("?") ? "&" : "?"}ts=${Date.now()}`;
 				const response = await fetch(pdfUrl, {
 					cache: "no-store",
 					credentials: "include",
 				});
-
 				if (!response.ok) {
 					throw new Error(
 						`PDF yüklenemedi (${response.status} ${response.statusText}).`,
 					);
 				}
-
-				const pdfDocument = await pdfjs.getDocument({
+				const document = (await pdfjs.getDocument({
 					data: new Uint8Array(await response.arrayBuffer()),
-				}).promise;
-
+				}).promise) as unknown as PdfDocument;
 				if (!active) {
+					void document.destroy();
 					return;
 				}
+				loaded = document;
+				setPdfDocument(document);
+			} catch (loadError) {
+				if (active) {
+					setError(
+						loadError instanceof Error
+							? loadError.message
+							: "PDF görüntülenemedi.",
+					);
+					setLoading(false);
+				}
+			}
+		}
 
-				const page = await pdfDocument.getPage(1);
-				const baseViewport = page.getViewport({ scale: 1 });
+		void load(src);
+
+		return () => {
+			active = false;
+			if (loaded) void loaded.destroy();
+		};
+	}, [src]);
+
+	useEffect(() => {
+		const container = pagesRef.current;
+		if (!pdfDocument || !container || !previewWidth) return;
+
+		let active = true;
+		const tasks: PdfRenderTask[] = [];
+
+		async function renderPages(document: PdfDocument, target: HTMLElement) {
+			setLoading(true);
+			try {
+				const pageCount = Math.min(document.numPages, MAX_PREVIEW_PAGES);
 				const dpr = window.devicePixelRatio || 1;
 				const availableWidth = Math.max(80, previewWidth - 32);
-				const fitScale = availableWidth / baseViewport.width;
-				const cssScale = fitScale * zoom;
-				const viewport = page.getViewport({ scale: cssScale * dpr });
+				const canvases: HTMLCanvasElement[] = [];
 
-				if (!active) {
-					return;
+				for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
+					const page = await document.getPage(pageNumber);
+					if (!active) return;
+
+					const baseViewport = page.getViewport({ scale: 1 });
+					const cssScale = (availableWidth / baseViewport.width) * zoom;
+					const viewport = page.getViewport({ scale: cssScale * dpr });
+
+					const canvas = window.document.createElement("canvas");
+					canvas.width = viewport.width;
+					canvas.height = viewport.height;
+					canvas.style.width = `${baseViewport.width * cssScale}px`;
+					canvas.style.height = `${baseViewport.height * cssScale}px`;
+					canvas.className =
+						"block max-w-full rounded-md border bg-white shadow-sm";
+					canvas.setAttribute("aria-label", `Sayfa ${pageNumber}`);
+
+					const task = page.render({ canvas, viewport });
+					tasks.push(task);
+					await task.promise;
+					if (!active) return;
+					canvases.push(canvas);
 				}
 
-				const cssWidth = baseViewport.width * cssScale;
-				const cssHeight = baseViewport.height * cssScale;
-
-				canvas.width = viewport.width;
-				canvas.height = viewport.height;
-				canvas.style.width = `${cssWidth}px`;
-				canvas.style.height = `${cssHeight}px`;
-
-				const task = page.render({ canvas, viewport });
-				renderTask = task;
-				await task.promise;
+				// Swap all pages at once so the preview does not flicker.
+				target.replaceChildren(...canvases);
 			} catch (renderError) {
 				if (
 					renderError instanceof Error &&
@@ -111,25 +166,25 @@ export function PdfPreview({
 				) {
 					return;
 				}
-				setError(
-					renderError instanceof Error
-						? renderError.message
-						: "PDF görüntülenemedi.",
-				);
-			} finally {
 				if (active) {
-					setLoading(false);
+					setError(
+						renderError instanceof Error
+							? renderError.message
+							: "PDF görüntülenemedi.",
+					);
 				}
+			} finally {
+				if (active) setLoading(false);
 			}
 		}
 
-		void renderPreview();
+		void renderPages(pdfDocument, container);
 
 		return () => {
 			active = false;
-			renderTask?.cancel();
+			for (const task of tasks) task.cancel();
 		};
-	}, [previewWidth, src, zoom]);
+	}, [pdfDocument, previewWidth, zoom]);
 
 	if (!src) {
 		return (
@@ -144,6 +199,8 @@ export function PdfPreview({
 		);
 	}
 
+	const pageCount = pdfDocument?.numPages ?? 0;
+
 	return (
 		<div className="flex h-full min-w-0 flex-col gap-3 overflow-hidden">
 			<div className="flex items-center justify-between gap-3">
@@ -151,6 +208,7 @@ export function PdfPreview({
 					<p className="text-sm font-medium">PDF önizleme</p>
 					<p className="text-xs text-muted-foreground">
 						Yakınlaştırma %{Math.round(zoom * 100)}
+						{pageCount > 1 ? ` · ${pageCount} sayfa` : ""}
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
@@ -198,11 +256,18 @@ export function PdfPreview({
 				) : null}
 
 				<ScrollArea className="h-full">
-					<div className="flex min-h-full min-w-0 items-start justify-center p-4">
-						<canvas
-							ref={canvasRef}
-							className="block max-w-full rounded-md border bg-white shadow-sm"
+					<div className="flex min-h-full min-w-0 flex-col items-center gap-4 p-4">
+						<div
+							ref={pagesRef}
+							data-testid="pdf-pages"
+							className="flex min-w-0 flex-col items-center gap-4"
 						/>
+						{pageCount > MAX_PREVIEW_PAGES ? (
+							<p className="text-center text-xs text-muted-foreground">
+								Önizlemede ilk {MAX_PREVIEW_PAGES} sayfa gösteriliyor; belgenin
+								tamamı ({pageCount} sayfa) için PDF'i indirin.
+							</p>
+						) : null}
 					</div>
 				</ScrollArea>
 			</div>
