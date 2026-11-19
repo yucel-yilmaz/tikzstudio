@@ -298,7 +298,7 @@ npm run db:migrate
 - [x] Çok dosyalı şablon sistemi
 - [x] Lise matematik şablon paketi (Türkçe)
 - [ ] Şablon ZIP içe/dışa aktarma ve otomatik şablon önizlemesi
-- [ ] "Projeyi şablon olarak kaydet" düğmesi (servis hazır, arayüze bağlanmadı)
+- [x] Projeyi şablon olarak kaydet (proje ayarları paneli; kaydedilmemiş değişiklikler önce kaydedilir)
 - [x] Türkçe arayüz
 - [ ] Çok dilli arayüz (i18n altyapısı)
 - [x] Çoklu provider destekli görüntüden LaTeX (img2latex)

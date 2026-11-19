@@ -59,3 +59,22 @@ export const compileProjectSchema = z.object({
 		.default("TECTONIC"),
 	mainFileId: z.string().min(1).optional(),
 });
+
+export const saveAsTemplateSchema = z.object({
+	title: z
+		.string()
+		.trim()
+		.min(1, { message: "Şablon adı boş olamaz." })
+		.max(120, { message: "Şablon adı en fazla 120 karakter olabilir." }),
+	description: z
+		.string()
+		.trim()
+		.max(500, { message: "Açıklama en fazla 500 karakter olabilir." })
+		.optional(),
+	category: z
+		.string()
+		.trim()
+		.max(60, { message: "Kategori en fazla 60 karakter olabilir." })
+		.optional(),
+	engine: compileProjectSchema.shape.engine.optional(),
+});

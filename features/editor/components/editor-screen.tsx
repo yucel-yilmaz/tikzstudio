@@ -49,6 +49,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { TikzCodeEditor } from "@/features/editor/components/code-editor";
 import { DesktopEditorLayout } from "@/features/editor/components/desktop-editor-layout";
+import {
+	SaveAsTemplateForm,
+	type SaveAsTemplatePayload,
+} from "@/features/editor/components/panels/save-as-template-form";
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
 import { useAutoSave } from "@/features/editor/hooks/use-auto-save";
 import { useCompile } from "@/features/editor/hooks/use-compile";
@@ -59,6 +63,8 @@ import {
 	getProjectFiles,
 	getSnippets,
 	getTemplates,
+	saveProjectAsTemplate,
+	updateFile,
 	updateProject,
 } from "@/lib/client-api";
 import { diagnosticsForFile, parseCompileLog } from "@/lib/compile-log";
@@ -165,6 +171,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 		updateBuffer,
 		insertIntoActive,
 		setPreviewZoom,
+		markSaved,
 	} = useEditorStore();
 
 	const projectQuery = useQuery({
@@ -209,6 +216,43 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 	);
 
 	const fileOps = useProjectFiles(projectId);
+
+	// The template is built from what is stored on the server, so persist every
+	// unsaved buffer first (auto-save only covers the active file).
+	async function handleSaveAsTemplate(payload: SaveAsTemplatePayload) {
+		try {
+			const dirtyFiles = (filesQuery.data?.files ?? []).filter(
+				(file) =>
+					!file.isBinary &&
+					buffers[file.id] !== undefined &&
+					buffers[file.id] !== file.content,
+			);
+			const saved = await Promise.all(
+				dirtyFiles.map((file) =>
+					updateFile(projectId, file.id, { content: buffers[file.id] }),
+				),
+			);
+			for (const file of saved) markSaved(file.id, file.content);
+			if (saved.length > 0) {
+				await queryClient.invalidateQueries({
+					queryKey: ["project-files", projectId],
+				});
+			}
+
+			const template = await saveProjectAsTemplate(projectId, {
+				...payload,
+				engine,
+			});
+			await queryClient.invalidateQueries({ queryKey: ["templates"] });
+			toast.success(`"${template.title}" şablon olarak kaydedildi`, {
+				description: "Yeni proje oluştururken şablon listesinde görünür.",
+			});
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : "Şablon kaydedilemedi.",
+			);
+		}
+	}
 
 	useEffect(() => {
 		if (filesQuery.data?.files) {
@@ -385,6 +429,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 					onSubmitSettings={async (payload) => {
 						await settingsMutation.mutateAsync(payload);
 					}}
+					onSaveAsTemplate={handleSaveAsTemplate}
 					onCreateFile={fileOps.createFile}
 					onDeleteFile={fileOps.deleteFile}
 					onRenameFile={fileOps.renameFile}
@@ -562,6 +607,14 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											Ayarları kaydet
 										</Button>
 									</form>
+									<div className="mt-4">
+										<SaveAsTemplateForm
+											key={`template-mobile-${projectQuery.data?.id ?? "none"}`}
+											defaultTitle={projectQuery.data?.title ?? ""}
+											defaultDescription={projectQuery.data?.description}
+											onSave={handleSaveAsTemplate}
+										/>
+									</div>
 								</TabsContent>
 							</Tabs>
 						</CardContent>

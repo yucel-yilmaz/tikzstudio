@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import {
+	SaveAsTemplateForm,
+	type SaveAsTemplatePayload,
+} from "@/features/editor/components/panels/save-as-template-form";
 import type { ProjectDetail } from "@/lib/types";
 
 type ProjectSettingsPanelProps = {
@@ -16,11 +20,13 @@ type ProjectSettingsPanelProps = {
 		description: string;
 		isPublic: boolean;
 	}): Promise<void>;
+	onSaveAsTemplate(payload: SaveAsTemplatePayload): Promise<void>;
 };
 
 export function ProjectSettingsPanel({
 	project,
 	onSubmit,
+	onSaveAsTemplate,
 }: ProjectSettingsPanelProps) {
 	return (
 		<ScrollArea className="h-full px-4 py-4">
@@ -77,6 +83,14 @@ export function ProjectSettingsPanel({
 					Ayarları kaydet
 				</Button>
 			</form>
+			<div className="mt-4">
+				<SaveAsTemplateForm
+					key={`template-${project?.id ?? "none"}`}
+					defaultTitle={project?.title ?? ""}
+					defaultDescription={project?.description}
+					onSave={onSaveAsTemplate}
+				/>
+			</div>
 		</ScrollArea>
 	);
 }

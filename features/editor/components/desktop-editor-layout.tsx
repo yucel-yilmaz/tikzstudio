@@ -40,6 +40,7 @@ import {
 import { Img2LatexDialog } from "@/features/editor/components/dialogs/img2latex-dialog";
 import { FileTreePanel } from "@/features/editor/components/panels/file-tree-panel";
 import { ProjectSettingsPanel } from "@/features/editor/components/panels/project-settings-panel";
+import type { SaveAsTemplatePayload } from "@/features/editor/components/panels/save-as-template-form";
 import { SnippetsPanel } from "@/features/editor/components/panels/snippets-panel";
 import { TemplatesPanel } from "@/features/editor/components/panels/templates-panel";
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
@@ -118,6 +119,7 @@ export type DesktopEditorLayoutProps = {
 		description: string;
 		isPublic: boolean;
 	}): Promise<void>;
+	onSaveAsTemplate(payload: SaveAsTemplatePayload): Promise<void>;
 	onCreateFile(path: string): Promise<void>;
 	onDeleteFile(fileId: string): Promise<void>;
 	onRenameFile(fileId: string, path: string): Promise<void>;
@@ -148,6 +150,7 @@ export function DesktopEditorLayout({
 	onToggleProjectPanel,
 	onUpdateBuffer,
 	onSubmitSettings,
+	onSaveAsTemplate,
 	onCreateFile,
 	onDeleteFile,
 	onRenameFile,
@@ -585,6 +588,7 @@ export function DesktopEditorLayout({
 											<ProjectSettingsPanel
 												project={project}
 												onSubmit={onSubmitSettings}
+												onSaveAsTemplate={onSaveAsTemplate}
 											/>
 										</TabsContent>
 									</div>

@@ -310,7 +310,7 @@ npm run db:migrate
 - [x] Multi-file template system
 - [x] High-school math template pack (Turkish)
 - [ ] Template ZIP import/export and auto-generated template previews
-- [ ] "Save project as template" button (service exists, not yet wired to the UI)
+- [x] Save project as template (project settings panel; unsaved edits are saved first)
 - [x] Turkish UI
 - [ ] Multi-language UI (i18n framework)
 - [x] Image to LaTeX (img2latex) with multiple provider support

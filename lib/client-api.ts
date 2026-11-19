@@ -9,6 +9,7 @@ import type {
 	ProjectDetail,
 	ProjectFileDto,
 	ProjectSummary,
+	SaveAsTemplateInput,
 	SnippetDto,
 	TemplateDto,
 	UpdateFileInput,
@@ -186,6 +187,16 @@ export function createTemplate(data: CreateTemplateInput) {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify(data),
+	});
+}
+
+export function saveProjectAsTemplate(
+	projectId: string,
+	input: SaveAsTemplateInput,
+) {
+	return requestJson<TemplateDto>(`/api/projects/${projectId}/template`, {
+		method: "POST",
+		body: JSON.stringify(input),
 	});
 }
 

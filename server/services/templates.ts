@@ -107,7 +107,12 @@ export async function createUserTemplate(
 export async function createTemplateFromProject(
 	ownerId: string,
 	projectId: string,
-	meta: { title: string; description?: string; category: string },
+	meta: {
+		title: string;
+		description?: string;
+		category?: string;
+		engine?: LatexEngine;
+	},
 ) {
 	const project = await prisma.project.findFirst({
 		where: { id: projectId, ownerId, deletedAt: null },
@@ -120,7 +125,8 @@ export async function createTemplateFromProject(
 		data: {
 			title: meta.title.trim(),
 			description: meta.description?.trim() || null,
-			category: meta.category.trim() || "Kişisel",
+			category: meta.category?.trim() || "Kişisel",
+			engine: meta.engine ?? "TECTONIC",
 			isOfficial: false,
 			ownerId,
 			files: {
