@@ -83,7 +83,12 @@ export function getProject(projectId: string) {
 
 export function updateProject(
 	projectId: string,
-	input: { title?: string; description?: string; isPublic?: boolean },
+	input: {
+		title?: string;
+		description?: string;
+		isPublic?: boolean;
+		engine?: string;
+	},
 ) {
 	return requestJson<ProjectDetail>(`/api/projects/${projectId}`, {
 		method: "PATCH",

@@ -1,4 +1,4 @@
-import type { Prisma } from "@/generated/prisma";
+import type { LatexEngine, Prisma } from "@/generated/prisma";
 import { AppError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import {
@@ -39,6 +39,7 @@ export async function createProjectForUser(input: {
 	title: string;
 	description?: string;
 	files?: ProjectSeedFile[];
+	engine?: LatexEngine;
 }) {
 	const files = input.files ?? buildProjectSeedFiles();
 	return prisma.project.create({
@@ -46,6 +47,7 @@ export async function createProjectForUser(input: {
 			ownerId: input.ownerId,
 			title: input.title,
 			description: input.description || null,
+			engine: input.engine,
 			files: {
 				create: files.map((file) => ({
 					path: file.path,
@@ -105,10 +107,15 @@ export async function forkProjectForUser(
 			title: `${source.title} (kopya)`,
 			description: source.description,
 			isPublic: false,
+			engine: source.engine,
 			files: {
 				create: source.files.map((file) => ({
 					path: file.path,
 					content: file.content,
+					// Binary assets (images, fonts) must be copied too, or the
+					// fork would contain empty placeholder files.
+					isBinary: file.isBinary,
+					binaryContent: file.binaryContent,
 					language: file.language,
 					isMain: file.isMain,
 				})),
@@ -131,7 +138,12 @@ export async function requirePublicProject(projectId: string) {
 export async function updateProjectForUser(
 	ownerId: string,
 	projectId: string,
-	input: { title?: string; description?: string; isPublic?: boolean },
+	input: {
+		title?: string;
+		description?: string;
+		isPublic?: boolean;
+		engine?: LatexEngine;
+	},
 ) {
 	await requireOwnedProject(ownerId, projectId);
 	return prisma.project.update({
@@ -140,6 +152,7 @@ export async function updateProjectForUser(
 			title: input.title,
 			description: input.description,
 			isPublic: input.isPublic,
+			engine: input.engine,
 		},
 		include: projectBaseInclude,
 	});
