@@ -141,7 +141,6 @@ export const troubleshooting: HelpArticle = {
 			items: [
 				'**"Henüz önizleme yok"** yazıyorsa proje henüz başarıyla derlenmemiştir. Durum rozetine bakın: **Başarısız** ise günlükteki hatayı düzeltin.',
 				"Derleme **Başarılı** ama sayfa boşsa belgenizde görünür bir içerik olmayabilir (ör. boş bir `tikzpicture`) ya da çizim sayfanın dışına taşmış olabilir. `standalone` belge sınıfı sayfayı çizime göre kırpar.",
-				"Önizleme yalnızca ilk sayfayı gösterir. Diğer sayfalar için PDF'i indirin.",
 				'**"PDF yüklenemedi"** yazıyorsa veya gri bir kutu görüyorsanız sayfayı yenileyin (Ctrl+Shift+R, Mac\'te Cmd+Shift+R). Eski derleme dosyaları 24 saat sonra silinir; yeniden derleyin.',
 			],
 		},
@@ -150,8 +149,8 @@ export const troubleshooting: HelpArticle = {
 			type: "list",
 			items: [
 				"**Kaydedilemedi** rozeti: bağlantınız kopmuş olabilir. Kodunuzu bir yere kopyalayın, sayfayı yenileyin ve tekrar yapıştırın.",
-				"**Dosya yüklenmiyor**: dosya 5 MB'tan büyük olabilir veya adında Türkçe karakter ya da boşluk vardır. Bkz. [Projeler ve dosyalar](/yardim/projeler-ve-dosyalar#sinirlar).",
-				"**`\\input` ile çağırdığım dosya bulunamıyor**: yol proje köküne göre yazılmalıdır (`sekiller/ucgen.tex`) ve derlerken ana dosya açık olmalıdır.",
+				"**Dosya yüklenmiyor**: dosya 5 MB'tan büyük olabilir. Dosya adındaki boşluklar otomatik olarak tireye çevrilir; Türkçe harfler korunur. Bkz. [Projeler ve dosyalar](/yardim/projeler-ve-dosyalar#sinirlar).",
+				"**`\\input` ile çağırdığım dosya bulunamıyor**: yol proje köküne göre yazılmalıdır (`sekiller/ucgen.tex`); dosya adının harfi harfine (büyük/küçük harf dahil) aynı olduğundan emin olun.",
 			],
 		},
 	],
@@ -218,13 +217,20 @@ export const faq: HelpArticle = {
 				{
 					question: "Çok sayfalı belge (ders notu, tez) hazırlayabilir miyim?",
 					answer: [
-						"Evet. Önizleme yalnızca ilk sayfayı gösterir; belgenin tamamı için **PDF indir**'i kullanın. Uzun belgelerde bölümleri ayrı dosyalara bölüp `\\input` ile çağırmak düzeni kolaylaştırır.",
+						"Evet. Önizleme bütün sayfaları alt alta gösterir (ilk 30 sayfa); belgenin tamamı için **PDF indir**'i kullanın. PNG ve SVG yalnızca ilk sayfadan üretilir. Uzun belgelerde bölümleri ayrı dosyalara bölüp `\\input` ile çağırmak düzeni kolaylaştırır.",
 					],
 				},
 				{
-					question: "Motor seçimim neden Tectonic'e döndü?",
+					question: "Motor seçimim kaydediliyor mu?",
 					answer: [
-						"Motor seçimi projede saklanmaz; editör her açıldığında Tectonic ile başlar. Farklı bir motor gerektiren projelerde derlemeden önce motoru yeniden seçin.",
+						"Evet. Üst çubukta seçtiğiniz motor projeyle birlikte saklanır ve projeyi bir sonraki açışınızda aynı motorla devam edersiniz.",
+					],
+				},
+				{
+					question: "Şifremi unuttum, ne yapmalıyım?",
+					answer: [
+						"Giriş sayfasındaki **Şifremi unuttum** bağlantısına tıklayın ve e-posta adresinizi girin. Gelen bağlantı 1 saat geçerlidir ve bir kez kullanılabilir. Şifreniz değişince diğer cihazlardaki oturumlarınız kapatılır.",
+						"E-posta gelmiyorsa istenmeyen (spam) klasörüne bakın. Sunucu yöneticisi e-posta gönderimini yapılandırmamışsa sıfırlama bağlantısı gönderilemez; bu durumda yöneticiye başvurun.",
 					],
 				},
 				{

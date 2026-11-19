@@ -233,7 +233,7 @@ export const turkishDocuments: HelpArticle = {
 		{ type: "h2", id: "dosya-adlari", text: "Dosya adları" },
 		{
 			type: "p",
-			text: "Belge **içinde** Türkçe karakter kullanabilirsiniz, ama **dosya ve klasör adlarında** kullanamazsınız. `şekiller/üçgen.tex` yerine `sekiller/ucgen.tex` yazın.",
+			text: "Dosya ve klasör adlarında da Türkçe harf kullanabilirsiniz: `\\input{şekiller/üçgen}` ve `\\includegraphics{görseller/ağaç.png}` bütün motorlarda çalışır. Yalnızca boşluk kullanmayın; kelimeleri tire veya alt çizgiyle ayırın (`deney-sonuçları.tex`).",
 		},
 	],
 };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isSafeProjectPath } from "@/lib/file-path";
+import { isSafeProjectPath, sanitizeUploadFileName } from "@/lib/file-path";
 import { slugifyFilename } from "@/lib/utils";
 import { createFileSchema, updateFileSchema } from "@/server/schemas/project";
 
@@ -10,6 +10,9 @@ describe("isSafeProjectPath", () => {
 		"sekiller/ucgen.tex",
 		"images/logo-2.png",
 		"a/b/c/d.sty",
+		"şekil.tex",
+		"şekiller/üçgen-ÇİZİM_2.tex",
+		"görseller/ağaç.png",
 	])("accepts %s", (value) => {
 		expect(isSafeProjectPath(value)).toBe(true);
 	});
@@ -23,8 +26,11 @@ describe("isSafeProjectPath", () => {
 		"./main.tex",
 		"a\\b.tex",
 		"dir/",
-		"şekil.tex",
 		"x".repeat(201),
+		"iki kelime.tex",
+		"ters\u202Egnp.tex",
+		"s\u0327ekil.tex", // NFD "ş" must be normalised before saving
+		"emoji😀.tex",
 	])("rejects %j", (value) => {
 		expect(isSafeProjectPath(value)).toBe(false);
 	});
@@ -51,5 +57,26 @@ describe("slugifyFilename", () => {
 			"ucgen-sorusu-ikinci-sik",
 		);
 		expect(slugifyFilename("Çember ve Teğet")).toBe("cember-ve-teget");
+	});
+});
+
+describe("Turkish file names", () => {
+	it("normalises NFD input to NFC in the schemas", () => {
+		const parsed = createFileSchema.parse({ path: " s\u0327ekil.tex " });
+		expect(parsed.path).toBe("şekil.tex");
+		expect(isSafeProjectPath(parsed.path)).toBe(true);
+	});
+
+	it.each([
+		["Ekran görüntüsü 2026.png", "Ekran-görüntüsü-2026.png"],
+		["  ağaç (1).jpg ", "ağaç-1.jpg"],
+		["C:\\Users\\x\\logo.png", "logo.png"],
+		["../../etc/passwd", "passwd"],
+		[".gizli.sty", "gizli.sty"],
+		["😀", ""],
+	])("sanitizes upload name %j", (input, expected) => {
+		const result = sanitizeUploadFileName(input);
+		expect(result).toBe(expected);
+		if (result) expect(isSafeProjectPath(result)).toBe(true);
 	});
 });
