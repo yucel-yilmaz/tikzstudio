@@ -1,4 +1,5 @@
-import { toErrorResponse } from "@/lib/errors";
+import { toErrorResponse, unauthorizedResponse } from "@/lib/errors";
+import { getLocale } from "@/lib/i18n/server";
 import { getSessionFromHeaders } from "@/lib/session";
 import { exportProjectArchive } from "@/server/services/project-archive";
 
@@ -10,18 +11,14 @@ export async function GET(
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+			return unauthorizedResponse();
 		}
 
 		const { projectId } = await context.params;
 		const { fileName, data } = await exportProjectArchive(
 			session.user.id,
 			projectId,
+			await getLocale(),
 		);
 		return new Response(data, {
 			headers: {

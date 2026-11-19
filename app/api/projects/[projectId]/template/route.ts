@@ -1,5 +1,5 @@
 import { toTemplateDto } from "@/lib/dto";
-import { toErrorResponse } from "@/lib/errors";
+import { toErrorResponse, unauthorizedResponse } from "@/lib/errors";
 import { getSessionFromHeaders } from "@/lib/session";
 import { saveAsTemplateSchema } from "@/server/schemas/project";
 import { createTemplateFromProject } from "@/server/services/templates";
@@ -12,12 +12,7 @@ export async function POST(
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+			return unauthorizedResponse();
 		}
 
 		const { projectId } = await context.params;

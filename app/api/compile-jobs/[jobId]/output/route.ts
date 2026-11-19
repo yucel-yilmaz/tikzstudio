@@ -1,4 +1,8 @@
-import { toErrorResponse } from "@/lib/errors";
+import {
+	notFoundResponse,
+	toErrorResponse,
+	unauthorizedResponse,
+} from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import { getSessionFromHeaders } from "@/lib/session";
 import { slugifyFilename } from "@/lib/utils";
@@ -42,19 +46,11 @@ export async function GET(
 		});
 
 		if (!job) {
-			return Response.json(
-				{ error: { code: "NOT_FOUND", message: "Çıktı bulunamadı." } },
-				{ status: 404 },
-			);
+			return notFoundResponse("outputNotFound");
 		}
 
 		if (!session && !job.project.isPublic) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+			return unauthorizedResponse();
 		}
 
 		const searchParams = new URL(request.url).searchParams;
@@ -68,10 +64,7 @@ export async function GET(
 		}[format];
 
 		if (!outputUrl) {
-			return Response.json(
-				{ error: { code: "NOT_FOUND", message: "Çıktı bulunamadı." } },
-				{ status: 404 },
-			);
+			return notFoundResponse("outputNotFound");
 		}
 
 		const download = searchParams.get("download") === "1";

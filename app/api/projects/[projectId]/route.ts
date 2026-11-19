@@ -1,5 +1,5 @@
 import { toProjectDetail } from "@/lib/dto";
-import { toErrorResponse } from "@/lib/errors";
+import { toErrorResponse, unauthorizedResponse } from "@/lib/errors";
 import { getSessionFromHeaders } from "@/lib/session";
 import { updateProjectSchema } from "@/server/schemas/project";
 import {
@@ -15,12 +15,7 @@ export async function GET(
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+			return unauthorizedResponse();
 		}
 
 		const { projectId } = await context.params;
@@ -38,12 +33,7 @@ export async function PATCH(
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+			return unauthorizedResponse();
 		}
 
 		const { projectId } = await context.params;
@@ -66,12 +56,7 @@ export async function DELETE(
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+			return unauthorizedResponse();
 		}
 
 		const { projectId } = await context.params;

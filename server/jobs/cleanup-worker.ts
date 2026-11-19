@@ -2,6 +2,8 @@ import { readdir } from "node:fs/promises";
 import path from "node:path";
 
 import { CompileStatus } from "@/generated/prisma";
+import { DEFAULT_LOCALE, LOCALES } from "@/lib/i18n/config";
+import { getTranslator } from "@/lib/i18n/messages";
 import { getBoss } from "@/lib/pgboss";
 import { prisma } from "@/lib/prisma";
 import {
@@ -22,21 +24,31 @@ export async function recoverStaleJobs(): Promise<void> {
 		Date.now() - STALE_JOB_TIMEOUT_MINUTES * 60 * 1000,
 	);
 
-	const updated = await prisma.compileJob.updateMany({
-		where: {
-			status: { in: [CompileStatus.RUNNING, CompileStatus.PENDING] },
-			createdAt: { lt: staleThreshold },
-		},
-		data: {
-			status: CompileStatus.FAILED,
-			log: "Derleme sunucu yeniden başlatma sırasında kesintiye uğradı.",
-			errorCode: "UNKNOWN_ERROR",
-			finishedAt: new Date(),
-		},
-	});
+	// One update per language so the stored log matches the owner's language.
+	let recovered = 0;
+	for (const locale of LOCALES) {
+		const owner =
+			locale === DEFAULT_LOCALE
+				? { locale: { notIn: LOCALES.filter((l) => l !== DEFAULT_LOCALE) } }
+				: { locale };
+		const updated = await prisma.compileJob.updateMany({
+			where: {
+				status: { in: [CompileStatus.RUNNING, CompileStatus.PENDING] },
+				createdAt: { lt: staleThreshold },
+				project: { owner },
+			},
+			data: {
+				status: CompileStatus.FAILED,
+				log: getTranslator(locale)("compileLog.interrupted"),
+				errorCode: "UNKNOWN_ERROR",
+				finishedAt: new Date(),
+			},
+		});
+		recovered += updated.count;
+	}
 
-	if (updated.count > 0) {
-		console.log(`[cleanup] recovered ${updated.count} stale compile job(s)`);
+	if (recovered > 0) {
+		console.log(`[cleanup] recovered ${recovered} stale compile job(s)`);
 	}
 }
 

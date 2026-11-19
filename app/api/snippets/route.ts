@@ -1,5 +1,5 @@
 import { toSnippetDto } from "@/lib/dto";
-import { toErrorResponse } from "@/lib/errors";
+import { toErrorResponse, unauthorizedResponse } from "@/lib/errors";
 import { getSessionFromHeaders } from "@/lib/session";
 import type { CreateSnippetInput } from "@/lib/types";
 import { createUserSnippet, listSnippets } from "@/server/services/snippets";
@@ -25,13 +25,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	try {
 		const session = await getSessionFromHeaders(request.headers);
-		if (!session)
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+		if (!session) return unauthorizedResponse();
 
 		const body = (await request.json()) as CreateSnippetInput;
 		const snippet = await createUserSnippet(session.user.id, body);

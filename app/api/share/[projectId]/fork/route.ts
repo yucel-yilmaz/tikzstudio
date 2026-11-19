@@ -1,5 +1,5 @@
 import { toProjectDetail } from "@/lib/dto";
-import { toErrorResponse } from "@/lib/errors";
+import { toErrorResponse, unauthorizedResponse } from "@/lib/errors";
 import { getSessionFromHeaders } from "@/lib/session";
 import { forkProjectForUser } from "@/server/services/projects";
 
@@ -10,12 +10,7 @@ export async function POST(
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+			return unauthorizedResponse();
 		}
 
 		const { projectId } = await context.params;

@@ -1,4 +1,5 @@
 import { AppError } from "@/lib/errors";
+import { getI18n } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import type { CreateSnippetInput } from "@/lib/types";
 
@@ -45,24 +46,21 @@ export async function createUserSnippet(
 ) {
 	const trigger = data.trigger.replace(/^\\/u, "").trim();
 	if (!trigger)
-		throw new AppError("BAD_REQUEST", "Tetikleyici boş olamaz.", 400);
+		throw new AppError("BAD_REQUEST", "snippetTriggerRequired", 400);
 
 	const existing = await prisma.snippet.findFirst({
 		where: { ownerId, trigger },
 	});
 	if (existing)
-		throw new AppError(
-			"CONFLICT",
-			`"\\${trigger}" tetikleyicisi zaten kullanımda.`,
-			409,
-		);
+		throw new AppError("CONFLICT", ["snippetTriggerTaken", { trigger }], 409);
 
 	return prisma.snippet.create({
 		data: {
 			title: data.title.trim(),
 			description: data.description?.trim() || null,
 			trigger,
-			category: data.category.trim() || "Kişisel",
+			category:
+				data.category.trim() || (await getI18n()).t("common.personalCategory"),
 			content: data.content,
 			ownerId,
 		},
@@ -72,6 +70,6 @@ export async function createUserSnippet(
 export async function deleteUserSnippet(ownerId: string, snippetId: string) {
 	const snippet = await prisma.snippet.findUnique({ where: { id: snippetId } });
 	if (!snippet || snippet.ownerId !== ownerId)
-		throw new AppError("NOT_FOUND", "Kod parçacığı bulunamadı.", 404);
+		throw new AppError("NOT_FOUND", "snippetNotFound", 404);
 	await prisma.snippet.delete({ where: { id: snippetId } });
 }

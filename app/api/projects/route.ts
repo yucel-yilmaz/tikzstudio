@@ -1,5 +1,5 @@
 import { toProjectDetail, toProjectSummary } from "@/lib/dto";
-import { toErrorResponse } from "@/lib/errors";
+import { toErrorResponse, unauthorizedResponse } from "@/lib/errors";
 import { getSessionFromHeaders } from "@/lib/session";
 import { createProjectSchema } from "@/server/schemas/project";
 import { buildProjectSeedFiles } from "@/server/services/project-seed";
@@ -13,12 +13,7 @@ export async function GET(request: Request) {
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+			return unauthorizedResponse();
 		}
 
 		const search = new URL(request.url).searchParams.get("search") ?? undefined;
@@ -36,12 +31,7 @@ export async function POST(request: Request) {
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session) {
-			return Response.json(
-				{
-					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
-				},
-				{ status: 401 },
-			);
+			return unauthorizedResponse();
 		}
 
 		const body = createProjectSchema.parse(await request.json());
