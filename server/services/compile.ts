@@ -202,3 +202,29 @@ export async function getLatestCompileOutputForProject(
 
 	return job;
 }
+
+/**
+ * Latest successful compile output of a public project, for the share page.
+ * Returns null when the project is private, deleted, missing, or never compiled
+ * successfully — the caller cannot distinguish these cases on purpose.
+ */
+export async function getLatestPublicCompileOutputForProject(
+	projectId: string,
+) {
+	return prisma.compileJob.findFirst({
+		where: {
+			projectId,
+			status: CompileStatus.SUCCESS,
+			outputUrl: {
+				not: null,
+			},
+			project: {
+				isPublic: true,
+				deletedAt: null,
+			},
+		},
+		orderBy: {
+			finishedAt: "desc",
+		},
+	});
+}

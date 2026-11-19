@@ -32,7 +32,7 @@ import { PdfPreview } from "@/features/editor/components/pdf-preview";
 import {
 	ClientApiError,
 	forkProject,
-	getLatestCompileOutput,
+	getPublicCompileOutput,
 	getPublicProject,
 } from "@/lib/client-api";
 import type { ProjectFileDto } from "@/lib/types";
@@ -112,7 +112,7 @@ export function ShareScreen({ projectId }: { projectId: string }) {
 
 	const compileQuery = useQuery({
 		queryKey: ["share-compile", projectId],
-		queryFn: () => getLatestCompileOutput(projectId),
+		queryFn: () => getPublicCompileOutput(projectId),
 		enabled: Boolean(projectQuery.data),
 	});
 

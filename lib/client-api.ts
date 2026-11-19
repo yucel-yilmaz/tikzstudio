@@ -191,6 +191,12 @@ export function forkProject(sourceProjectId: string) {
 	});
 }
 
+export function getPublicCompileOutput(projectId: string) {
+	return requestJson<{ compileJob: CompileJobDto | null }>(
+		`/api/share/${projectId}/compile`,
+	);
+}
+
 export function getPublicProject(projectId: string) {
 	return requestJson<ProjectDetail>(`/api/share/${projectId}`);
 }
