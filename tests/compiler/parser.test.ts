@@ -5,6 +5,9 @@ import { inferCompileErrorCode } from "@/server/compiler/parser";
 describe("inferCompileErrorCode", () => {
 	it("maps timeout messages", () => {
 		expect(inferCompileErrorCode("Compilation timed out.")).toBe("TIMEOUT");
+		expect(inferCompileErrorCode("Derleme zaman aşımına uğradı.")).toBe(
+			"TIMEOUT",
+		);
 		expect(inferCompileErrorCode("process timed out after 15s")).toBe(
 			"TIMEOUT",
 		);

@@ -24,11 +24,11 @@ export function useProjectFiles(projectId: string) {
 					current ? { files: [...current.files, file] } : { files: [file] },
 			);
 			setActiveFile(file.id);
-			toast.success(`Created "${file.path}"`);
+			toast.success(`"${file.path}" oluşturuldu`);
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : "Failed to create file.",
+				error instanceof Error ? error.message : "Dosya oluşturulamadı.",
 			);
 		},
 	});
@@ -52,12 +52,10 @@ export function useProjectFiles(projectId: string) {
 			if (activeFileId === fileId) {
 				setActiveFile(remaining[0]?.id ?? null);
 			}
-			toast.success("File deleted");
+			toast.success("Dosya silindi");
 		},
 		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to delete file.",
-			);
+			toast.error(error instanceof Error ? error.message : "Dosya silinemedi.");
 		},
 	});
 
@@ -74,11 +72,13 @@ export function useProjectFiles(projectId: string) {
 							}
 						: current,
 			);
-			toast.success(`Renamed to "${file.path}"`);
+			toast.success(`Yeni ad: "${file.path}"`);
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : "Failed to rename file.",
+				error instanceof Error
+					? error.message
+					: "Dosya yeniden adlandırılamadı.",
 			);
 		},
 	});
@@ -99,11 +99,11 @@ export function useProjectFiles(projectId: string) {
 							}
 						: current,
 			);
-			toast.success(`"${file.path}" set as main file`);
+			toast.success(`"${file.path}" ana dosya yapıldı`);
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : "Failed to change main file.",
+				error instanceof Error ? error.message : "Ana dosya değiştirilemedi.",
 			);
 		},
 	});
@@ -117,11 +117,11 @@ export function useProjectFiles(projectId: string) {
 					current ? { files: [...current.files, file] } : { files: [file] },
 			);
 			setActiveFile(file.id);
-			toast.success(`Uploaded "${file.path}"`);
+			toast.success(`"${file.path}" yüklendi`);
 		},
 		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : "Failed to upload file.",
+				error instanceof Error ? error.message : "Dosya yüklenemedi.",
 			);
 		},
 	});

@@ -9,7 +9,12 @@ export async function DELETE(
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session)
-			return Response.json({ error: "Unauthorized" }, { status: 401 });
+			return Response.json(
+				{
+					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
+				},
+				{ status: 401 },
+			);
 
 		const { id } = await context.params;
 		await deleteUserSnippet(session.user.id, id);

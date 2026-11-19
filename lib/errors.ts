@@ -1,3 +1,5 @@
+import { ZodError } from "zod";
+
 export type AppErrorCode =
 	| "UNAUTHORIZED"
 	| "FORBIDDEN"
@@ -53,10 +55,24 @@ export function toErrorResponse(error: unknown): Response {
 		return Response.json(payload, { status: error.status });
 	}
 
+	if (error instanceof ZodError) {
+		const payload: AppErrorPayload = {
+			error: {
+				code: "VALIDATION_ERROR",
+				message: error.issues[0]?.message ?? "Geçersiz istek.",
+				details: { issues: error.issues },
+			},
+		};
+
+		return Response.json(payload, { status: 400 });
+	}
+
+	console.error("[api] unexpected error:", error);
+
 	const payload: AppErrorPayload = {
 		error: {
 			code: "UNKNOWN_ERROR",
-			message: "Unexpected server error.",
+			message: "Beklenmeyen bir sunucu hatası oluştu.",
 		},
 	};
 

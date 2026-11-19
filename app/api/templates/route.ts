@@ -26,7 +26,12 @@ export async function POST(request: Request) {
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session)
-			return Response.json({ error: "Unauthorized" }, { status: 401 });
+			return Response.json(
+				{
+					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
+				},
+				{ status: 401 },
+			);
 
 		const body = (await request.json()) as CreateTemplateInput;
 		const template = await createUserTemplate(session.user.id, body);

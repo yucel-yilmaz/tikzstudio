@@ -1,0 +1,11 @@
+node_modules
+generated
+.next
+.next-build
+.data
+.git
+.env
+.env.*
+!.env.example
+coverage
+*.log

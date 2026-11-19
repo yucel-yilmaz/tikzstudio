@@ -1,6 +1,6 @@
 # TikZ Studio
 
-**TikZ** diyagramlarına ve çok dosyalı LaTeX belgelerine odaklanmış, modern, tarayıcı tabanlı bir LaTeX editörü. React 19 ile Next.js 16 üzerine inşa edilmiş olup CodeMirror editörü ile izole Docker derleme ortamını ve canlı PDF önizlemesini bir araya getirir.
+**TikZ** diyagramlarına ve çok dosyalı LaTeX belgelerine odaklanmış, modern, tarayıcı tabanlı bir LaTeX editörü. React 19 ile Next.js 16 üzerine inşa edilmiş olup CodeMirror editörü ile izole Docker derleme ortamını ve canlı PDF önizlemesini bir araya getirir. TikZ/LaTeX ile çalışan herkes için tasarlanmıştır: lise ve üniversite öğrencileri, öğretmenler ve akademisyenler.
 
 > Durum: aktif geliştirme aşamasında. API'ler ve arayüz değişebilir.
 
@@ -12,17 +12,22 @@
 - 🛡️ **İzole derleme** — güçlendirilmiş Docker konteyneri (`--network none`, `--read-only`, kapasite kısıtlamaları, bellek/CPU/zaman aşımı sınırları)
 - ⚙️ **Beş LaTeX motoru** — Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX + Biber; her derlemede seçilebilir
 - 📄 **Canlı PDF önizleme** — PDF.js ile render edilir, yüksek DPI ekranlar için DPR farkındalıklı
-- 🎨 **SVG + PNG dışa aktarma** — SVG, DOMPurify ile temizlenir; PNG, `pdftoppm` ile 150 DPI'da üretilir
+- 🎨 **SVG + PNG dışa aktarma** — SVG, DOMPurify ile temizlenir; PNG, `pdftoppm` ile 300 DPI'da üretilir (çalışma kâğıtları için baskı kalitesi)
 - 🖼️ **Görüntüden LaTeX** (img2latex) — Docker Model Runner (`ai/qwen3-vl`), pix2tex (yerel Docker API) veya Mathpix ile formülleri LaTeX'e dönüştürür
 - 🗂️ **Çok dosyalı projeler** — oluştur, yeniden adlandır, sil, ikili dosya yükle (resimler, fontlar, `.cls`, `.sty`), ana dosyayı işaretle
 - 📚 **Derleme geçmişi** — geçmiş işlere göz at, arşivlenmiş PDF/SVG/PNG çıktılarını indir
 - 🔁 **Proje çatallama** — herhangi bir genel projeyi kendi çalışma alanına kopyala
-- 🧩 **Çok dosyalı şablonlar** — ZIP bundle olarak içe/dışa aktarma, otomatik PNG önizleme üretimi, mevcut projeyi şablon olarak kaydet
-- 🔐 **Kimlik doğrulama** — [better-auth](https://www.better-auth.com/) ile e-posta + şifre, GitHub OAuth, Google OAuth
+- 🧩 **Çok dosyalı şablonlar** — yeni proje, şablonun tüm dosyalarını (görseller ve `.sty` dahil) kopyalar; editörden kendi şablonlarınızı oluşturabilirsiniz
+- 📚 **Şablon kütüphanesi (33 şablon)** — Türkçe etiketli, gerektiğinde çok dosyalı ve Tectonic ile pdfLaTeX'te doğrulanmış:
+  - **Temel:** şekiller, düğümler, akış şemaları, ağaçlar, çizgeler
+  - **Lise matematiği:** üçgen, çember, tkz-euclide, doğru/parabol/parçalı fonksiyon grafikleri, birim çember, sayı doğrusu, Venn, olasılık ağacı, katı cisimler, iki eğri arası alan, A–E şıklı sınav kâğıdı
+  - **Üniversite ve akademik:** hata çubuklu veri grafiği ve uyum doğrusu, gruplandırılmış çubuk grafik, normal dağılım, 3B yüzey, vektörler/izdüşüm, değişmeli diyagramlar (tikz-cd), sonlu durum otomatı, kontrol sistemi blok diyagramı, Beamer sunumu, çok dosyalı makale iskeleti
+- 💾 **Şablon olarak kaydet** — herhangi bir projeyi (tüm dosyalarıyla) proje ayarları panelinden kişisel şablona dönüştürün
+- 🔐 **Kimlik doğrulama** — [better-auth](https://www.better-auth.com/) ile e-posta + şifre; GitHub ve Google OAuth, istemci kimliği/sırrı tanımlandığında otomatik etkinleşir
 - 🚦 **Hız sınırlaması** — kullanıcı başına dakikada 5 derleme (veritabanı destekli, ek bağımlılık yok)
 - 💾 **Otomatik kaydetme** — geri çekilme ve görünür kayıt durumu ile
 - 🌗 **Açık/koyu tema** desteği (Tailwind v4)
-- 🇹🇷 **Türkçe arayüz** — varsayılan olarak
+- 🇹🇷 **Türkçe arayüz** — arayüzün tamamı, API hata mesajları ve resmi şablonlar Türkçedir; Türkçe babel ve fontlar tüm motorlarda çalışır
 
 ---
 
@@ -41,7 +46,7 @@
 | LaTeX motorları | Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX+Biber |
 | PDF render | PDF.js (legacy build) |
 | PDF → SVG | `pdf2svg` (DOMPurify ile temizlenir) |
-| PDF → PNG | `pdftoppm` (poppler-utils, 150 DPI) |
+| PDF → PNG | `pdftoppm` (poppler-utils, 300 DPI) |
 | SVG temizleyici | DOMPurify + jsdom (sunucu taraflı) |
 | Şablon bundle | JSZip |
 | Testler | Vitest |
@@ -99,11 +104,14 @@
 
 ```bash
 cp .env.example .env
-# .env dosyasını düzenle: BETTER_AUTH_SECRET ve OAuth anahtarlarını ayarla
-docker compose up --build
+# .env dosyasını düzenle: BETTER_AUTH_SECRET (isteğe bağlı OAuth anahtarları)
+docker compose build compiler   # LaTeX sandbox imajı, ilk seferde 10–20 dk
+docker compose up --build -d
 ```
 
-PostgreSQL'i başlatır, migration'ları otomatik uygular ve uygulamayı [http://localhost:3000](http://localhost:3000) adresinde sunar. Belge derlemeden önce derleyici imajını ayrıca build edin (aşağıdaki 5. adım).
+PostgreSQL'i başlatır, migration'ları uygular, resmi şablonları yükler (tekrar çalıştırmak güvenlidir) ve uygulamayı [http://localhost:3000](http://localhost:3000) adresinde sunar.
+
+Uygulama konteyneri derleme konteynerlerini host'un Docker daemon'u üzerinden başlatır (`/var/run/docker.sock` bağlanır). Bağlama yolları host'ta çözüldüğü için derleme çalışma dizini `COMPILE_WORK_DIR` (varsayılan `/tmp/tikzstudio-work`) konteyner içinde aynı yola bağlanır — değiştirirseniz ikisini birlikte değiştirin.
 
 ### Seçenek B — Manuel kurulum
 
@@ -181,6 +189,8 @@ npm run dev
 | `npm run db:migrate` | Prisma migration'larını uygula |
 | `npm run db:seed` | Veritabanını şablon ve snippet'lerle doldur |
 | `npm run compiler:build` | Docker derleyici imajını oluştur |
+| `npm run templates:verify` | Tüm resmi şablonları sandbox'ta derle (Tectonic + pdfLaTeX) |
+| `npm run warmup:sync` | Resmi şablonları `docker/compiler/warmup-templates/` altına yazar; derleyici imajı paketlerini önbelleğe alır (sonra imajı yeniden inşa edin) |
 
 ---
 
@@ -288,9 +298,14 @@ npm run db:migrate
 
 - [x] Çoklu motor arayüzü (pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX+Biber derlemede seçilebilir)
 - [x] PNG dışa aktarma
-- [x] OAuth sağlayıcıları (GitHub, Google)
+- [x] OAuth sağlayıcıları (GitHub, Google) — ortam değişkeniyle isteğe bağlı
 - [x] Tek komutla yerel kurulum için docker-compose.yml
-- [x] ZIP içe/dışa aktarma destekli çok dosyalı şablon sistemi
+- [x] Çok dosyalı şablon sistemi
+- [x] Şablon kütüphanesi: lise matematiği ve üniversite/akademik paketleri (Türkçe)
+- [ ] Şablon ZIP içe/dışa aktarma ve otomatik şablon önizlemesi
+- [x] Projeyi şablon olarak kaydet (proje ayarları paneli; kaydedilmemiş değişiklikler önce kaydedilir)
+- [x] Türkçe arayüz
+- [ ] Çok dilli arayüz (i18n altyapısı)
 - [x] Çoklu provider destekli görüntüden LaTeX (img2latex)
 - [ ] Gerçek zamanlı işbirliği (Y.js)
 - [ ] Mobil öncelikli editör iyileştirmeleri
@@ -324,5 +339,4 @@ Tüm hakları saklıdır. Lisans verilmemektedir. Kaynak kod yalnızca şeffafl�
 - [pg-boss](https://github.com/timgit/pg-boss) — PostgreSQL destekli iş kuyruğu
 - [DOMPurify](https://github.com/cure53/DOMPurify) — SVG/HTML temizleme
 - [pix2tex](https://github.com/lukas-blecher/LaTeX-OCR) — görüntüden LaTeX OCR
-- [JSZip](https://stuk.github.io/jszip/) — şablon bundle ZIP işleme
 - [poppler-utils](https://poppler.freedesktop.org/) — PDF → PNG dönüşümü

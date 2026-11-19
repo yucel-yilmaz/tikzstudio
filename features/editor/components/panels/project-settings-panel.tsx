@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import {
+	SaveAsTemplateForm,
+	type SaveAsTemplatePayload,
+} from "@/features/editor/components/panels/save-as-template-form";
 import type { ProjectDetail } from "@/lib/types";
 
 type ProjectSettingsPanelProps = {
@@ -16,11 +20,13 @@ type ProjectSettingsPanelProps = {
 		description: string;
 		isPublic: boolean;
 	}): Promise<void>;
+	onSaveAsTemplate(payload: SaveAsTemplatePayload): Promise<void>;
 };
 
 export function ProjectSettingsPanel({
 	project,
 	onSubmit,
+	onSaveAsTemplate,
 }: ProjectSettingsPanelProps) {
 	return (
 		<ScrollArea className="h-full px-4 py-4">
@@ -37,7 +43,7 @@ export function ProjectSettingsPanel({
 			>
 				<div className="space-y-2">
 					<label htmlFor="project-panel-title" className="text-sm font-medium">
-						Project name
+						Proje adı
 					</label>
 					<Input
 						id="project-panel-title"
@@ -50,7 +56,7 @@ export function ProjectSettingsPanel({
 						htmlFor="project-panel-description"
 						className="text-sm font-medium"
 					>
-						Description
+						Açıklama
 					</label>
 					<Textarea
 						id="project-panel-description"
@@ -63,19 +69,28 @@ export function ProjectSettingsPanel({
 					<div className="space-y-1">
 						<div className="inline-flex items-center gap-2 text-sm font-medium">
 							<Settings2 className="size-4" />
-							Public read access
+							Herkese açık
 						</div>
 						<p className="text-xs text-muted-foreground">
-							Mark for sharing. Permission control is on the server.
+							Açarsanız paylaşım bağlantısına sahip herkes projeyi
+							görüntüleyebilir.
 						</p>
 					</div>
 					<Switch name="isPublic" defaultChecked={project?.isPublic} />
 				</div>
 				<Button type="submit" size="sm" className="w-full">
 					<Settings2 />
-					Save settings
+					Ayarları kaydet
 				</Button>
 			</form>
+			<div className="mt-4">
+				<SaveAsTemplateForm
+					key={`template-${project?.id ?? "none"}`}
+					defaultTitle={project?.title ?? ""}
+					defaultDescription={project?.description}
+					onSave={onSaveAsTemplate}
+				/>
+			</div>
 		</ScrollArea>
 	);
 }

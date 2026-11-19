@@ -1,0 +1,9 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[scale=0.8]
+  \draw[->] (-3,0) -- (3,0);
+  \draw[->] (0,-1) -- (0,5);
+  \draw[domain=-2:2, smooth, variable=\x, blue, thick] plot ({\x}, {\x*\x});
+\end{tikzpicture}
+\end{document}

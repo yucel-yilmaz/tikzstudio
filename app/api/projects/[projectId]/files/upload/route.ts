@@ -1,5 +1,6 @@
 import { toProjectFileDto } from "@/lib/dto";
 import { AppError, toErrorResponse } from "@/lib/errors";
+import { isSafeProjectPath, UNSAFE_PATH_MESSAGE } from "@/lib/file-path";
 import { getSessionFromHeaders } from "@/lib/session";
 import { uploadBinaryFileForUser } from "@/server/services/projects";
 
@@ -12,14 +13,19 @@ export async function POST(
 	try {
 		const session = await getSessionFromHeaders(request.headers);
 		if (!session)
-			return Response.json({ error: "Unauthorized" }, { status: 401 });
+			return Response.json(
+				{
+					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
+				},
+				{ status: 401 },
+			);
 
 		const { projectId } = await context.params;
 		const formData = await request.formData();
 		const fileEntry = formData.get("file");
 
 		if (!(fileEntry instanceof File))
-			throw new AppError("BAD_REQUEST", "file field required", 400);
+			throw new AppError("BAD_REQUEST", "Dosya alanı gerekli.", 400);
 
 		if (fileEntry.size > MAX_UPLOAD_BYTES)
 			throw new AppError(
@@ -32,8 +38,8 @@ export async function POST(
 			(formData.get("path") as string | null) ?? fileEntry.name
 		).trim();
 
-		if (!filePath)
-			throw new AppError("BAD_REQUEST", "Geçersiz dosya yolu", 400);
+		if (!isSafeProjectPath(filePath))
+			throw new AppError("VALIDATION_ERROR", UNSAFE_PATH_MESSAGE, 400);
 
 		const buffer = new Uint8Array(
 			(await fileEntry.arrayBuffer()) as ArrayBuffer,

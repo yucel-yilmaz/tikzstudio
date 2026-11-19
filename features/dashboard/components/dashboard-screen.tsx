@@ -84,34 +84,34 @@ export function DashboardScreen({ userName }: { userName: string }) {
 					<div className="space-y-4">
 						<div className="flex flex-wrap items-center gap-2">
 							<Badge variant="outline" className="normal-case tracking-normal">
-								Dashboard
+								Panel
 							</Badge>
 							<Badge
 								variant="secondary"
 								className="normal-case tracking-normal"
 							>
-								{projectCount} {projectCount === 1 ? "project" : "projects"}
+								{projectCount} proje
 							</Badge>
 						</div>
 						<div className="space-y-2">
 							<h1 className="text-4xl font-semibold tracking-tight">
-								Hello, {userName}
+								Merhaba, {userName}
 							</h1>
 							<p className="max-w-3xl text-sm leading-6 text-(--ink-1) lg:text-base">
-								Manage TikZ projects, start new documents and monitor your
-								latest compile outputs in one place.
+								TikZ projelerinizi yönetin, yeni belgelere başlayın ve son
+								derleme çıktılarınızı tek yerden takip edin.
 							</p>
 						</div>
 						<div className="grid gap-3 sm:grid-cols-3">
 							<div className="rounded-3xl border border-(--line) bg-white/70 px-4 py-4">
 								<p className="text-xs uppercase tracking-[0.14em] text-(--ink-1)">
-									Projects
+									Projeler
 								</p>
 								<p className="mt-2 text-2xl font-semibold">{projectCount}</p>
 							</div>
 							<div className="rounded-3xl border border-(--line) bg-white/70 px-4 py-4">
 								<p className="text-xs uppercase tracking-[0.14em] text-(--ink-1)">
-									Templates
+									Şablonlar
 								</p>
 								<p className="mt-2 text-2xl font-semibold">
 									{groupedTemplates.length}
@@ -119,10 +119,10 @@ export function DashboardScreen({ userName }: { userName: string }) {
 							</div>
 							<div className="rounded-3xl border border-(--line) bg-white/70 px-4 py-4">
 								<p className="text-xs uppercase tracking-[0.14em] text-(--ink-1)">
-									Workflow
+									Çalışma akışı
 								</p>
 								<p className="mt-2 text-base font-semibold">
-									Editor + PDF + log
+									Editör + PDF + günlük
 								</p>
 							</div>
 						</div>
@@ -131,7 +131,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 					<div className="flex flex-wrap items-center gap-3 lg:justify-end">
 						<Button onClick={() => setShowModal(true)}>
 							<Plus size={16} />
-							New project
+							Yeni proje
 						</Button>
 						<form
 							action={async () => {
@@ -142,7 +142,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 						>
 							<Button type="submit" variant="outline">
 								<LogOut size={16} />
-								Sign out
+								Çıkış yap
 							</Button>
 						</form>
 					</div>
@@ -151,9 +151,9 @@ export function DashboardScreen({ userName }: { userName: string }) {
 
 			<Card>
 				<CardHeader className="pb-4">
-					<CardTitle>Projects</CardTitle>
+					<CardTitle>Projeler</CardTitle>
 					<CardDescription>
-						Search, open, or remove unused projects.
+						Projelerinizi arayın, açın veya kullanmadıklarınızı silin.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-5">
@@ -165,7 +165,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 						<Input
 							value={search}
 							onChange={(event) => setSearch(event.target.value)}
-							placeholder="Search by name or description"
+							placeholder="Ada veya açıklamaya göre ara"
 							className="pl-11"
 						/>
 					</label>
@@ -193,14 +193,14 @@ export function DashboardScreen({ userName }: { userName: string }) {
 													</h2>
 												</div>
 												<p className="line-clamp-3 text-sm leading-6 text-(--ink-1)">
-													{project.description || "No description added."}
+													{project.description || "Açıklama eklenmemiş."}
 												</p>
 											</div>
 											<Button
 												variant="ghost"
 												size="icon"
 												onClick={() => deleteMutation.mutate(project.id)}
-												aria-label="Delete project"
+												aria-label="Projeyi sil"
 												className="text-(--danger)"
 											>
 												<Trash2 size={16} />
@@ -218,7 +218,7 @@ export function DashboardScreen({ userName }: { userName: string }) {
 											</div>
 											<Button asChild variant="secondary">
 												<Link href={`/projects/${project.id}/editor`}>
-													Open in editor
+													Editörde aç
 												</Link>
 											</Button>
 										</div>
@@ -233,16 +233,16 @@ export function DashboardScreen({ userName }: { userName: string }) {
 									variant="outline"
 									className="normal-case tracking-normal"
 								>
-									Empty workspace
+									Boş çalışma alanı
 								</Badge>
-								<h2 className="text-2xl font-semibold">No projects yet</h2>
+								<h2 className="text-2xl font-semibold">Henüz proje yok</h2>
 								<p className="text-sm leading-6 text-(--ink-1)">
-									Start your first TikZ diagram with the default document or a
-									ready-made template.
+									İlk TikZ çiziminize varsayılan belgeyle veya hazır bir
+									şablonla başlayın.
 								</p>
 								<Button onClick={() => setShowModal(true)} className="mt-2">
 									<Sparkles size={16} />
-									Create your first project
+									İlk projenizi oluşturun
 								</Button>
 							</div>
 						</div>
@@ -260,18 +260,18 @@ export function DashboardScreen({ userName }: { userName: string }) {
 										variant="default"
 										className="normal-case tracking-normal"
 									>
-										New project
+										Yeni proje
 									</Badge>
 									<CardTitle className="text-2xl">
-										Create a new TikZ workspace
+										Yeni bir TikZ projesi oluşturun
 									</CardTitle>
 									<CardDescription>
-										Add a title, write a short description and choose a starting
-										template.
+										Bir başlık ekleyin, kısa bir açıklama yazın ve başlangıç
+										şablonunu seçin.
 									</CardDescription>
 								</div>
 								<Button variant="ghost" onClick={() => setShowModal(false)}>
-									Close
+									Kapat
 								</Button>
 							</div>
 						</CardHeader>
@@ -289,48 +289,48 @@ export function DashboardScreen({ userName }: { userName: string }) {
 							>
 								<div className="grid gap-5 md:grid-cols-2">
 									<label className="block space-y-2">
-										<span className="text-sm font-medium">Title</span>
+										<span className="text-sm font-medium">Başlık</span>
 										<Input
 											value={title}
 											onChange={(event) => setTitle(event.target.value)}
 											required
-											placeholder="e.g. Flow diagram"
+											placeholder="ör. Üçgenin iç açıları"
 										/>
 									</label>
 
 									<label className="block space-y-2">
-										<span className="text-sm font-medium">Description</span>
+										<span className="text-sm font-medium">Açıklama</span>
 										<Textarea
 											value={description}
 											onChange={(event) => setDescription(event.target.value)}
 											rows={4}
-											placeholder="What will this project produce?"
+											placeholder="Bu projede ne hazırlayacaksınız?"
 										/>
 									</label>
 								</div>
 
 								<div className="space-y-3">
 									<div>
-										<p className="text-sm font-medium">Starting template</p>
+										<p className="text-sm font-medium">Başlangıç şablonu</p>
 										<p className="mt-1 text-sm text-(--ink-1)">
-											Start blank or pick a ready example to jump into the
-											editor.
+											Boş bir belgeyle başlayın veya hazır bir örnek seçip hemen
+											editöre geçin.
 										</p>
 									</div>
 
-									<div className="grid gap-3 md:grid-cols-2">
+									<div className="grid max-h-[45vh] gap-3 overflow-y-auto pr-1 md:grid-cols-2">
 										<button
 											type="button"
 											onClick={() => setTemplateId(undefined)}
 											className={`rounded-[26px] border px-4 py-4 text-left transition ${templateId ? "border-(--line) bg-white/75" : "border-[rgba(200,85,61,0.32)] bg-[rgba(200,85,61,0.10)]"}`}
 										>
-											<div className="font-medium">Default TikZ</div>
+											<div className="font-medium">Varsayılan TikZ</div>
 											<p className="mt-1 text-sm text-(--ink-1)">
-												Clean start with Hello TikZ.
+												Basit bir "Merhaba TikZ" belgesiyle temiz başlangıç.
 											</p>
 										</button>
 
-										{groupedTemplates.slice(0, 8).map((template) => (
+										{groupedTemplates.map((template) => (
 											<button
 												key={template.id}
 												type="button"
@@ -352,13 +352,15 @@ export function DashboardScreen({ userName }: { userName: string }) {
 										variant="outline"
 										onClick={() => setShowModal(false)}
 									>
-										Cancel
+										İptal
 									</Button>
 									<Button
 										type="submit"
 										disabled={createMutation.isPending || !title.trim()}
 									>
-										{createMutation.isPending ? "Creating…" : "Create project"}
+										{createMutation.isPending
+											? "Oluşturuluyor…"
+											: "Proje oluştur"}
 									</Button>
 								</div>
 							</form>

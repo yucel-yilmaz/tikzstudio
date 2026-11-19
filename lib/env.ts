@@ -9,13 +9,21 @@ const envSchema = z.object({
 	COMPILE_CPU_LIMIT: z.coerce.number().default(0.5),
 	MAX_SOURCE_SIZE_KB: z.coerce.number().default(512),
 	MAX_OUTPUT_SIZE_MB: z.coerce.number().default(10),
-	DOCKER_COMPILER_IMAGE: z.string().default("tikzstudio-compiler:latest"),
+	DOCKER_COMPILER_IMAGE: z.string().default("tikzlab-compiler:latest"),
 	COMPILE_STORAGE_DIR: z.string().default(".data/compile-artifacts"),
+	// Scratch directory for per-compile workspaces. When the app itself runs in
+	// a container and talks to the host Docker daemon, this must be a path that
+	// exists at the same location on the host (see docker-compose.yml).
+	COMPILE_WORK_DIR: z.string().optional(),
 	MATHPIX_APP_ID: z.string().optional(),
 	MATHPIX_APP_KEY: z.string().optional(),
 	DOCKER_MODEL_RUNNER_URL: z.string().default("http://localhost:12434"),
 	IMG2LATEX_MODEL: z.string().default("ai/qwen3-vl:latest"),
 	PIX2TEX_URL: z.string().default("http://localhost:8502"),
+	GITHUB_CLIENT_ID: z.string().optional(),
+	GITHUB_CLIENT_SECRET: z.string().optional(),
+	GOOGLE_CLIENT_ID: z.string().optional(),
+	GOOGLE_CLIENT_SECRET: z.string().optional(),
 });
 
 export const env = envSchema.parse({
@@ -29,9 +37,14 @@ export const env = envSchema.parse({
 	MAX_OUTPUT_SIZE_MB: process.env.MAX_OUTPUT_SIZE_MB,
 	DOCKER_COMPILER_IMAGE: process.env.DOCKER_COMPILER_IMAGE,
 	COMPILE_STORAGE_DIR: process.env.COMPILE_STORAGE_DIR,
+	COMPILE_WORK_DIR: process.env.COMPILE_WORK_DIR || undefined,
 	MATHPIX_APP_ID: process.env.MATHPIX_APP_ID,
 	MATHPIX_APP_KEY: process.env.MATHPIX_APP_KEY,
 	DOCKER_MODEL_RUNNER_URL: process.env.DOCKER_MODEL_RUNNER_URL,
 	IMG2LATEX_MODEL: process.env.IMG2LATEX_MODEL,
 	PIX2TEX_URL: process.env.PIX2TEX_URL,
+	GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID || undefined,
+	GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET || undefined,
+	GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || undefined,
+	GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || undefined,
 });

@@ -16,7 +16,7 @@ export async function PATCH(
 		if (!session) {
 			return Response.json(
 				{
-					error: { code: "UNAUTHORIZED", message: "Authentication required." },
+					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
 				},
 				{ status: 401 },
 			);
@@ -46,7 +46,7 @@ export async function DELETE(
 		if (!session) {
 			return Response.json(
 				{
-					error: { code: "UNAUTHORIZED", message: "Authentication required." },
+					error: { code: "UNAUTHORIZED", message: "Oturum açmanız gerekiyor." },
 				},
 				{ status: 401 },
 			);

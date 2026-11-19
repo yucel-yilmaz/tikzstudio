@@ -113,3 +113,10 @@ export type CompileProjectInput = {
 	engine?: LatexEngine;
 	mainFileId?: string;
 };
+
+export type SaveAsTemplateInput = {
+	title: string;
+	description?: string;
+	category?: string;
+	engine?: string;
+};

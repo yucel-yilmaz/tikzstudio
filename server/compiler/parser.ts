@@ -1,7 +1,7 @@
 import type { AppErrorCode } from "@/lib/errors";
 
 export function inferCompileErrorCode(log: string): AppErrorCode {
-	if (/timed out|timeout/i.test(log)) {
+	if (/timed out|timeout|zaman aşımı/i.test(log)) {
 		return "TIMEOUT";
 	}
 

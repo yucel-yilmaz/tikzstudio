@@ -49,6 +49,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { TikzCodeEditor } from "@/features/editor/components/code-editor";
 import { DesktopEditorLayout } from "@/features/editor/components/desktop-editor-layout";
+import {
+	SaveAsTemplateForm,
+	type SaveAsTemplatePayload,
+} from "@/features/editor/components/panels/save-as-template-form";
 import { PdfPreview } from "@/features/editor/components/pdf-preview";
 import { useAutoSave } from "@/features/editor/hooks/use-auto-save";
 import { useCompile } from "@/features/editor/hooks/use-compile";
@@ -59,6 +63,8 @@ import {
 	getProjectFiles,
 	getSnippets,
 	getTemplates,
+	saveProjectAsTemplate,
+	updateFile,
 	updateProject,
 } from "@/lib/client-api";
 import { diagnosticsForFile, parseCompileLog } from "@/lib/compile-log";
@@ -66,32 +72,32 @@ import type { CompileJobDto } from "@/lib/types";
 import { cn, formatRelativeDate } from "@/lib/utils";
 
 const saveStateMeta = {
-	idle: { label: "Clean", tone: "text-muted-foreground" },
-	dirty: { label: "Unsaved", tone: "text-foreground" },
-	saving: { label: "Saving", tone: "text-muted-foreground" },
-	saved: { label: "Saved", tone: "text-emerald-600" },
-	error: { label: "Error", tone: "text-destructive" },
+	idle: { label: "Kaydedildi", tone: "text-muted-foreground" },
+	dirty: { label: "Kaydedilmemiş değişiklik", tone: "text-foreground" },
+	saving: { label: "Kaydediliyor…", tone: "text-muted-foreground" },
+	saved: { label: "Kaydedildi", tone: "text-emerald-600" },
+	error: { label: "Kaydedilemedi", tone: "text-destructive" },
 } as const;
 
 const panelMeta = {
 	files: {
-		title: "Files",
-		description: "Select and open source files in the project.",
+		title: "Dosyalar",
+		description: "Projedeki kaynak dosyaları seçin ve açın.",
 		icon: FileCode2,
 	},
 	templates: {
-		title: "Templates",
-		description: "Insert ready-made starter documents into the active file.",
+		title: "Şablonlar",
+		description: "Hazır başlangıç belgelerini etkin dosyaya ekleyin.",
 		icon: LayoutTemplate,
 	},
 	snippets: {
-		title: "Snippets",
-		description: "Quickly insert frequently used TikZ blocks.",
+		title: "Kod parçacıkları",
+		description: "Sık kullanılan TikZ bloklarını hızlıca ekleyin.",
 		icon: WandSparkles,
 	},
 	settings: {
-		title: "Settings",
-		description: "Update project details and visibility settings.",
+		title: "Ayarlar",
+		description: "Proje bilgilerini ve görünürlük ayarlarını güncelleyin.",
 		icon: Settings2,
 	},
 } as const;
@@ -99,7 +105,7 @@ const panelMeta = {
 function compileBadge(job: CompileJobDto | null) {
 	if (!job) {
 		return {
-			label: "Ready",
+			label: "Hazır",
 			className: "border-border bg-muted text-muted-foreground",
 			icon: Clock3,
 		};
@@ -108,33 +114,33 @@ function compileBadge(job: CompileJobDto | null) {
 	switch (job.status) {
 		case "SUCCESS":
 			return {
-				label: "Success",
+				label: "Başarılı",
 				className:
 					"border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
 				icon: CheckCircle2,
 			};
 		case "FAILED":
 			return {
-				label: "Failed",
+				label: "Başarısız",
 				className: "border-destructive/20 bg-destructive/10 text-destructive",
 				icon: XCircle,
 			};
 		case "TIMEOUT":
 			return {
-				label: "Timeout",
+				label: "Zaman aşımı",
 				className:
 					"border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300",
 				icon: Clock3,
 			};
 		case "RUNNING":
 			return {
-				label: "Compiling",
+				label: "Derleniyor…",
 				className: "border-border bg-secondary text-secondary-foreground",
 				icon: LoaderCircle,
 			};
 		case "PENDING":
 			return {
-				label: "Pending",
+				label: "Sırada",
 				className: "border-border bg-secondary text-secondary-foreground",
 				icon: Clock3,
 			};
@@ -165,6 +171,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 		updateBuffer,
 		insertIntoActive,
 		setPreviewZoom,
+		markSaved,
 	} = useEditorStore();
 
 	const projectQuery = useQuery({
@@ -209,6 +216,43 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 	);
 
 	const fileOps = useProjectFiles(projectId);
+
+	// The template is built from what is stored on the server, so persist every
+	// unsaved buffer first (auto-save only covers the active file).
+	async function handleSaveAsTemplate(payload: SaveAsTemplatePayload) {
+		try {
+			const dirtyFiles = (filesQuery.data?.files ?? []).filter(
+				(file) =>
+					!file.isBinary &&
+					buffers[file.id] !== undefined &&
+					buffers[file.id] !== file.content,
+			);
+			const saved = await Promise.all(
+				dirtyFiles.map((file) =>
+					updateFile(projectId, file.id, { content: buffers[file.id] }),
+				),
+			);
+			for (const file of saved) markSaved(file.id, file.content);
+			if (saved.length > 0) {
+				await queryClient.invalidateQueries({
+					queryKey: ["project-files", projectId],
+				});
+			}
+
+			const template = await saveProjectAsTemplate(projectId, {
+				...payload,
+				engine,
+			});
+			await queryClient.invalidateQueries({ queryKey: ["templates"] });
+			toast.success(`"${template.title}" şablon olarak kaydedildi`, {
+				description: "Yeni proje oluştururken şablon listesinde görünür.",
+			});
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : "Şablon kaydedilemedi.",
+			);
+		}
+	}
 
 	useEffect(() => {
 		if (filesQuery.data?.files) {
@@ -261,14 +305,14 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										href="/dashboard"
 										className="transition-colors hover:text-foreground"
 									>
-										Dashboard
+										Panel
 									</Link>
 									<ChevronRight className="size-3" />
-									<span>Editor</span>
+									<span>Editör</span>
 								</div>
 								<div className="flex items-center gap-3">
 									<CardTitle className="truncate text-xl font-semibold">
-										{projectQuery.data?.title ?? "Loading project…"}
+										{projectQuery.data?.title ?? "Proje yükleniyor…"}
 									</CardTitle>
 									<Badge variant="secondary" className="shrink-0 gap-1.5">
 										<PanelLeft className="size-3" />
@@ -296,7 +340,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									size="sm"
 									onClick={toggleProjectPanel}
 									className="hidden lg:inline-flex"
-									aria-label={projectPanelOpen ? "Close panel" : "Open panel"}
+									aria-label={projectPanelOpen ? "Paneli kapat" : "Paneli aç"}
 								>
 									{projectPanelOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
 								</Button>
@@ -308,15 +352,15 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										onClick={() => {
 											const url = `${window.location.origin}/p/${projectId}`;
 											navigator.clipboard.writeText(url);
-											toast.success("Share link copied");
+											toast.success("Paylaşım bağlantısı kopyalandı");
 										}}
 									>
 										<Share2 />
-										Share
+										Paylaş
 									</Button>
 								) : null}
 								<Button asChild variant="outline" size="sm">
-									<Link href="/dashboard">Back to dashboard</Link>
+									<Link href="/dashboard">Panele dön</Link>
 								</Button>
 								<Button
 									variant="outline"
@@ -327,7 +371,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									}
 								>
 									<Save />
-									Save
+									Kaydet
 								</Button>
 								<Select
 									value={engine}
@@ -353,7 +397,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 									onClick={compile}
 								>
 									<Play />
-									{isCompiling ? "Starting…" : "Compile"}
+									{isCompiling ? "Başlatılıyor…" : "Derle"}
 								</Button>
 							</CardAction>
 						</div>
@@ -385,6 +429,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 					onSubmitSettings={async (payload) => {
 						await settingsMutation.mutateAsync(payload);
 					}}
+					onSaveAsTemplate={handleSaveAsTemplate}
 					onCreateFile={fileOps.createFile}
 					onDeleteFile={fileOps.deleteFile}
 					onRenameFile={fileOps.renameFile}
@@ -396,9 +441,9 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 				<div className="space-y-4 lg:hidden">
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-base">Code Editor</CardTitle>
+							<CardTitle className="text-base">Kod editörü</CardTitle>
 							<CardDescription>
-								{activeFile?.path ?? "No active file selected"}
+								{activeFile?.path ?? "Etkin dosya seçilmedi"}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="p-0">
@@ -419,8 +464,10 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-base">Project Panel</CardTitle>
-							<CardDescription>Files, templates and snippets.</CardDescription>
+							<CardTitle className="text-base">Proje paneli</CardTitle>
+							<CardDescription>
+								Dosyalar, şablonlar ve kod parçacıkları.
+							</CardDescription>
 						</CardHeader>
 						<CardContent className="px-0">
 							<Tabs
@@ -438,25 +485,25 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											value="files"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Files
+											Dosyalar
 										</TabsTrigger>
 										<TabsTrigger
 											value="templates"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Templates
+											Şablonlar
 										</TabsTrigger>
 										<TabsTrigger
 											value="snippets"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Snippets
+											Kod parçacıkları
 										</TabsTrigger>
 										<TabsTrigger
 											value="settings"
 											className="min-h-9 rounded-lg data-active:bg-background data-active:shadow-sm"
 										>
-											Settings
+											Ayarlar
 										</TabsTrigger>
 									</TabsList>
 								</div>
@@ -535,20 +582,20 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										<Input
 											name="title"
 											defaultValue={projectQuery.data?.title ?? ""}
-											placeholder="Project name"
+											placeholder="Proje adı"
 										/>
 										<Textarea
 											name="description"
 											defaultValue={projectQuery.data?.description ?? ""}
-											placeholder="Description"
+											placeholder="Açıklama"
 										/>
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
 												<div className="text-sm font-medium">
-													Public read access
+													Herkese açık (salt okunur)
 												</div>
 												<div className="text-xs text-muted-foreground">
-													Mark for sharing
+													Paylaşım için işaretleyin
 												</div>
 											</div>
 											<Switch
@@ -557,9 +604,17 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 											/>
 										</div>
 										<Button type="submit" size="sm" className="w-full">
-											Save settings
+											Ayarları kaydet
 										</Button>
 									</form>
+									<div className="mt-4">
+										<SaveAsTemplateForm
+											key={`template-mobile-${projectQuery.data?.id ?? "none"}`}
+											defaultTitle={projectQuery.data?.title ?? ""}
+											defaultDescription={projectQuery.data?.description}
+											onSave={handleSaveAsTemplate}
+										/>
+									</div>
 								</TabsContent>
 							</Tabs>
 						</CardContent>
@@ -567,8 +622,10 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-base">Output Panel</CardTitle>
-							<CardDescription>Compile results and PDF preview</CardDescription>
+							<CardTitle className="text-base">Çıktı paneli</CardTitle>
+							<CardDescription>
+								Derleme sonuçları ve PDF önizleme
+							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<Badge variant="outline" className={compileMeta.className}>
@@ -580,13 +637,15 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 								/>
 								{compileMeta.label}
 							</Badge>
-							{currentCompile?.outputUrl || currentCompile?.svgOutputUrl ? (
+							{currentCompile?.outputUrl ||
+							currentCompile?.svgOutputUrl ||
+							currentCompile?.pngOutputUrl ? (
 								<div className="grid grid-cols-2 gap-2">
 									{currentCompile.outputUrl ? (
 										<Button asChild variant="outline" size="sm">
 											<a href={`${currentCompile.outputUrl}?download=1`}>
 												<Download />
-												Download PDF
+												PDF indir
 											</a>
 										</Button>
 									) : null}
@@ -594,7 +653,15 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 										<Button asChild variant="outline" size="sm">
 											<a href={`${currentCompile.svgOutputUrl}&download=1`}>
 												<FileImage />
-												Download SVG
+												SVG indir
+											</a>
+										</Button>
+									) : null}
+									{currentCompile.pngOutputUrl ? (
+										<Button asChild variant="outline" size="sm">
+											<a href={`${currentCompile.pngOutputUrl}&download=1`}>
+												<FileImage />
+												PNG indir
 											</a>
 										</Button>
 									) : null}
@@ -608,7 +675,7 @@ export function EditorScreen({ projectId }: { projectId: string }) {
 							<Separator />
 							<ScrollArea className="h-52 rounded-xl border">
 								<pre className="p-3 font-mono text-xs leading-6 text-muted-foreground">
-									{currentCompile?.log ?? "Compile output will appear here."}
+									{currentCompile?.log ?? "Derleme çıktısı burada görünecek."}
 								</pre>
 							</ScrollArea>
 						</CardContent>

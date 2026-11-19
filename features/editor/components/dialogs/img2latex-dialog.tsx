@@ -69,12 +69,12 @@ export function Img2LatexDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-w-lg">
 				<DialogHeader>
-					<DialogTitle>Image to LaTeX</DialogTitle>
+					<DialogTitle>Görselden LaTeX'e</DialogTitle>
 				</DialogHeader>
 
 				<div className="flex flex-col gap-4">
 					<div className="flex items-center gap-3">
-						<span className="shrink-0 text-sm font-medium">Provider</span>
+						<span className="shrink-0 text-sm font-medium">Sağlayıcı</span>
 						<Select
 							value={provider}
 							onValueChange={(v) => setProvider(v as Img2LatexProvider)}
@@ -84,9 +84,9 @@ export function Img2LatexDialog({
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="docker">
-									Docker Model Runner (local)
+									Docker Model Runner (yerel)
 								</SelectItem>
-								<SelectItem value="pix2tex">pix2tex (local)</SelectItem>
+								<SelectItem value="pix2tex">pix2tex (yerel)</SelectItem>
 								<SelectItem value="mathpix">Mathpix (ücretli)</SelectItem>
 							</SelectContent>
 						</Select>
@@ -108,14 +108,15 @@ export function Img2LatexDialog({
 							// biome-ignore lint/performance/noImgElement: blob URL from createObjectURL, Next.js Image does not support blob: protocol
 							<img
 								src={preview}
-								alt="Preview"
+								alt="Önizleme"
 								className="max-h-48 max-w-full rounded object-contain"
 							/>
 						) : (
 							<>
 								<ScanLine className="size-8 text-muted-foreground" />
 								<p className="text-sm text-muted-foreground">
-									Drop an image or click to select (PNG, JPEG, WebP — max 4 MB)
+									Görseli buraya bırakın ya da seçmek için tıklayın (PNG, JPEG,
+									WebP — en fazla 4 MB)
 								</p>
 							</>
 						)}
@@ -136,22 +137,20 @@ export function Img2LatexDialog({
 						disabled={!file || mutation.isPending}
 						onClick={() => file && mutation.mutate(file)}
 					>
-						{mutation.isPending ? "Converting…" : "Convert to LaTeX"}
+						{mutation.isPending ? "Dönüştürülüyor…" : "LaTeX'e dönüştür"}
 					</Button>
 
 					{mutation.error ? (
 						<p className="text-sm text-destructive">
 							{mutation.error instanceof Error
 								? mutation.error.message
-								: "Conversion failed."}
+								: "Dönüştürme başarısız oldu."}
 						</p>
 					) : null}
 
 					{result ? (
 						<div className="flex flex-col gap-2">
-							<p className="text-xs font-medium text-muted-foreground">
-								Result
-							</p>
+							<p className="text-xs font-medium text-muted-foreground">Sonuç</p>
 							<Textarea
 								value={result}
 								onChange={(e) => setResult(e.target.value)}
@@ -159,7 +158,7 @@ export function Img2LatexDialog({
 								rows={5}
 							/>
 							<Button type="button" onClick={handleInsert}>
-								Insert into Editor
+								Editöre ekle
 							</Button>
 						</div>
 					) : null}

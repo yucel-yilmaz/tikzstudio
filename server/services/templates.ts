@@ -13,16 +13,28 @@ export async function listTemplates(
 	return prisma.template.findMany({
 		include: TEMPLATE_INCLUDE,
 		where: {
-			OR: [{ ownerId: null }, ...(ownerId ? [{ ownerId }] : [])],
+			// Visibility (official or own) and search must be combined with AND:
+			// spreading a second `OR` key would overwrite the ownership filter
+			// and expose other users' private items.
+			AND: [
+				{ OR: [{ ownerId: null }, ...(ownerId ? [{ ownerId }] : [])] },
+				...(search
+					? [
+							{
+								OR: [
+									{ title: { contains: search, mode: "insensitive" as const } },
+									{
+										description: {
+											contains: search,
+											mode: "insensitive" as const,
+										},
+									},
+								],
+							},
+						]
+					: []),
+			],
 			...(category ? { category } : {}),
-			...(search
-				? {
-						OR: [
-							{ title: { contains: search, mode: "insensitive" } },
-							{ description: { contains: search, mode: "insensitive" } },
-						],
-					}
-				: {}),
 		},
 		orderBy: [{ ownerId: "asc" }, { category: "asc" }, { title: "asc" }],
 	});
@@ -31,6 +43,19 @@ export async function listTemplates(
 export async function getTemplate(id: string) {
 	const template = await prisma.template.findUnique({
 		where: { id },
+		include: TEMPLATE_INCLUDE,
+	});
+	if (!template) throw new AppError("NOT_FOUND", "Şablon bulunamadı.", 404);
+	return template;
+}
+
+/**
+ * Returns a template the given user may use: an official one (no owner) or
+ * one they own. Other users' private templates are reported as not found.
+ */
+export async function getAccessibleTemplate(ownerId: string, id: string) {
+	const template = await prisma.template.findFirst({
+		where: { id, OR: [{ ownerId: null }, { ownerId }] },
 		include: TEMPLATE_INCLUDE,
 	});
 	if (!template) throw new AppError("NOT_FOUND", "Şablon bulunamadı.", 404);
@@ -82,7 +107,12 @@ export async function createUserTemplate(
 export async function createTemplateFromProject(
 	ownerId: string,
 	projectId: string,
-	meta: { title: string; description?: string; category: string },
+	meta: {
+		title: string;
+		description?: string;
+		category?: string;
+		engine?: LatexEngine;
+	},
 ) {
 	const project = await prisma.project.findFirst({
 		where: { id: projectId, ownerId, deletedAt: null },
@@ -95,7 +125,8 @@ export async function createTemplateFromProject(
 		data: {
 			title: meta.title.trim(),
 			description: meta.description?.trim() || null,
-			category: meta.category.trim() || "Kişisel",
+			category: meta.category?.trim() || "Kişisel",
+			engine: meta.engine ?? "TECTONIC",
 			isOfficial: false,
 			ownerId,
 			files: {

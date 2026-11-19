@@ -1,0 +1,13 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[
+  level distance=1.3cm,
+  sibling distance=2.4cm,
+  every node/.style={draw, rounded corners, inner sep=4pt}
+]
+  \node {Kök}
+    child { node {Sol} }
+    child { node {Sağ} };
+\end{tikzpicture}
+\end{document}

@@ -1,6 +1,7 @@
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { betterAuth } from "better-auth";
 
+import { getSocialProviderConfig } from "@/lib/auth-providers";
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 
@@ -14,6 +15,7 @@ export const auth = betterAuth({
 		enabled: true,
 		autoSignIn: true,
 	},
+	socialProviders: getSocialProviderConfig(),
 	user: {
 		modelName: "User",
 	},

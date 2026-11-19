@@ -119,16 +119,20 @@ body {
 	font-family: var(--font-geist-sans), sans-serif;
 }
 
-a {
-	color: inherit;
-	text-decoration: none;
-}
+/* Element resets live in the base layer so Tailwind utilities (e.g. the
+   text color of a <Button asChild><Link/></Button>) can override them. */
+@layer base {
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
 
-button,
-input,
-textarea,
-select {
-	font: inherit;
+	button,
+	input,
+	textarea,
+	select {
+		font: inherit;
+	}
 }
 
 ::selection {

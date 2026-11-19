@@ -1,4 +1,4 @@
-FROM rust:1.87-bookworm AS builder
+FROM rust:1.88-bookworm AS builder
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -12,7 +12,10 @@ RUN apt-get update \
     zlib1g-dev \
   && rm -rf /var/lib/apt/lists/*
 
-RUN cargo install tectonic
+# Pin the version and use the crate's own Cargo.lock so new transitive releases
+# (which may require a newer rustc) cannot break the image build.
+ARG TECTONIC_VERSION=0.17.0
+RUN cargo install tectonic --version "${TECTONIC_VERSION}" --locked
 
 # Pre-download packages by compiling representative documents.
 # Using an explicit bundle URL so the cache is keyed to that URL,
@@ -26,13 +29,27 @@ COPY docker/compiler/warmup-article.tex  warmup-article.tex
 COPY docker/compiler/warmup-beamer.tex   warmup-beamer.tex
 COPY docker/compiler/warmup-report.tex   warmup-report.tex
 COPY docker/compiler/warmup-turkish.tex  warmup-turkish.tex
+COPY docker/compiler/warmup-math.tex     warmup-math.tex
+COPY docker/compiler/warmup-sizes-body.tex warmup-sizes-body.tex
+COPY docker/compiler/warmup-sizes-10pt.tex warmup-sizes-10pt.tex
+COPY docker/compiler/warmup-sizes-12pt.tex warmup-sizes-12pt.tex
 
 RUN mkdir -p "$XDG_CACHE_HOME" \
  && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup.tex \
  && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-article.tex \
  && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-beamer.tex \
  && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-report.tex \
- && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-turkish.tex
+ && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-turkish.tex \
+ && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-math.tex \
+ && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-sizes-10pt.tex \
+ && tectonic --bundle "$TECTONIC_BUNDLE" --keep-logs warmup-sizes-12pt.tex
+
+# Compile every official template (written by `npm run warmup:sync`) so all
+# packages they use are cached. Each template's main file is main.tex.
+COPY docker/compiler/warmup-templates /warmup/templates
+RUN for dir in /warmup/templates/*/; do \
+      (cd "$dir" && tectonic --bundle "$TECTONIC_BUNDLE" main.tex) || exit 1; \
+    done
 
 FROM debian:bookworm-slim
 
@@ -57,6 +74,7 @@ RUN apt-get update \
     biber \
     texlive-science \
     texlive-pictures \
+    texlive-lang-european \
     poppler-utils \
   && rm -rf /var/lib/apt/lists/*
 

@@ -7,7 +7,7 @@ export const DEFAULT_PROJECT_SOURCE = String.raw`\documentclass[tikz,border=10pt
 
 \begin{tikzpicture}
   \draw[->] (0,0) -- (3,0);
-  \node at (1.5,0.3) {Hello TikZ};
+  \node at (1.5,0.3) {Merhaba TikZ};
 \end{tikzpicture}
 
 \end{document}

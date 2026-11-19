@@ -12,6 +12,7 @@ import path from "node:path";
 
 import { env } from "@/lib/env";
 import { AppError } from "@/lib/errors";
+import { isSafeProjectPath } from "@/lib/file-path";
 import { inferCompileErrorCode } from "@/server/compiler/parser";
 import type {
 	CompileInput,
@@ -22,7 +23,6 @@ import type {
 export class DockerCompilerAdapter implements CompilerAdapter {
 	async compile(input: CompileInput): Promise<CompileResult> {
 		const startedAt = new Date();
-		const workspace = await mkdtemp(path.join(os.tmpdir(), "tikzstudio-"));
 		const sourceBytes = input.files.reduce((sum, file) => {
 			return (
 				sum +
@@ -35,7 +35,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 		if (sourceBytes > env.MAX_SOURCE_SIZE_KB * 1024) {
 			throw new AppError(
 				"VALIDATION_ERROR",
-				"Source exceeds allowed size.",
+				"Kaynak dosyalar izin verilen boyutu aşıyor.",
 				400,
 				{
 					limitKb: env.MAX_SOURCE_SIZE_KB,
@@ -43,12 +43,30 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 			);
 		}
 
+		const workRoot = env.COMPILE_WORK_DIR
+			? path.resolve(env.COMPILE_WORK_DIR)
+			: os.tmpdir();
+		await mkdir(workRoot, { recursive: true });
+		const workspace = await mkdtemp(path.join(workRoot, "tikzstudio-"));
+
 		const outputDir = path.join(workspace, "output");
 		await mkdir(outputDir, { recursive: true });
 
 		try {
 			for (const file of input.files) {
-				const target = path.join(workspace, file.path);
+				// Defense in depth: paths are validated at the API boundary, but
+				// never write outside the workspace even if a bad row slips in.
+				const target = path.resolve(workspace, file.path);
+				if (
+					!isSafeProjectPath(file.path) ||
+					!target.startsWith(`${workspace}${path.sep}`)
+				) {
+					throw new AppError(
+						"SECURITY_BLOCKED",
+						`Güvenli olmayan dosya yolu reddedildi: ${file.path}`,
+						400,
+					);
+				}
 				await mkdir(path.dirname(target), { recursive: true });
 				if (file.binaryContent) {
 					await writeFile(target, file.binaryContent);
@@ -126,7 +144,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 			if (fileInfo.size > env.MAX_OUTPUT_SIZE_MB * 1024 * 1024) {
 				return {
 					status: "FAILED",
-					log: `${log}\nOutput exceeded maximum size.`,
+					log: `${log}\nÇıktı izin verilen en büyük boyutu aştı.`,
 					errorCode: "SECURITY_BLOCKED",
 					pdfOutput: null,
 					svgOutput: null,
@@ -142,7 +160,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 				if (svgInfo.size > env.MAX_OUTPUT_SIZE_MB * 1024 * 1024) {
 					return {
 						status: "FAILED",
-						log: `${log}\nSVG output exceeded maximum size.`,
+						log: `${log}\nSVG çıktısı izin verilen en büyük boyutu aştı.`,
 						errorCode: "SECURITY_BLOCKED",
 						pdfOutput: null,
 						svgOutput: null,
@@ -173,7 +191,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 		} catch (error) {
 			const finishedAt = new Date();
 			const message =
-				error instanceof Error ? error.message : "Compile failed.";
+				error instanceof Error ? error.message : "Derleme başarısız oldu.";
 			return {
 				status: "FAILED",
 				log: message,
@@ -208,7 +226,7 @@ export class DockerCompilerAdapter implements CompilerAdapter {
 					child.kill("SIGKILL");
 					resolve({
 						code: null,
-						log: `${log}\nCompilation timed out.`,
+						log: `${log}\nDerleme zaman aşımına uğradı.`,
 						timedOut: true,
 					});
 				}, timeoutMs);

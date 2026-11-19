@@ -1,0 +1,16 @@
+\begin{tikzpicture}[scale=0.55, thick]
+  \coordinate (A) at (0,0);
+  \coordinate (H) at (3,0);
+  \coordinate (B) at (8,0);
+  \coordinate (C) at (3,4);
+  \draw (A) -- (B) -- (C) -- cycle;
+  \draw[dashed] (C) -- (H);
+  \pic[draw, angle radius=2.5mm] {right angle = C--H--B};
+  \node[below left] at (A) {$A$};
+  \node[below] at (H) {$H$};
+  \node[below right] at (B) {$B$};
+  \node[above] at (C) {$C$};
+  \node[below] at (1.5,0) {$3$};
+  \node[below] at (5.5,0) {$5$};
+  \node[left] at (3,2) {$4$};
+\end{tikzpicture}

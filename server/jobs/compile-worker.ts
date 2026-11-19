@@ -28,7 +28,9 @@ export async function startCompileWorker(): Promise<void> {
 				} catch (error) {
 					console.error("[compile-worker] job failed:", jobId, error);
 					const message =
-						error instanceof Error ? error.message : "Compile job failed.";
+						error instanceof Error
+							? error.message
+							: "Derleme işi başarısız oldu.";
 					await prisma.compileJob
 						.update({
 							where: { id: jobId },
