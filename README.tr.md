@@ -30,7 +30,7 @@
 - 🚦 **Hız sınırlaması** — kullanıcı başına dakikada 5 derleme (veritabanı destekli, ek bağımlılık yok)
 - 💾 **Otomatik kaydetme** — geri çekilme ve görünür kayıt durumu ile
 - 🌗 **Açık/koyu tema** desteği (Tailwind v4)
-- 🇹🇷 **Türkçe arayüz** — arayüzün tamamı, API hata mesajları ve resmi şablonlar Türkçedir; Türkçe babel ve fontlar tüm motorlarda çalışır
+- 🌐 **Türkçe ve İngilizce arayüz** — arayüz ve API hata mesajları Türkçe ve İngilizce kullanılabilir, üst bardaki TR/EN düğmesiyle dil değiştirilir; resmi şablon ve parça adları şimdilik Türkçedir; Türkçe babel ve fontlar tüm motorlarda çalışır
 
 ---
 
@@ -313,7 +313,7 @@ npm run db:migrate
 - [x] Proje ZIP içe/dışa aktarma (Overleaf uyumlu) ve şablon önizlemeleri
 - [x] Projeyi şablon olarak kaydet (proje ayarları paneli; kaydedilmemiş değişiklikler önce kaydedilir)
 - [x] Türkçe arayüz
-- [ ] Çok dilli arayüz (i18n altyapısı)
+- [x] Çok dilli arayüz: Türkçe ve İngilizce (TR/EN düğmesi)
 - [x] Çoklu provider destekli görüntüden LaTeX (img2latex)
 - [ ] Gerçek zamanlı işbirliği (Y.js)
 - [ ] Mobil öncelikli editör iyileştirmeleri
