@@ -18,7 +18,7 @@
 - 📚 **Derleme geçmişi** — geçmiş işlere göz at, arşivlenmiş PDF/SVG/PNG çıktılarını indir
 - 🔁 **Proje çatallama** — herhangi bir genel projeyi kendi çalışma alanına kopyala
 - 🧩 **Çok dosyalı şablonlar** — yeni proje, şablonun tüm dosyalarını (görseller ve `.sty` dahil) kopyalar; editörden kendi şablonlarınızı oluşturabilirsiniz
-- 📚 **Şablon kütüphanesi (33 şablon)** — Türkçe etiketli, gerektiğinde çok dosyalı ve Tectonic ile pdfLaTeX'te doğrulanmış:
+- 📚 **Şablon kütüphanesi (34 şablon)** — Türkçe etiketli, gerektiğinde çok dosyalı ve Tectonic ile pdfLaTeX'te doğrulanmış:
   - **Temel:** şekiller, düğümler, akış şemaları, ağaçlar, çizgeler
   - **Lise matematiği:** üçgen, çember, tkz-euclide, doğru/parabol/parçalı fonksiyon grafikleri, birim çember, sayı doğrusu, Venn, olasılık ağacı, katı cisimler, iki eğri arası alan, A–E şıklı sınav kâğıdı
   - **Üniversite ve akademik:** hata çubuklu veri grafiği ve uyum doğrusu, gruplandırılmış çubuk grafik, normal dağılım, 3B yüzey, vektörler/izdüşüm, değişmeli diyagramlar (tikz-cd), sonlu durum otomatı, kontrol sistemi blok diyagramı, Beamer sunumu, çok dosyalı makale iskeleti
@@ -30,7 +30,7 @@
 - 🚦 **Hız sınırlaması** — kullanıcı başına dakikada 5 derleme (veritabanı destekli, ek bağımlılık yok)
 - 💾 **Otomatik kaydetme** — geri çekilme ve görünür kayıt durumu ile
 - 🌗 **Açık/koyu tema** desteği (Tailwind v4)
-- 🇹🇷 **Türkçe arayüz** — arayüzün tamamı, API hata mesajları ve resmi şablonlar Türkçedir; Türkçe babel ve fontlar tüm motorlarda çalışır
+- 🌐 **Türkçe ve İngilizce arayüz** — arayüz ve API hata mesajları Türkçe ve İngilizce kullanılabilir, üst bardaki TR/EN düğmesiyle dil değiştirilir; resmi şablon ve parça adları, açıklamaları ve kategorileri de seçilen dilde görünür (şablonların LaTeX içeriği Türkçedir); Türkçe babel ve fontlar tüm motorlarda çalışır
 
 ---
 
@@ -313,7 +313,7 @@ npm run db:migrate
 - [x] Proje ZIP içe/dışa aktarma (Overleaf uyumlu) ve şablon önizlemeleri
 - [x] Projeyi şablon olarak kaydet (proje ayarları paneli; kaydedilmemiş değişiklikler önce kaydedilir)
 - [x] Türkçe arayüz
-- [ ] Çok dilli arayüz (i18n altyapısı)
+- [x] Çok dilli arayüz: Türkçe ve İngilizce (TR/EN düğmesi)
 - [x] Çoklu provider destekli görüntüden LaTeX (img2latex)
 - [ ] Gerçek zamanlı işbirliği (Y.js)
 - [ ] Mobil öncelikli editör iyileştirmeleri
