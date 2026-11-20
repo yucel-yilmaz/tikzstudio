@@ -8,7 +8,7 @@
 
 TikZ Studio pairs a CodeMirror editor with a live PDF preview and a hardened Docker compiler (Tectonic, pdfLaTeX, XeLaTeX, LuaLaTeX, pdfLaTeX + Biber). It is built for anyone who writes TikZ/LaTeX: high-school and university students, teachers, and academics. Nothing needs to be installed on the user's machine.
 
-> **Language:** the interface and API error messages are available in Turkish and English, with a TR/EN switcher in the header (the first visit follows the browser language). The official template and snippet names are still in Turkish. Documents can be written in any language; the screenshots below show the English interface with English example projects.
+> **Language:** the interface and API error messages are available in Turkish and English, with a TR/EN switcher in the header (the first visit follows the browser language). Official template and snippet names, descriptions and categories follow the selected language; the LaTeX content of the templates (and the text in their preview images) is in Turkish. Documents can be written in any language; the screenshots below show the English interface with English example projects.
 >
 > **Status:** under active development. APIs and UI may change.
 
@@ -55,7 +55,7 @@ TikZ Studio pairs a CodeMirror editor with a live PDF preview and a hardened Doc
 
 | Template gallery | Dashboard |
 | --- | --- |
-| ![New project dialog in the English UI with template thumbnails and a category filter; some template names are still in Turkish](site/screenshots/template-gallery.png) | ![Dashboard with six English example projects](site/screenshots/dashboard.png) |
+| ![New project dialog in the English UI with template thumbnails, English template names and a category filter](site/screenshots/template-gallery.png) | ![Dashboard with six English example projects](site/screenshots/dashboard.png) |
 
 **Full LaTeX documents**: an article with sections, numbered equations and an embedded TikZ plot, compiled with pdfLaTeX.
 
@@ -372,7 +372,7 @@ npm run db:migrate
 - [x] Save project as template (project settings panel; unsaved edits are saved first)
 - [x] Turkish UI
 - [x] Multi-language UI: Turkish and English with a TR/EN switcher
-- [ ] English names for the official templates and snippets
+- [x] English names for the official templates and snippets
 - [x] Image to LaTeX (img2latex) with multiple provider support
 - [ ] Real-time collaboration (Y.js)
 - [ ] Mobile-first editor improvements
