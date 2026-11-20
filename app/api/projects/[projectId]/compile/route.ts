@@ -5,6 +5,7 @@ import { compileProjectSchema } from "@/server/schemas/project";
 import {
 	enqueueCompileForProject,
 	getLatestCompileOutputForProject,
+	getLatestPublicCompileOutput,
 	listCompileHistoryForProject,
 } from "@/server/services/compile";
 
@@ -14,12 +15,12 @@ export async function GET(
 ) {
 	try {
 		const session = await getSessionFromHeaders(request.headers);
-		if (!session) {
-			return Response.json({ compileJob: null });
-		}
-
 		const { projectId } = await context.params;
 		const url = new URL(request.url);
+
+		if (!session) {
+			return publicCompileResponse(projectId);
+		}
 
 		if (url.searchParams.get("history") === "1") {
 			const limit = Number.parseInt(url.searchParams.get("limit") ?? "20", 10);
@@ -35,11 +36,23 @@ export async function GET(
 			session.user.id,
 			projectId,
 		);
+		if (!job) {
+			// Not the owner (or never compiled): fall back to the public output.
+			return publicCompileResponse(projectId);
+		}
 
-		return Response.json({ compileJob: job ? toCompileJobDto(job) : null });
+		return Response.json({ compileJob: toCompileJobDto(job) });
 	} catch (error) {
 		return toErrorResponse(error);
 	}
+}
+
+/** Share-page view: the latest public output, without the owner's log. */
+async function publicCompileResponse(projectId: string) {
+	const job = await getLatestPublicCompileOutput(projectId);
+	return Response.json({
+		compileJob: job ? { ...toCompileJobDto(job), log: "" } : null,
+	});
 }
 
 export async function POST(
